@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class GameModel {
-    private Player cPlayer;
+    public Player cPlayer;
     private ArrayList<Tile> tiles = new ArrayList<>();
     private ArrayList<Player> players = new ArrayList<>();
     private final int TCOUNT = 108;
@@ -20,7 +20,7 @@ public class GameModel {
     private int turns = 0;
     private Tile[][] board = new Tile[XLENGTH][YLENGTH];
 
-    private enum Legality {
+    public enum Legality {
         LEGAL, ILLEGAL;
     }
 
@@ -178,63 +178,90 @@ public class GameModel {
 
     public Legality play(int xpos, int ypos, Tile tile) {
         if (board[xpos][ypos] != null) return Legality.ILLEGAL;
-        if (turns != 0)
-            if(board[xpos - 1][ypos] == null && board[xpos + 1][ypos] == null && board[xpos][ypos - 1] == null && board[xpos][ypos + 1] == null)
-                return Legality.ILLEGAL;
-            else {
-                // Shape
-                if (board[xpos - 1][ypos].shape != board[xpos][ypos].shape)
-                    return Legality.ILLEGAL;
-                if (board[xpos + 1][ypos].shape != board[xpos][ypos].shape)
-                    return Legality.ILLEGAL;
-                if (board[xpos][ypos - 1].shape != board[xpos][ypos].shape)
-                    return Legality.ILLEGAL;
-                if (board[xpos][ypos + 1].shape != board[xpos][ypos].shape)
-                    return Legality.ILLEGAL;
-                // Color
-                if (board[xpos - 1][ypos].color != board[xpos][ypos].color)
-                    return Legality.ILLEGAL;
-                if (board[xpos + 1][ypos].color != board[xpos][ypos].color)
-                    return Legality.ILLEGAL;
-                if (board[xpos][ypos - 1].color != board[xpos][ypos].color)
-                    return Legality.ILLEGAL;
-                if (board[xpos][ypos + 1].color != board[xpos][ypos].color)
-                    return Legality.ILLEGAL;
-            }
+        if(legal(xpos, ypos) == Legality.ILLEGAL) return Legality.ILLEGAL;
         if(tile != null) {
             tile.xPos = xpos;
             tile.yPos = ypos;
             board[xpos][ypos] = tile;
             plays.add(tile);
             turns++;
+            turn();
         }
         return Legality.LEGAL;
     }
 
+    private void turn() {
+        int i = 0;
+        for (; i < players.size(); i++) {
+            if(cPlayer.name == players.get(i).name) {
+                i++;
+                if(i > players.size() - 1) i = 0;
+                cPlayer = players.get(i);
+                return;
+            }
+        }
+    }
+
+    private Legality legal(int xpos, int ypos) {
+        int lCount = 0;
+        if (turns != 0)
+            if(nul(xpos - 1, ypos) && nul(xpos + 1, ypos) && nul(xpos, ypos - 1) && nul(xpos, ypos + 1))
+                return Legality.ILLEGAL;
+            else {
+                if (equivalent(xpos - 1, ypos, xpos, ypos))
+                    lCount++;
+                if (equivalent(xpos + 1, ypos, xpos, ypos))
+                    lCount++;
+                if (equivalent(xpos, ypos - 1, xpos, ypos))
+                    lCount++;
+                if (equivalent(xpos, ypos + 1, xpos, ypos))
+                    lCount++;
+            }
+        if(turns == 0 || lCount > 0)
+            return Legality.LEGAL;
+        return Legality.ILLEGAL;
+    }
+
+    private boolean nul(int xpos, int ypos) {
+        if(xpos >= 0 && ypos >= 0) {
+            Tile tile = board[xpos][ypos];
+            return tile == null;
+        }
+        return true;
+    }
+
+    private boolean equivalent(int x1pos, int y1pos, int x2pos, int y2pos) {
+        if(x1pos >= 0 && x2pos >= 0 && y1pos >= 0 && y2pos >=0) {
+            Tile tile1 = board[x1pos][y1pos];
+            Tile tile2 = board[x2pos][y2pos];
+            if(tile1 != null && tile2 != null) {
+                if (tile1.shape == tile2.shape)
+                    return true;
+                else return tile1.color == tile2.color;
+            }
+            return false;
+        }
+        return false;
+    }
+
     private void assignPoints() {
         for (Tile tile: plays) {
-
+            rAssignPoints(tile.xPos, tile.yPos);
         }
-
         // reinitialize
         plays = new ArrayList<>();
     }
 
     private void rAssignPoints(int xpos, int ypos) {
-        if (play(xpos, ypos, null) == Legality.LEGAL) {
-            
+        if (legal(xpos, ypos) == Legality.LEGAL) {
+            rAssignPoints(xpos - 1, ypos);
+            cPlayer.points++;
+            rAssignPoints(xpos + 1, ypos);
+            cPlayer.points++;
+            rAssignPoints(xpos, ypos - 1);
+            cPlayer.points++;
+            rAssignPoints(xpos, ypos + 1);
+            cPlayer.points++;
         }
-    }
-
-    public int getCPlayerTileCount() {
-        return cPlayer.tiles.size();
-    }
-
-    public int getYLENGTH() {
-        return YLENGTH;
-    }
-
-    public int getXLENGTH() {
-        return XLENGTH;
     }
 }
