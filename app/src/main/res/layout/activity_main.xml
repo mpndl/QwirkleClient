@@ -31,7 +31,7 @@
         app:layout_constraintEnd_toStartOf="@+id/yPos"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/test" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/yPos"
@@ -47,14 +47,27 @@
         app:layout_constraintStart_toEndOf="@+id/xPos" />
 
     <Button
-        android:id="@+id/add"
+        android:id="@+id/play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="setOnPlay"
+        android:text="Play"
+        app:layout_constraintBaseline_toBaselineOf="@+id/draw"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/draw"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/draw"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Add"
-        android:onClick="setOnAdd"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:onClick="setOnDraw"
+        android:text="Draw"
+        app:layout_constraintEnd_toStartOf="@+id/play"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/yPos" />
+        app:layout_constraintTop_toBottomOf="@+id/xPos" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,7 +18,7 @@ public class GameModel {
     private final int YLENGTH = 50;
     private ArrayList<Tile> plays = new ArrayList<>();
     private int turns = 0;
-    private Tile[][] board = new Tile[XLENGTH][YLENGTH];
+    public Tile[][] board = new Tile[XLENGTH][YLENGTH];
 
     public enum Legality {
         LEGAL, ILLEGAL;
@@ -152,7 +152,7 @@ public class GameModel {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public void draw(Tile... ts) {
+    public void draw(boolean turn , Tile... ts) {
         int hcount = HCOUNT;
         int tslength = ts.length;
         if(tiles.size() > 0) {
@@ -174,14 +174,30 @@ public class GameModel {
                 }
             }
         }
+        if(turn)
+            turn();
+    }
+
+    private void turn() {
+        int i = 0;
+        for (; i < players.size(); i++) {
+            if(cPlayer.name == players.get(i).name) {
+                i++;
+                if(i >= players.size()) i = 0;
+                cPlayer = players.get(i);
+                return;
+            }
+        }
     }
 
     public Legality play(int xpos, int ypos, Tile tile) {
         if (board[xpos][ypos] != null) return Legality.ILLEGAL;
-        if(legal(xpos, ypos) == Legality.ILLEGAL) return Legality.ILLEGAL;
+        if(legal(xpos, ypos, tile) == Legality.ILLEGAL) return Legality.ILLEGAL;
         if(tile != null) {
             tile.xPos = xpos;
             tile.yPos = ypos;
+            cPlayer.tiles.remove(tile);
+            draw(false, tile);
             board[xpos][ypos] = tile;
             plays.add(tile);
             turns++;
@@ -190,36 +206,38 @@ public class GameModel {
         return Legality.LEGAL;
     }
 
-    private void turn() {
-        int i = 0;
-        for (; i < players.size(); i++) {
-            if(cPlayer.name == players.get(i).name) {
-                i++;
-                if(i > players.size() - 1) i = 0;
-                cPlayer = players.get(i);
-                return;
+    private Legality legal(int xpos, int ypos, Tile tile) {
+        if (turns != 0) {
+            if (nul(xpos - 1, ypos) && nul(xpos + 1, ypos) && nul(xpos, ypos - 1) && nul(xpos, ypos + 1)) {
+                return Legality.ILLEGAL;
+            } else {
+                if (equivalent(xpos - 1, ypos, tile))
+                    return Legality.LEGAL;
+                if (equivalent(xpos + 1, ypos, tile))
+                    return Legality.LEGAL;
+                if (equivalent(xpos, ypos - 1, tile))
+                    return Legality.LEGAL;
+                if (equivalent(xpos, ypos + 1, tile))
+                    return Legality.LEGAL;
             }
         }
-    }
-
-    private Legality legal(int xpos, int ypos) {
-        int lCount = 0;
-        if (turns != 0)
-            if(nul(xpos - 1, ypos) && nul(xpos + 1, ypos) && nul(xpos, ypos - 1) && nul(xpos, ypos + 1))
-                return Legality.ILLEGAL;
-            else {
-                if (equivalent(xpos - 1, ypos, xpos, ypos))
-                    lCount++;
-                if (equivalent(xpos + 1, ypos, xpos, ypos))
-                    lCount++;
-                if (equivalent(xpos, ypos - 1, xpos, ypos))
-                    lCount++;
-                if (equivalent(xpos, ypos + 1, xpos, ypos))
-                    lCount++;
-            }
-        if(turns == 0 || lCount > 0)
+        if(turns == 0)
             return Legality.LEGAL;
         return Legality.ILLEGAL;
+    }
+
+    private boolean equivalent(int xpos, int ypos, Tile tile1) {
+        if(xpos >= 0 && ypos >= 0 && xpos < XLENGTH && ypos < YLENGTH) {
+            Tile tile2 = board[xpos][ypos];
+            if(tile1 != null && tile2 != null) {
+                //Log.i(TAG, tile2.color + ", " + tile2.shape + ", " + tile1.color + ", " + tile1.shape);
+                if (tile1.shape.equals(tile2.shape))
+                    return true;
+                else return tile1.color.equals(tile2.color);
+            }
+            return false;
+        }
+        return false;
     }
 
     private boolean nul(int xpos, int ypos) {
@@ -230,37 +248,23 @@ public class GameModel {
         return true;
     }
 
-    private boolean equivalent(int x1pos, int y1pos, int x2pos, int y2pos) {
-        if(x1pos >= 0 && x2pos >= 0 && y1pos >= 0 && y2pos >=0) {
-            Tile tile1 = board[x1pos][y1pos];
-            Tile tile2 = board[x2pos][y2pos];
-            if(tile1 != null && tile2 != null) {
-                if (tile1.shape == tile2.shape)
-                    return true;
-                else return tile1.color == tile2.color;
-            }
-            return false;
-        }
-        return false;
-    }
-
     private void assignPoints() {
         for (Tile tile: plays) {
-            rAssignPoints(tile.xPos, tile.yPos);
+            rAssignPoints(tile.xPos, tile.yPos, tile);
         }
         // reinitialize
         plays = new ArrayList<>();
     }
 
-    private void rAssignPoints(int xpos, int ypos) {
-        if (legal(xpos, ypos) == Legality.LEGAL) {
-            rAssignPoints(xpos - 1, ypos);
+    private void rAssignPoints(int xpos, int ypos, Tile tile) {
+        if (legal(xpos, ypos, tile) == Legality.LEGAL) {
+            rAssignPoints(xpos - 1, ypos, tile);
             cPlayer.points++;
-            rAssignPoints(xpos + 1, ypos);
+            rAssignPoints(xpos + 1, ypos, tile);
             cPlayer.points++;
-            rAssignPoints(xpos, ypos - 1);
+            rAssignPoints(xpos, ypos - 1, tile);
             cPlayer.points++;
-            rAssignPoints(xpos, ypos + 1);
+            rAssignPoints(xpos, ypos + 1, tile);
             cPlayer.points++;
         }
     }
