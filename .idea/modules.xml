@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Qwirkle.iml" filepath="$PROJECT_DIR$/.idea/Qwirkle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Qwirkle.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Qwirkle.app.iml" />
     </modules>
   </component>
 </project>
