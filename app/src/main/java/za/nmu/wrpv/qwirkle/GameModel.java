@@ -305,18 +305,4 @@ public class GameModel {
         }
         Log.i(TAG, "---------------------------------------");
     }
-
-    private ArrayList<Tile> dirTiles(int xpos, int ypos, int xdir, int ydir) {
-        ArrayList<Tile> tempTiles = new ArrayList<>();
-        int tempXpos = xpos + xdir;
-        int tempYpos = ypos + ydir;
-        while (withinBounds(tempXpos,tempYpos)) {
-            Tile tempTile = board[tempXpos][tempYpos];
-            if(tempTile == null) break;
-            tempTiles.add(tempTile);
-            tempXpos+=xdir;
-            tempYpos+=ydir;
-        }
-        return tempTiles;
-    }
 }
