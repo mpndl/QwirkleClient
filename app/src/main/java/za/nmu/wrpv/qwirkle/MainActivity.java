@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         if(legality == GameModel.Legality.LEGAL)
             tvLegal.setText(tvLegal.getText().toString() + "(" + gameModel.board[xPos][yPos].color + "," + gameModel.board[xPos][yPos].shape + "), ");
         else
-            Toast.makeText(this, "ILLEGAL", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "ILLEGAL", Toast.LENGTH_SHORT).show();
     }
 
     public void setOnDraw(View view) {

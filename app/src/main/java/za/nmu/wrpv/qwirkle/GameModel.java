@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 
 public class GameModel {
     public Player cPlayer;
@@ -207,30 +208,51 @@ public class GameModel {
         if(turns == 0)
             return Legality.LEGAL;
         if (equivalent(xpos - 1, ypos, tile))
-            return Legality.LEGAL;
+            if(!duplicate(xpos, ypos, -1, 0, tile))
+                return Legality.LEGAL;
         if (equivalent(xpos + 1, ypos, tile))
-            return Legality.LEGAL;
+            if(!duplicate(xpos, ypos, +1, 0, tile))
+                return Legality.LEGAL;
         if (equivalent(xpos, ypos - 1, tile))
-            return Legality.LEGAL;
+            if(!duplicate(xpos, ypos, 0, -1, tile))
+                return Legality.LEGAL;
         if (equivalent(xpos, ypos + 1, tile))
-            return Legality.LEGAL;
-        if(!duplicate(xpos, ypos, tile, new ArrayList<>()))
-            return Legality.LEGAL;
+            if(!duplicate(xpos, ypos, 0, +1, tile))
+                return Legality.LEGAL;
         return Legality.ILLEGAL;
     }
 
-    // bug
-    private boolean duplicate(int xpos, int ypos, Tile tile, ArrayList<Tile> tcount) {
-        if(tcount.size() <= 6) {
-            for (Tile t: tcount) {
-                if(t.shape.equals(tile.shape) && t.color.equals(tile.color))
+    private boolean duplicate(int xpos, int ypos, int xdir, int ydir, Tile tile) {
+        ArrayList<Tile> tempTiles = new ArrayList<>();
+        int tempXpos = xpos + xdir;
+        int tempYpos = ypos + ydir;
+        while (withinBounds(tempXpos,tempYpos)) {
+            Tile tempTile = board[tempXpos][tempYpos];
+            if(tempTile == null) break;
+            tempTiles.add(tempTile);
+            tempXpos+=xdir;
+            tempYpos+=ydir;
+        }
+
+        if(tempTiles.size() > 1) {
+            for (int i = 0; i < tempTiles.size(); i++) {
+                Tile tempTile = tempTiles.get(i);
+                if (tempTile.shape.equals(tile.shape) && tempTile.color.equals(tile.color))
                     return true;
-                tcount.add(t);
             }
-            duplicate(xpos - 1, ypos, tile, tcount);
-            duplicate(xpos + 1, ypos, tile, tcount);
-            duplicate(xpos, ypos - 1, tile, tcount);
-            duplicate(xpos, ypos + 1, tile, tcount);
+
+            if(tempTiles.size() > 2) {
+                for (int i = 0; i < tempTiles.size(); i++) {
+                    Tile tile1 = tempTiles.get(tempTiles.size() - 2);
+                    Tile tile2 = tempTiles.get(tempTiles.size() - 1);
+                    if(tile1.color.equals(tile2.color))
+                        if(!tile2.color.equals(tile.color))
+                            return true;
+                    else if(tile1.shape.equals(tile2.shape))
+                        if (!tile2.shape.equals(tile.shape))
+                            return true;
+                }
+            }
         }
         return false;
     }
@@ -241,6 +263,12 @@ public class GameModel {
             return tile == null;
         }
         return true;
+    }
+
+    private boolean withinBounds(int xpos, int ypos) {
+        if(xpos >= 0 && ypos >= 0 && xpos < XLENGTH && ypos < YLENGTH)
+            return true;
+        return false;
     }
 
     private boolean equivalent(int xpos, int ypos, Tile tile1) {
