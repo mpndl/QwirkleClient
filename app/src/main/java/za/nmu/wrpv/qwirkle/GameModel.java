@@ -286,23 +286,37 @@ public class GameModel {
 
     private void assignPoints() {
         for (Tile tile: plays) {
-            calculate(tile.xPos, tile.yPos, tile);
+            calculate(tile.xPos, tile.yPos, -1, 0, tile);
         }
         // reinitialize
         plays = new ArrayList<>();
     }
 
-    private void calculate(int xpos, int ypos, Tile tile) {
-        if (legal(xpos, ypos, tile) == Legality.LEGAL) {
-            calculate(xpos - 1, ypos, tile);
+    private void calculate(int xpos, int ypos, int xdir, int ydir, Tile tile) {
+        if (legal(xpos, ypos, tile) == Legality.LEGAL && withinBounds(xpos, ypos)) {
             cPlayer.points++;
-            calculate(xpos + 1, ypos, tile);
-            cPlayer.points++;
-            calculate(xpos, ypos - 1, tile);
-            cPlayer.points++;
-            calculate(xpos, ypos + 1, tile);
-            cPlayer.points++;
+            calculate(xpos + xdir, ypos + ydir, xdir, ydir, tile);
         }
-        cPlayer.points++;
+    }
+
+    private void score() {
+        for (Player player: players) {
+            Log.i(TAG, player.name + ": " + player.points);
+        }
+        Log.i(TAG, "---------------------------------------");
+    }
+
+    private ArrayList<Tile> dirTiles(int xpos, int ypos, int xdir, int ydir) {
+        ArrayList<Tile> tempTiles = new ArrayList<>();
+        int tempXpos = xpos + xdir;
+        int tempYpos = ypos + ydir;
+        while (withinBounds(tempXpos,tempYpos)) {
+            Tile tempTile = board[tempXpos][tempYpos];
+            if(tempTile == null) break;
+            tempTiles.add(tempTile);
+            tempXpos+=xdir;
+            tempYpos+=ydir;
+        }
+        return tempTiles;
     }
 }

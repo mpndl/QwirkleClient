@@ -35,10 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
         Tile cPlayerTile = gameModel.cPlayer.tiles.get(0);
         GameModel.Legality legality = gameModel.play(xPos, yPos, cPlayerTile);
-        if(legality == GameModel.Legality.LEGAL)
+        if(legality == GameModel.Legality.LEGAL) {
             tvLegal.setText(tvLegal.getText().toString() + "(" + gameModel.board[xPos][yPos].color + "," + gameModel.board[xPos][yPos].shape + "), ");
-        else
-            Toast.makeText(this, "ILLEGAL", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void setOnDraw(View view) {
