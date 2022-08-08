@@ -234,14 +234,14 @@ public class GameModel {
             tempYpos+=ydir;
         }
 
-        if(tempTiles.size() > 1) {
+        if(tempTiles.size() >= 1) {
             for (int i = 0; i < tempTiles.size(); i++) {
                 Tile tempTile = tempTiles.get(i);
                 if (tempTile.shape.equals(tile.shape) && tempTile.color.equals(tile.color))
                     return true;
             }
 
-            if(tempTiles.size() > 2) {
+            if(tempTiles.size() >= 2) {
                 for (int i = 0; i < tempTiles.size(); i++) {
                     Tile tile1 = tempTiles.get(tempTiles.size() - 2);
                     Tile tile2 = tempTiles.get(tempTiles.size() - 1);
@@ -286,10 +286,19 @@ public class GameModel {
 
     private void assignPoints() {
         for (Tile tile: plays) {
-            calculate(tile.xPos, tile.yPos, -1, 0, tile);
+            //calculate(tile.xPos, tile.yPos, -1, 0, tile);
+            calculate2(tile.xPos, tile.yPos, tile);
         }
+        Log.i(TAG, "PLAYS: " + plays.size());
         // reinitialize
         plays = new ArrayList<>();
+    }
+
+    private void calculate2(int xpos, int ypos, Tile tile) {
+        if (legal(xpos, ypos, tile) == Legality.LEGAL && withinBounds(xpos, ypos)) {
+            cPlayer.points++;
+            calculate2(xpos -1, ypos, tile);
+        }
     }
 
     private void calculate(int xpos, int ypos, int xdir, int ydir, Tile tile) {
