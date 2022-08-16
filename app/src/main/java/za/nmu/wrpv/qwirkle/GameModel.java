@@ -7,7 +7,9 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
 
 public class GameModel {
     public Player cPlayer;
@@ -25,6 +27,8 @@ public class GameModel {
     private int points = 0;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
     public Tile[][] tempBoard = null;
+    Stack<int[]> stack = new Stack<>();
+    ArrayList<Tile> ts = new ArrayList<>();
     private boolean placing = false;
     public boolean backedup = false;
     private TextView cPlayerTilesView;
@@ -46,7 +50,7 @@ public class GameModel {
     }
 
     private void initializeTiles() {
-        ArrayList<Tile.Color> colors = new ArrayList<>(Arrays.asList(Tile.Color.BLUE, Tile.Color.GREEN, Tile.Color.ORANGE, Tile.Color.RED, Tile.Color.RED, Tile.Color.YELLOW));
+        ArrayList<Tile.Color> colors = new ArrayList<>(Arrays.asList(Tile.Color.BLUE, Tile.Color.GREEN, Tile.Color.ORANGE, Tile.Color.RED, Tile.Color.PURPLE, Tile.Color.YELLOW));
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
         int j = 0;
         int k = 0;
@@ -241,7 +245,7 @@ public class GameModel {
     }
 
     public void place(int xpos, int ypos, Tile tile) {
-        Log.i(TAG, "place: " + tile.color + "," + tile.shape);
+        //Log.i(TAG, "place: " + tile.color + "," + tile.shape);
         if(legal(xpos, ypos, tile) == Legality.LEGAL) {
             if(!placing)
                 placing = true;
@@ -292,116 +296,164 @@ public class GameModel {
         if (tempBoard[xpos][ypos] != null) return Legality.ILLEGAL;
         if(turns == 0)
             return Legality.LEGAL;
-        if (!duplicate(xpos, ypos, tile))
+        if (next(xpos, ypos, tile))
             return Legality.LEGAL;
+        Log.i(TAG, "legal: --------------------------------------------------------------------");
         return Legality.ILLEGAL;
     }
 
-    private boolean duplicate(int xpos, int ypos,Tile tile) {
-        if(equivalent(xpos - 1, ypos, tile) || !equivalent(xpos + 1, ypos, tile) ||
-                equivalent(xpos, ypos - 1, tile) || !equivalent(xpos, ypos + 1, tile)) {
-            ArrayList<Tile> tempTiles = new ArrayList<>();
-            for (Tile[] value : tempBoard) {
-                for (int j = 0; j < tempBoard.length; j++) {
-                    if (value[j] != null)
-                        tempTiles.add(value[j]);
-                }
+    private boolean next(int xpos, int ypos,Tile tile) {
+        if(!identical(xpos, ypos, -1, 0, tile) && !identical(xpos, ypos, 1, 0, tile) &&
+                !identical(xpos, ypos, 0, -1, tile) && !identical(xpos, ypos, 0, 1, tile)) {
+            if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
+                    && equivalent(xpos, ypos - 1, tile) && equivalent(xpos, ypos + 1, tile)) {
+                ArrayList<Tile> tsLeft = getAdjcTiles(xpos, ypos, -1, 0);
+                ts = new ArrayList<>();
+                ArrayList<Tile> tsRight = getAdjcTiles(xpos, ypos, 1, 0);
+                ts = new ArrayList<>();
+                ArrayList<Tile> tsTop = getAdjcTiles(xpos, ypos, 0, -1);
+                ts = new ArrayList<>();
+                ArrayList<Tile> tsBottom = getAdjcTiles(xpos, ypos, 0, 1);
+
+                return (adjcEquivalent(xpos, ypos, tile, tsRight) && adjcEquivalent(xpos, ypos, tile, tsLeft)
+                        && adjcEquivalent(xpos, ypos, tile, tsTop) && adjcEquivalent(xpos, ypos, tile, tsBottom));
             }
-            if(tempTiles.size() == 1) {
-                Tile tile2 = tempTiles.get(0);
-                if(tile2.color.equals(tile.color))
-                    return false;
-                else if(tile2.shape.equals(tile.shape))
-                    return false;
-            }
-            else if (tempTiles.size() >= 2) {
-                Tile tile1 = tempTiles.get(tempTiles.size() - 2);
-                Tile tile2 = tempTiles.get(tempTiles.size() - 1);
-                if(tile1.shape.equals(tile2.shape)) {
-                    if (tile1.yPos == tile2.yPos) {
-                        if (ypos == tile1.yPos) {
-                            if(tile.shape.equals(tile1.shape))
-                                return false;
-                        }
-                        else {
-                            if(xpos == tile1.xPos) {
-                                if(tile.color.equals(tile1.color))
-                                    return false;
-                            }
-                            else if(xpos == tile2.xPos) {
-                                if (tile.color.equals(tile2.color))
-                                    return false;
-                            }
-                        }
-                    } else if (tile1.xPos == tile2.xPos) {
+        }
+        return false;
+    }
+
+    private boolean adjcEquivalent(int xpos, int ypos, Tile tile, ArrayList<Tile> ts) {
+        if (ts.size() == 0) {
+            return true;
+        }
+        else if (ts.size() == 1) {
+            Tile tile2 = ts.get(0);
+            if(tile2.color.equals(tile.color))
+                return true;
+            else return tile2.shape.equals(tile.shape);
+        }
+        else {
+            ts.size();
+            Tile tile1 = ts.get(0);
+            Tile tile2 = ts.get(1);
+            if(tile1.shape.equals(tile2.shape)) {
+                if (tile1.yPos == tile2.yPos) {
+                    if (ypos == tile1.yPos) {
+                        return tile.shape.equals(tile1.shape);
+                    }
+                    else {
                         if(xpos == tile1.xPos) {
-                            if (tile.shape.equals(tile1.shape))
-                                return false;
+                            return tile.color.equals(tile1.color);
                         }
-                        else {
-                            if(ypos == tile1.yPos) {
-                                if (tile.color.equals(tile1.color))
-                                    return false;
-                            }
-                            else if (ypos == tile2.yPos) {
-                                if (tile.color.equals(tile2.color))
-                                    return false;
-                            }
+                        else if(xpos == tile2.xPos) {
+                            return tile.color.equals(tile2.color);
+                        }
+                    }
+                } else if (tile1.xPos == tile2.xPos) {
+                    if(xpos == tile1.xPos) {
+                        return tile.shape.equals(tile1.shape);
+                    }
+                    else {
+                        if(ypos == tile1.yPos) {
+                            return tile.color.equals(tile1.color);
+                        }
+                        else if (ypos == tile2.yPos) {
+                            return tile.color.equals(tile2.color);
                         }
                     }
                 }
-                else if(tile1.color.equals(tile2.color)) {
-                    if (tile1.yPos == tile2.yPos) {
-                        if (ypos == tile1.yPos) {
-                            if(tile.color.equals(tile1.color))
-                                return false;
-                        }
-                        else {
-                            if(xpos == tile1.xPos) {
-                                if(tile.shape.equals(tile1.shape))
-                                    return false;
-                            }
-                            else if(xpos == tile2.xPos) {
-                                if (tile.shape.equals(tile2.shape))
-                                    return false;
-                            }
-                        }
-                    } else if (tile1.xPos == tile2.xPos) {
+            }
+            else if(tile1.color.equals(tile2.color)) {
+                //Log.i(TAG, "duplicate: tile1.color.equals(tile2.color)");
+                if (tile1.yPos == tile2.yPos) {
+                    if (ypos == tile1.yPos) {
+                        return tile.color.equals(tile1.color);
+                    }
+                    else {
                         if(xpos == tile1.xPos) {
-                            if (tile.color.equals(tile1.color))
-                                return false;
+                            return tile.shape.equals(tile1.shape);
                         }
-                        else {
-                            if(ypos == tile1.yPos) {
-                                if (tile.shape.equals(tile1.shape))
-                                    return false;
-                            }
-                            else if (ypos == tile2.yPos) {
-                                if (tile.shape.equals(tile2.shape))
-                                    return false;
-                            }
+                        else if(xpos == tile2.xPos) {
+                            return tile.shape.equals(tile2.shape);
+                        }
+                    }
+                } else if (tile1.xPos == tile2.xPos) {
+                    //Log.i(TAG, "duplicate: tile1.xPos == tile2.xPos");
+                    if(xpos == tile1.xPos) {
+                        return tile.color.equals(tile1.color);
+                    }
+                    else {
+                        //Log.i(TAG, "duplicate: xpos != tile1.xPos");
+                        if(ypos == tile1.yPos) {
+                            //Log.i(TAG, "duplicate: ypos == tileNextTo.yPos");
+                            return tile.shape.equals(tile1.shape);
+                        }
+                        else if(ypos == tile2.yPos) {
+                            return tile.shape.equals(tile2.shape);
                         }
                     }
                 }
             }
         }
-        return true;
+        return false;
+    }
+
+
+    private ArrayList<Tile> getAdjcTiles(int xpos, int ypos, int xdir, int ydir) {
+        if (!nul(xpos + xdir, ypos + ydir)) {
+            ts.add(tempBoard[xpos + xdir][ypos + ydir]);
+
+            return getAdjcTiles(xpos + xdir, ypos + ydir, xdir, ydir);
+        }
+
+        if (ts.size() == 1) {
+            Tile temp = ts.get(0);
+            if (xdir != 0) {
+                if (withinBounds(temp.xPos, temp.yPos - 1) && tempBoard[temp.xPos][temp.yPos - 1] != null) {
+                    ts.add(tempBoard[temp.xPos][temp.yPos - 1]);
+                }
+                else if (withinBounds(temp.xPos, temp.yPos + 1) && tempBoard[temp.xPos][temp.yPos + 1] != null)
+                    ts.add(tempBoard[temp.xPos][temp.yPos + 1]);
+            }
+            else {
+                if (withinBounds(temp.xPos - 1, temp.yPos) && tempBoard[temp.xPos - 1][temp.yPos] != null) {
+                    ts.add(tempBoard[temp.xPos - 1][temp.yPos]);
+                }
+                else if (withinBounds(temp.xPos + 1, temp.yPos) && tempBoard[temp.xPos + 1][temp.yPos] != null)
+                    ts.add(tempBoard[temp.xPos + 1][temp.yPos]);
+            }
+
+        }
+        return (ArrayList<Tile>) ts.clone();
+    }
+
+    private boolean identical(int xpos, int ypos, int xdir, int ydir, Tile tile1) {
+        if(!nul(xpos + xdir, ypos + ydir)) {
+            Tile tile2 = tempBoard[xpos + xdir][ypos + ydir];
+            if(tile1 != null && tile2 != null) {
+                if (tile1.shape.equals(tile2.shape) && tile1.color.equals(tile2.color)) {
+                    return true;
+                }
+                else {
+                    return identical(xpos + xdir, ypos + ydir, xdir, ydir, tile1);
+                }
+            }
+            else return false;
+        }
+        return false;
     }
 
     private boolean equivalent(int xpos, int ypos, Tile tile1) {
         if(xpos >= 0 && ypos >= 0 && xpos < XLENGTH && ypos < YLENGTH) {
             Tile tile2 = tempBoard[xpos][ypos];
             if(tile1 != null && tile2 != null) {
-                if(!(tile1.shape.equals(tile2.shape) && tile1.color.equals(tile2.color))) {
-                    if (tile1.shape.equals(tile2.shape)) {
-                        return true;
-                    } else {
-                        return tile1.color.equals(tile2.color);
-                    }
-                }
+                if (tile1.shape.equals(tile2.shape))
+                    return true;
+                else return tile1.color.equals(tile2.color);
             }
+            else return true;
         }
-        return false;
+        return true;
     }
 
     private boolean nul(int xpos, int ypos) {
@@ -417,17 +469,13 @@ public class GameModel {
     }
 
     private void assignPoints() {
-        /*for (Tile tile: places) {
-            calculate(tile.xPos, tile.yPos, 0, 0);
-            // points--;
-            Log.i(TAG,  cPlayer.name+ " EARNED: >>>>> " + points);
-            Log.i(TAG, "assignPoints: ---------------------------------------");
-            cPlayer.points = cPlayer.points + points;
-            points = 0;
-        }*/
+        /*Log.i(TAG,  cPlayer.name+ " EARNED: >>>>> " + points);
+        Log.i(TAG, "assignPoints: ---------------------------------------");*/
         // reinitialize
         places = new ArrayList<>();
+        stack = new Stack<>();
     }
+
 
     private void score() {
         Log.i(TAG, "---------------------------------------");
