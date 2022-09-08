@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.media.Image;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -17,28 +19,26 @@ public class GameModel {
     private ArrayList<Player> players = new ArrayList<>();
     private final int TCOUNT = 108;
     private final int PCOUNT;
-    private final int HCOUNT = 6;
+    public final int HCOUNT = 6;
     private final String TAG = "game";
-    private final int XLENGTH = 50;
-    private final int YLENGTH = 50;
-    public ArrayList<Tile> places = new ArrayList<>();
+    public final int XLENGTH = 50;
+    public final int YLENGTH = 50;
+    private ArrayList<Tile> places = new ArrayList<>();
     private int turns = 0;
     private int tempTurns = -1;
     private int points = 0;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
-    public Tile[][] tempBoard = null;
+    private Tile[][] tempBoard = null;
     Stack<int[]> stack = new Stack<>();
     ArrayList<Tile> ts = new ArrayList<>();
     private boolean placing = false;
-    public boolean backedup = false;
     private TextView cPlayerTilesView;
     private MainActivity mainActivity;
-
-    public enum Legality {
+    private enum Legality {
         LEGAL, ILLEGAL;
     }
 
-    public GameModel(int pcount, TextView cPlayerTilesView, MainActivity mainActivity) {
+    public GameModel(int pcount, MainActivity mainActivity) {
         this.cPlayerTilesView = cPlayerTilesView;
         this.mainActivity = mainActivity;
         PCOUNT = pcount;
@@ -46,7 +46,19 @@ public class GameModel {
         initializePlayers();
         initialDraw();
         initialPlayer();
-        showCPlayerTiles();
+
+        for (int i = 0; i < XLENGTH; i++) {
+            for (int j = 0; j < YLENGTH; j++) {
+                Tile tile = new Tile();
+                tile.xPos = j;
+                tile.yPos = i;
+                board[i][j] = new Tile();
+            }
+        }
+    }
+
+    public int geBagCount() {
+        return tiles.size();
     }
 
     private void initializeTiles() {
@@ -65,6 +77,7 @@ public class GameModel {
             Tile temp = new Tile();
             temp.color = colors.get(k);
             temp.shape = shapes.get(j);
+            temp.imgName = temp.color.toString().toLowerCase() + "_" + temp.shape.toString().toLowerCase();
 
             tiles.add(temp);
             j++;
@@ -102,15 +115,6 @@ public class GameModel {
                 sCount = tempSCount;
                 cPlayer = player;
             }
-        }
-    }
-
-    public void showCPlayerTiles() {
-        int i = 0;
-        cPlayerTilesView.setText("");
-        for (Tile tile: cPlayer.tiles) {
-            cPlayerTilesView.setText(cPlayerTilesView.getText().toString() + "(" + tile.color + "," + tile.shape + ") ("+ i +"), ");
-            i++;
         }
     }
 
@@ -241,7 +245,6 @@ public class GameModel {
             }
         }
         turns++;
-        showCPlayerTiles();
     }
 
     public void place(int xpos, int ypos, Tile tile) {
@@ -469,13 +472,122 @@ public class GameModel {
     }
 
     private void assignPoints() {
-        /*Log.i(TAG,  cPlayer.name+ " EARNED: >>>>> " + points);
-        Log.i(TAG, "assignPoints: ---------------------------------------");*/
+        int[] orientation = orientation(places);
+        Tile tile = nullTile(places, tempBoard);
+        if (orientation[0] == 1) {
+            if (tile != null) {
+                if (!nul(tile.xPos + 1, tile.yPos))
+                    points = points + calculate(tile.xPos, tile.yPos, + 1, 0, tempBoard, places, 0);
+                else
+                    points = points + calculate(tile.xPos, tile.yPos, - 1, 0, tempBoard, places, 0);
+            }
+        }
+        else if (orientation[1] == 1) {
+            if (tile != null) {
+                if (!nul(tile.xPos, tile.yPos + 1))
+                    points = points + calculate(tile.xPos, tile.yPos, 0, + 1, tempBoard, places, 0);
+                else
+                    points = points + calculate(tile.xPos, tile.yPos, 0, - 1, tempBoard, places, 0);
+            }
+        }
+        Log.i(TAG, "assignPoints: ---------------------------------------");
         // reinitialize
         places = new ArrayList<>();
         stack = new Stack<>();
     }
 
+    private int calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, ArrayList<Tile> places, int points) {
+        if (!nul(xpos, ypos)) {
+            ArrayList<int[]> paths = paths(places, board[xpos][ypos]);
+            points++;
+            calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, places, points);
+            if (paths.size() > 0) {
+                if (paths.size() == 1) {
+                    int[] path = paths.get(0);
+                    calculate(path[0] + path[2], path[1] + path[3], path[2], path[3], board, places, points);
+                }
+                else {
+                    int[] path1 = paths.get(0);
+                    int[] path2 = paths.get(0);
+                    calculate(path1[0] + path1[2], path1[1] + path1[3], path1[2], path1[3], board, places, points);
+                    calculate(path2[0] + path2[2], path2[1] + path2[3], path2[2], path2[3], board, places, points);
+                }
+            }
+        }
+        return points;
+    }
+
+    private ArrayList<int[]> paths(ArrayList<Tile> places, Tile tile) {
+        ArrayList<int[]> paths = new ArrayList<>();
+        if (places.contains(tile)) {
+            int[] orientation = orientation(places);
+            // Check y
+            if (orientation[1] == 1) {
+                int x = 0;
+                if (!nul(tile.xPos + 1, tile.yPos)) {
+                    paths.add(new int[]{tile.xPos, tile.yPos, 1, 0});
+                    x++;
+                }
+
+                if (!nul(tile.xPos - 1, tile.yPos)) {
+                    if (x > 0)
+                        paths.add(new int[]{tile.xPos - 1, tile.yPos, -1, 0});
+                    paths.add(new int[]{tile.xPos, tile.yPos, -1, 0});
+                }
+            }
+            // Check x
+            else if (orientation[0] == 1) {
+                int y = 0;
+                if (!nul(tile.xPos, tile.yPos + 1)) {
+                    paths.add(new int[]{tile.xPos, tile.yPos, 0, 1});
+                    y++;
+                }
+
+                if (!nul(tile.xPos, tile.yPos - 1)) {
+                    if (y > 0)
+                        paths.add(new int[]{tile.xPos, tile.yPos - 1, 0, -1});
+                    else
+                        paths.add(new int[]{tile.xPos, tile.yPos, 0, -1});
+                }
+            }
+        }
+        return paths;
+    }
+
+    private int[] orientation(ArrayList<Tile> places) {
+        if (places.size() >= 1) {
+            if (places.size() == 1)
+                return new int[]{1, 0};
+            if (places.get(0).yPos == places.get(1).yPos)
+                return new int[]{1, 0};
+            else
+                return new int[]{0, 1};
+        }
+        return new int[] {0, 0};
+    }
+
+    private Tile nullTile(ArrayList<Tile> places, Tile[][] board) {
+        int[] orientation = orientation(places);
+        if (orientation[0] == 1) {
+            Tile curTile = places.get(0);
+            if (nul(curTile.xPos + 1, curTile.yPos) || nul(curTile.xPos - 1, curTile.yPos))
+                return curTile;
+            while (board[curTile.xPos + 1][curTile.yPos] != null) {
+                curTile = board[curTile.xPos + 1][curTile.yPos];
+            }
+            return curTile;
+        }
+        else if (orientation[1] == 1){
+            Tile curTile = places.get(0);
+            if (nul(curTile.xPos, curTile.yPos + 1) || nul(curTile.xPos, curTile.yPos - 1))
+                return curTile;
+            while (board[curTile.xPos][curTile.yPos + 1] != null) {
+                curTile = board[curTile.xPos + 1][curTile.yPos];
+            }
+            return curTile;
+        }
+        return null;
+    }
 
     private void score() {
         Log.i(TAG, "---------------------------------------");
