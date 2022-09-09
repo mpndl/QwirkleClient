@@ -1,14 +1,24 @@
 package za.nmu.wrpv.qwirkle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
+import androidx.gridlayout.widget.GridLayout;
+
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,9 +28,11 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     public GameModel model;
     private ImageAdapter imageAdapter;
-    private Tile[][] board;
-    private ArrayList<Tile> tiles;
-    private Tile clickedTile = null;
+    private StatusAdapter statusAdapter;
+    private ArrayList<Tile> selectedTiles = new ArrayList<>();
+    private boolean multiSelect = false;
+    private final String TAG = "game";
+    private boolean multiSelected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +40,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         model = new GameModel(4, this);
-        board = model.board;
-        tiles = model.cPlayer.tiles;
 
-        setupGridView();
+        setupPlayersStatus();
+        setupGridLayout();
         setupRecyclerView();
         setupBagCount();
     }
+
+
 
     private void resetWidthExcept(ImageView imageView) {
         RecyclerView rvPlayerTiles = findViewById(R.id.player_tiles);
@@ -49,13 +62,89 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupCurrentPlayer() {
+        GridView gvPlayersStatus = findViewById(R.id.gv_players_status);
+
+        for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
+            CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
+            ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
+            String playerName = imageView.getTag().toString();
+            if (playerName.equals(model.cPlayer.name.toString())) {
+                cardView.setCardBackgroundColor(getColor(R.color.purple_200));
+            }
+            else {
+                cardView.setCardBackgroundColor(getColor(R.color.blue));
+            }
+        }
+    }
+
+    private void setupPlayersStatus() {
+        GridView gvPlayersStatus = findViewById(R.id.gv_players_status);
+        statusAdapter = new StatusAdapter(this, (ArrayList<Player>) model.players.clone());
+        gvPlayersStatus.setAdapter(statusAdapter);
+    }
+
     private void setupBagCount() {
         TextView tvTileCount = findViewById(R.id.tv_tileCount);
         tvTileCount.setText(model.geBagCount() + "");
     }
 
-    private void setupGridView() {
+    private void setupGridLayout() {
+        GridLayout glBoard = findViewById(R.id.board);
+        glBoard.setColumnCount(model.XLENGTH);
+        glBoard.setRowCount(model.YLENGTH);
+        populate(glBoard);
+    }
 
+    private void populate(GridLayout grid) {
+        grid.removeAllViews();
+        for (int i = 0; i < model.XLENGTH; i++) {
+            for (int j = 0; j < model.YLENGTH; j++) {
+                ImageButton button = new ImageButton(this);
+                button.setMinimumWidth(90);
+                button.setMinimumHeight(90);
+                button.setTag(i + "_" + j);
+                button.setPadding(0, 0, 0, 0);
+                button.setOnClickListener(this::onTileClicked);
+                grid.addView(button);
+            }
+        }
+    }
+
+    private void onTileClicked(View view) {
+        setupCurrentPlayer();
+        if (selectedTiles.size() > 0) {
+            ImageButton imageButton = (ImageButton) view;
+            String[] rowCol = imageButton.getTag().toString().split("_");
+            int row_no = Integer.parseInt(rowCol[0]);
+            int col_no = Integer.parseInt(rowCol[1]);
+            GameModel.Legality legality = model.place(row_no, col_no, selectedTiles.get(0));
+            if (legality == GameModel.Legality.LEGAL) {
+                imageAdapter.removeItem(selectedTiles.get(0));
+                updateTags();
+                // set image resource to the tile selected by a player
+                imageButton.setImageResource(getDrawable(selectedTiles.get(0).toString()));
+                // no further interaction allowed
+                imageButton.setEnabled(false);
+            }
+        }
+
+        resetWidthExcept(null);
+        selectedTiles = new ArrayList<>();
+        multiSelect = false;
+    }
+
+    private void updateTags() {
+        RecyclerView rvPlayerTiles = findViewById(R.id.player_tiles);
+        for (int i = 0; i < rvPlayerTiles.getChildCount(); i++) {
+            ConstraintLayout constraintLayout = (ConstraintLayout) rvPlayerTiles.getChildAt(i);
+            ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
+            curImageView.setTag(i);
+        }
+    }
+
+    private int getDrawable(String name) {
+        return getResources().getIdentifier(name, "drawable", getPackageName());
     }
 
     private void setupRecyclerView() {
@@ -64,19 +153,129 @@ public class MainActivity extends AppCompatActivity {
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-        imageAdapter = new ImageAdapter(tiles, getApplicationContext());
+        imageAdapter = new ImageAdapter(model.cPlayer.tiles, getApplicationContext());
         imageAdapter.setOnClickListener(view -> {
             ImageView imageView = view.findViewById(R.id.iv_tile);
-            clickedTile = tiles.get(Integer.parseInt(imageView.getTag().toString()));
+            updateTags();
+
+            // multi-select feature
+            if (selectedTiles.size() > 1)
+                multiSelected = true;
+            if (selectedTiles.size() < 2 && multiSelected) {
+                multiSelect = false;
+                multiSelected = false;
+            }
+
+            if (multiSelect) {
+                Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+                if (!selectedTiles.contains(selectedTile))
+                    selectedTiles.add(selectedTile);
+                ViewGroup.LayoutParams params = imageView.getLayoutParams();
+                if (params.width == 50) {
+                    params.width = 60;
+                } else {
+                    params.width = 50;
+                    selectedTiles.remove(selectedTile);
+                }
+                imageView.setLayoutParams(params);
+            }
+            else {
+                Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+                selectedTiles = new ArrayList<>();
+                selectedTiles.add(selectedTile);
+                ViewGroup.LayoutParams params = imageView.getLayoutParams();
+                if (params.width == 50) {
+                    params.width = 60;
+                } else {
+                    params.width = 50;
+                    selectedTiles.remove(selectedTile);
+                }
+                imageView.setLayoutParams(params);
+                resetWidthExcept(imageView);
+            }
+
+        });
+
+        imageAdapter.setOnLongClickListener(view -> {
+            multiSelect = !multiSelect;
+            vibrate(50);
+            resetWidthExcept(null);
+            if (selectedTiles == null)
+                selectedTiles = new ArrayList<>();
+            ImageView imageView = view.findViewById(R.id.iv_tile);
+            Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+            selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
-            if (params.width == 50)
+            if (params.width == 50) {
                 params.width = 60;
-            else
+            }
+            else {
                 params.width = 50;
-            resetWidthExcept(imageView);
+                selectedTiles.remove(selectedTile);
+            }
             imageView.setLayoutParams(params);
+            return true;
         });
 
         rvPlayerTilesView.setAdapter(imageAdapter);
+    }
+
+    public void onPlay(View view) {
+        if(model.places.size() > 0) {
+            model.recover();
+            model.play();
+            model.turn();
+            setupBagCount();
+            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+            updatePlayerTiles(selectedTiles);
+            setupCurrentPlayer();
+            resetMultiSelect();
+        }
+    }
+
+    public void setOnDraw(View view) {
+        if (selectedTiles.size() > 0) {
+
+            if (model.places.size() == 0)
+                model.recover();
+            model.turn();
+            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+            updatePlayerTiles(selectedTiles);
+            setupBagCount();
+            resetWidthExcept(null);
+            setupCurrentPlayer();
+            resetMultiSelect();
+        }
+        else {
+            if (model.places.size() == 0)
+                model.recover();
+            model.turn();
+            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+            updatePlayerTiles(selectedTiles);
+            setupBagCount();
+            resetWidthExcept(null);
+            setupCurrentPlayer();
+            resetMultiSelect();
+        }
+    }
+
+    private void resetMultiSelect() {
+        multiSelect = false;
+        selectedTiles = new ArrayList<>();
+    }
+
+    public void vibrate(int milliseconds) {
+        Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            //deprecated in API 26
+            v.vibrate(milliseconds);
+        }
+    }
+
+    public void updatePlayerTiles(ArrayList<Tile> selectedTiles) {
+        if (selectedTiles.size() == 0 || selectedTiles.size() == 6)
+            imageAdapter.updateTiles(model.cPlayer.tiles);
     }
 }

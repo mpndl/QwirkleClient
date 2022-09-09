@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.widget.ImageButton;
+
 import androidx.annotation.NonNull;
 
 import java.util.Locale;
@@ -9,7 +11,6 @@ public class Tile {
     public int yPos;
     public Shape shape;
     public Color color;
-    public String imgName;
 
     public enum Shape{
         CLOVER, FPSTAR, EPSTAR, SQUARE, CIRCLE, DIAMOND;

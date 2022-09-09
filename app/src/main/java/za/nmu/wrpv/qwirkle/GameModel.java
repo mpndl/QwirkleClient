@@ -16,14 +16,14 @@ import java.util.Stack;
 public class GameModel {
     public Player cPlayer;
     private ArrayList<Tile> tiles = new ArrayList<>();
-    private ArrayList<Player> players = new ArrayList<>();
+    public ArrayList<Player> players = new ArrayList<>();
     private final int TCOUNT = 108;
     private final int PCOUNT;
     public final int HCOUNT = 6;
     private final String TAG = "game";
     public final int XLENGTH = 50;
     public final int YLENGTH = 50;
-    private ArrayList<Tile> places = new ArrayList<>();
+    public ArrayList<Tile> places = new ArrayList<>();
     private int turns = 0;
     private int tempTurns = -1;
     private int points = 0;
@@ -32,29 +32,18 @@ public class GameModel {
     Stack<int[]> stack = new Stack<>();
     ArrayList<Tile> ts = new ArrayList<>();
     private boolean placing = false;
-    private TextView cPlayerTilesView;
     private MainActivity mainActivity;
-    private enum Legality {
+    public enum Legality {
         LEGAL, ILLEGAL;
     }
 
     public GameModel(int pcount, MainActivity mainActivity) {
-        this.cPlayerTilesView = cPlayerTilesView;
         this.mainActivity = mainActivity;
         PCOUNT = pcount;
         initializeTiles();
         initializePlayers();
         initialDraw();
         initialPlayer();
-
-        for (int i = 0; i < XLENGTH; i++) {
-            for (int j = 0; j < YLENGTH; j++) {
-                Tile tile = new Tile();
-                tile.xPos = j;
-                tile.yPos = i;
-                board[i][j] = new Tile();
-            }
-        }
     }
 
     public int geBagCount() {
@@ -77,7 +66,6 @@ public class GameModel {
             Tile temp = new Tile();
             temp.color = colors.get(k);
             temp.shape = shapes.get(j);
-            temp.imgName = temp.color.toString().toLowerCase() + "_" + temp.shape.toString().toLowerCase();
 
             tiles.add(temp);
             j++;
@@ -182,56 +170,33 @@ public class GameModel {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public void draw(Tile... ts) {
+    public ArrayList<Tile> draw(ArrayList<Tile> ts) {
         int hcount = HCOUNT;
-        int tslength = ts.length;
+        ArrayList<Tile> newTiles = new ArrayList<>();
         if(tiles.size() > 0) {
-            if(ts.length == 0) {
+            if(ts == null) {
                 if(tiles.size() < 6) hcount = tiles.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(cPlayer.tiles.size() < 6)
+                    if(cPlayer.tiles.size() < 6) {
                         cPlayer.tiles.add(tiles.remove(i));
+                    }
                 }
             }
             else {
-                for (Tile t : ts) {
-                    boolean removed = cPlayer.tiles.remove(t);
-                    if (removed) tiles.add(t);
+                for (Tile t : (ArrayList<Tile>) ts.clone()) {
+                    cPlayer.tiles.remove(t);
+                    tiles.add(t);
                 }
                 Collections.shuffle(tiles);
-                for (int i = 0; i < tslength; i++) {
-                    cPlayer.tiles.add(tiles.remove(i));
-                }
-            }
-            if(placing)
-                turns = tempTurns;
-            placing = false;
-        }
-    }
-
-    public void draw(ArrayList<Tile> ts) {
-        int hcount = HCOUNT;
-        int tslength = ts.size();
-        if(tiles.size() > 0) {
-            if(ts.size() == 0) {
-                if(tiles.size() < 6) hcount = tiles.size();
-                for (int i = 0; i < hcount; i++) {
-                    if(cPlayer.tiles.size() < 6)
-                        cPlayer.tiles.add(tiles.remove(i));
-                }
-            }
-            else {
-                for (Tile t : ts) {
-                    boolean removed = cPlayer.tiles.remove(t);
-                    if (removed) tiles.add(t);
-                }
-                Collections.shuffle(tiles);
-                for (int i = 0; i < tslength; i++) {
-                    cPlayer.tiles.add(tiles.remove(i));
+                for (int i = 0; i < ts.size(); i++) {
+                    Tile newTile = tiles.remove(i);
+                    cPlayer.tiles.add(newTile);
+                    newTiles.add(newTile);
                 }
             }
             placing = false;
         }
+        return newTiles;
     }
 
     public void turn() {
@@ -247,8 +212,7 @@ public class GameModel {
         turns++;
     }
 
-    public void place(int xpos, int ypos, Tile tile) {
-        //Log.i(TAG, "place: " + tile.color + "," + tile.shape);
+    public Legality place(int xpos, int ypos, Tile tile) {
         if(legal(xpos, ypos, tile) == Legality.LEGAL) {
             if(!placing)
                 placing = true;
@@ -257,9 +221,13 @@ public class GameModel {
             places.add(tile);
             cPlayer.tiles.remove(tile);
             tempBoard[tile.xPos][tile.yPos] = tile;
+            turns++;
+            return Legality.LEGAL;
         }
-        else Toast.makeText(mainActivity, Legality.ILLEGAL + "", Toast.LENGTH_SHORT).show();
-        turns++;
+        else {
+            Toast.makeText(mainActivity, Legality.ILLEGAL + " " + tile.toString(), Toast.LENGTH_SHORT).show();
+            return Legality.ILLEGAL;
+        }
     }
 
     public void recover() {
@@ -284,24 +252,20 @@ public class GameModel {
     public ArrayList<Tile> play() {
         if(places.size() > 0) {
             placing = false;
-            ArrayList<Tile> tiles = places;
             assignPoints();
-            for (Tile tile: tiles) {
-                draw(tile);
-            }
-            //score();
+            draw(null);
             return tiles;
         }
         return null;
     }
 
     private Legality legal(int xpos, int ypos, Tile tile) {
+        if (tempBoard == null) backup();
         if (tempBoard[xpos][ypos] != null) return Legality.ILLEGAL;
         if(turns == 0)
             return Legality.LEGAL;
         if (next(xpos, ypos, tile))
             return Legality.LEGAL;
-        Log.i(TAG, "legal: --------------------------------------------------------------------");
         return Legality.ILLEGAL;
     }
 
@@ -367,7 +331,6 @@ public class GameModel {
                 }
             }
             else if(tile1.color.equals(tile2.color)) {
-                //Log.i(TAG, "duplicate: tile1.color.equals(tile2.color)");
                 if (tile1.yPos == tile2.yPos) {
                     if (ypos == tile1.yPos) {
                         return tile.color.equals(tile1.color);
@@ -381,14 +344,11 @@ public class GameModel {
                         }
                     }
                 } else if (tile1.xPos == tile2.xPos) {
-                    //Log.i(TAG, "duplicate: tile1.xPos == tile2.xPos");
                     if(xpos == tile1.xPos) {
                         return tile.color.equals(tile1.color);
                     }
                     else {
-                        //Log.i(TAG, "duplicate: xpos != tile1.xPos");
                         if(ypos == tile1.yPos) {
-                            //Log.i(TAG, "duplicate: ypos == tileNextTo.yPos");
                             return tile.shape.equals(tile1.shape);
                         }
                         else if(ypos == tile2.yPos) {

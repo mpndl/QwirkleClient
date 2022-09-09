@@ -12,12 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
-    private ArrayList<Tile> tiles;
+    public ArrayList<Tile> tiles;
     private final Context context;
     private View.OnClickListener onClickListener;
+    private View.OnLongClickListener onLongClickListener;
 
     public ImageAdapter(ArrayList<Tile> tiles, Context context) {
-        this.tiles = tiles;
+        this.tiles = (ArrayList<Tile>) tiles.clone();
         this.context = context;
     }
 
@@ -25,8 +26,29 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         this.onClickListener = onClickListener;
     }
 
+    public void setOnLongClickListener(View.OnLongClickListener onLongClickListener) {
+        this.onLongClickListener = onLongClickListener;
+    }
+
     private int getDrawable(String name) {
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
+    }
+
+    public void removeItem(Tile tile) {
+        int pos = tiles.indexOf(tile);
+        tiles.remove(pos);
+        notifyItemRemoved(pos);
+    }
+
+    public void addItem(Tile tile) {
+        int index = getItemCount();
+        tiles.add(tile);
+        notifyItemInserted(index);
+    }
+
+    public void updateTiles(ArrayList<Tile> newTiles) {
+        tiles = (ArrayList<Tile>) newTiles.clone();
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -42,6 +64,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         Tile tile = tiles.get(position);
         holder.setImageResource(tile, position);
         holder.itemView.setOnClickListener(onClickListener);
+        holder.itemView.setOnLongClickListener(onLongClickListener);
     }
 
     @Override
