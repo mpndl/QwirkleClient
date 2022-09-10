@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
     private StatusAdapter statusAdapter;
     private ArrayList<Tile> selectedTiles = new ArrayList<>();
+    private ArrayList<Tile> placedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private final String TAG = "game";
     private boolean multiSelected = false;
@@ -89,6 +90,10 @@ public class MainActivity extends AppCompatActivity {
         tvTileCount.setText(model.geBagCount() + "");
     }
 
+    private void updatePlayerScore() {
+        statusAdapter.updatePlayerScore(model.cPlayer);
+    }
+
     private void setupGridLayout() {
         GridLayout glBoard = findViewById(R.id.board);
         glBoard.setColumnCount(model.XLENGTH);
@@ -116,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
         if (selectedTiles.size() > 0) {
             ImageButton imageButton = (ImageButton) view;
             String[] rowCol = imageButton.getTag().toString().split("_");
-            int row_no = Integer.parseInt(rowCol[0]);
-            int col_no = Integer.parseInt(rowCol[1]);
+            int row_no = Integer.parseInt(rowCol[1]);
+            int col_no = Integer.parseInt(rowCol[0]);
             GameModel.Legality legality = model.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
                 imageAdapter.removeItem(selectedTiles.get(0));
@@ -166,8 +171,9 @@ public class MainActivity extends AppCompatActivity {
                 multiSelected = false;
             }
 
+            Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+            placedTiles.add(selectedTile);
             if (multiSelect) {
-                Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
                 if (!selectedTiles.contains(selectedTile))
                     selectedTiles.add(selectedTile);
                 ViewGroup.LayoutParams params = imageView.getLayoutParams();
@@ -180,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setLayoutParams(params);
             }
             else {
-                Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
                 selectedTiles = new ArrayList<>();
                 selectedTiles.add(selectedTile);
                 ViewGroup.LayoutParams params = imageView.getLayoutParams();
@@ -224,38 +229,49 @@ public class MainActivity extends AppCompatActivity {
         if(model.places.size() > 0) {
             model.recover();
             model.play();
+            updatePlayerScore();
             model.turn();
             setupBagCount();
             selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
             updatePlayerTiles(selectedTiles);
             setupCurrentPlayer();
             resetMultiSelect();
+            placedTiles = new ArrayList<>();
         }
     }
 
     public void setOnDraw(View view) {
-        if (selectedTiles.size() > 0) {
+        imageAdapter.tiles.addAll(placedTiles);
+        model.cPlayer.tiles.addAll(placedTiles);
+        imageAdapter.notifyDataSetChanged();
+        model.turn();
+        selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+        model.draw(selectedTiles);
+        updatePlayerTiles(selectedTiles);
+        setupBagCount();
+        resetWidthExcept(null);
+        setupCurrentPlayer();
+        resetMultiSelect();
+        placedTiles = new ArrayList<>();
+        undoTiles(model.places);
+        model.tempBoard = null;
+    }
 
-            if (model.places.size() == 0)
-                model.recover();
-            model.turn();
-            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-            updatePlayerTiles(selectedTiles);
-            setupBagCount();
-            resetWidthExcept(null);
-            setupCurrentPlayer();
-            resetMultiSelect();
-        }
-        else {
-            if (model.places.size() == 0)
-                model.recover();
-            model.turn();
-            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-            updatePlayerTiles(selectedTiles);
-            setupBagCount();
-            resetWidthExcept(null);
-            setupCurrentPlayer();
-            resetMultiSelect();
+    private void undoTiles(ArrayList<Tile> selectedTiles) {
+        GridLayout glBoard = findViewById(R.id.board);
+        for (Tile tile: selectedTiles) {
+            int index = tile.yPos * model.XLENGTH + tile.xPos;
+            ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
+
+            ImageButton button = new ImageButton(this);
+            button.setMinimumWidth(90);
+            button.setMinimumHeight(90);
+            button.setTag(imageButton2.getTag());
+            button.setPadding(0, 0, 0, 0);
+            button.setOnClickListener(this::onTileClicked);
+
+            glBoard.removeViewAt(index);
+            glBoard.addView(button, index);
         }
     }
 

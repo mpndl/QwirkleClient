@@ -14,8 +14,22 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 public class StatusAdapter extends ArrayAdapter<Player> {
+    ArrayList<Player> players;
     public StatusAdapter(@NonNull Context context, ArrayList<Player> players) {
         super(context, 0, players);
+        this.players = (ArrayList<Player>) players.clone();
+    }
+
+    public void updatePlayerScore(Player player) {
+        int i = 0;
+        for (Player p: players) {
+            if (p.name.toString().equals(player.name.toString())) {
+                p.points = player.points;
+                players.set(i, p);
+                notifyDataSetChanged();
+            }
+            i++;
+        }
     }
 
     @NonNull

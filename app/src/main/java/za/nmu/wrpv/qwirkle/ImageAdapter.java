@@ -36,8 +36,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     public void removeItem(Tile tile) {
         int pos = tiles.indexOf(tile);
-        tiles.remove(pos);
-        notifyItemRemoved(pos);
+        //if (pos > -1) {
+            tiles.remove(pos);
+            notifyItemRemoved(pos);
+        //}
     }
 
     public void addItem(Tile tile) {

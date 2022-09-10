@@ -1,22 +1,19 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.media.Image;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.Queue;
 import java.util.Stack;
 
 public class GameModel {
     public Player cPlayer;
     private ArrayList<Tile> tiles = new ArrayList<>();
     public ArrayList<Player> players = new ArrayList<>();
+    private Stack<Tile> paths2 = new Stack<>();
+    private ArrayList<Tile> qwirkle = new ArrayList<>();
     private final int TCOUNT = 108;
     private final int PCOUNT;
     public final int HCOUNT = 6;
@@ -25,13 +22,13 @@ public class GameModel {
     public final int YLENGTH = 50;
     public ArrayList<Tile> places = new ArrayList<>();
     private int turns = 0;
-    private int tempTurns = -1;
+    private int tempTurns = 0;
+    private int placesCount = 0;
     private int points = 0;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
-    private Tile[][] tempBoard = null;
-    Stack<int[]> stack = new Stack<>();
+    public Tile[][] tempBoard = null;
     ArrayList<Tile> ts = new ArrayList<>();
-    private boolean placing = false;
+    public boolean placing = false;
     private MainActivity mainActivity;
     public enum Legality {
         LEGAL, ILLEGAL;
@@ -95,8 +92,8 @@ public class GameModel {
         int cCount = -1;
         int sCount = -1;
         for (Player player: players) {
-            int tempCCount = getPlayerHighestCCount(player);
-            int tempSCount = getPlayerHighestSCount(player);
+            int tempCCount = getPlayerHighestCCount(player.tiles);
+            int tempSCount = getPlayerHighestSCount(player.tiles);
 
             if (tempCCount > cCount || tempSCount > sCount) {
                 cCount = tempCCount;
@@ -106,14 +103,14 @@ public class GameModel {
         }
     }
 
-    private int getPlayerHighestCCount(Player player) {
+    private int getPlayerHighestCCount(ArrayList<Tile> playerTiles) {
         int red = 0;
         int orange = 0;
         int yellow = 0;
         int green = 0;
         int blue = 0;
         int purple = 0;
-        for (Tile tile: player.tiles) {
+        for (Tile tile: playerTiles) {
             switch (tile.color) {
                 case RED:
                     red++;
@@ -138,14 +135,14 @@ public class GameModel {
         return Collections.max(Arrays.asList(red, orange, yellow, green, blue, purple));
     }
 
-    private int getPlayerHighestSCount(Player player) {
+    private int getPlayerHighestSCount(ArrayList<Tile> playerTiles) {
         int clover = 0;
         int fpstar = 0;
         int epstar = 0;
         int square = 0;
         int circle = 0;
         int diamond = 0;
-        for (Tile tile: player.tiles) {
+        for (Tile tile: playerTiles) {
             switch (tile.shape) {
                 case CLOVER:
                     clover++;
@@ -170,9 +167,8 @@ public class GameModel {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public ArrayList<Tile> draw(ArrayList<Tile> ts) {
+    public void draw(ArrayList<Tile> ts) {
         int hcount = HCOUNT;
-        ArrayList<Tile> newTiles = new ArrayList<>();
         if(tiles.size() > 0) {
             if(ts == null) {
                 if(tiles.size() < 6) hcount = tiles.size();
@@ -191,12 +187,10 @@ public class GameModel {
                 for (int i = 0; i < ts.size(); i++) {
                     Tile newTile = tiles.remove(i);
                     cPlayer.tiles.add(newTile);
-                    newTiles.add(newTile);
                 }
             }
             placing = false;
         }
-        return newTiles;
     }
 
     public void turn() {
@@ -221,11 +215,11 @@ public class GameModel {
             places.add(tile);
             cPlayer.tiles.remove(tile);
             tempBoard[tile.xPos][tile.yPos] = tile;
-            turns++;
+            placesCount++;
             return Legality.LEGAL;
         }
         else {
-            Toast.makeText(mainActivity, Legality.ILLEGAL + " " + tile.toString(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(mainActivity, "ILLEGAL MOVE", Toast.LENGTH_SHORT).show();
             return Legality.ILLEGAL;
         }
     }
@@ -233,6 +227,8 @@ public class GameModel {
     public void recover() {
         if(tempBoard != null) {
             board = copy(tempBoard);
+            turns = tempTurns;
+            placesCount = 0;
         }
     }
 
@@ -261,12 +257,37 @@ public class GameModel {
 
     private Legality legal(int xpos, int ypos, Tile tile) {
         if (tempBoard == null) backup();
-        if (tempBoard[xpos][ypos] != null) return Legality.ILLEGAL;
-        if(turns == 0)
+        if (tempBoard[xpos][ypos] != null) {
+            Toast.makeText(mainActivity, "Something", Toast.LENGTH_SHORT).show();
+            return Legality.ILLEGAL;
+        }
+        if(tempTurns == 0 || placesCount == 0)
             return Legality.LEGAL;
+        else if (allSidesNull(xpos, ypos))
+            return Legality.ILLEGAL;
+        if (illegalOrientation(xpos, ypos))
+            return Legality.ILLEGAL;
         if (next(xpos, ypos, tile))
             return Legality.LEGAL;
         return Legality.ILLEGAL;
+    }
+
+    private boolean allSidesNull(int xpos, int ypos) {
+        return nul(xpos + 1, ypos) && nul(xpos - 1, ypos) && nul(xpos, ypos + 1) && nul(xpos, ypos - 1);
+    }
+
+    private boolean illegalOrientation(int xpos, int ypos) {
+        if (places.size() > 1) {
+            Tile tile1 = places.get(0);
+            Tile tile2 = places.get(1);
+            if (tile1.xPos == tile2.xPos) {
+                return xpos != tile2.xPos;
+            }
+            else if (tile1.yPos == tile2.yPos) {
+                return ypos != tile2.yPos;
+            }
+        }
+        return false;
     }
 
     private boolean next(int xpos, int ypos,Tile tile) {
@@ -434,94 +455,120 @@ public class GameModel {
     private void assignPoints() {
         int[] orientation = orientation(places);
         Tile tile = nullTile(places, tempBoard);
+        //Log.i(TAG, "nullTile: " + tile);
         if (orientation[0] == 1) {
             if (tile != null) {
                 if (!nul(tile.xPos + 1, tile.yPos))
-                    points = points + calculate(tile.xPos, tile.yPos, + 1, 0, tempBoard, places, 0);
+                    calculate(tile.xPos, tile.yPos, + 1, 0, tempBoard, orientation);
                 else
-                    points = points + calculate(tile.xPos, tile.yPos, - 1, 0, tempBoard, places, 0);
+                    calculate(tile.xPos, tile.yPos, - 1, 0, tempBoard, orientation);
             }
         }
         else if (orientation[1] == 1) {
             if (tile != null) {
-                if (!nul(tile.xPos, tile.yPos + 1))
-                    points = points + calculate(tile.xPos, tile.yPos, 0, + 1, tempBoard, places, 0);
-                else
-                    points = points + calculate(tile.xPos, tile.yPos, 0, - 1, tempBoard, places, 0);
+                if (!nul(tile.xPos, tile.yPos + 1)) {
+                    calculate(tile.xPos, tile.yPos, 0, + 1, tempBoard, orientation);
+                }
+                else {
+                    calculate(tile.xPos, tile.yPos, 0, - 1, tempBoard, orientation);
+                }
             }
         }
+        if (isQwirkle())
+            cPlayer.points = cPlayer.points + 6;
+        if (isBonus())
+            cPlayer.points = cPlayer.points + 6;
+        cPlayer.points = cPlayer.points + points;
+        Log.i(TAG, "assignPoints: " + points);
         Log.i(TAG, "assignPoints: ---------------------------------------");
         // reinitialize
         places = new ArrayList<>();
-        stack = new Stack<>();
+        qwirkle = new ArrayList<>();
+        points = 0;
     }
 
-    private int calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, ArrayList<Tile> places, int points) {
+    private void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
-            ArrayList<int[]> paths = paths(places, board[xpos][ypos]);
+            Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points);
+            getWithPaths(board[xpos][ypos], orientation(places));
+            if (!qwirkle.contains(board[xpos][ypos]))
+                qwirkle.add(board[xpos][ypos]);
             points++;
-            calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, places, points);
-            if (paths.size() > 0) {
-                if (paths.size() == 1) {
-                    int[] path = paths.get(0);
-                    calculate(path[0] + path[2], path[1] + path[3], path[2], path[3], board, places, points);
+            calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, orientation);
+            if (paths2.contains(board[xpos][ypos])) {
+                if (orientation[1] == 1) {
+                    if (!nul(xpos - 1, ypos)) {
+                        points++;
+                        calculate(xpos - 1, ypos, -1, 0, board, new int[]{1, 0});
+                    }
+                    else if (!nul(xpos + 1, ypos)) {
+                        points++;
+                        calculate(xpos + 1, ypos, +1, 0, board, new int[]{1, 0});
+                    }
                 }
-                else {
-                    int[] path1 = paths.get(0);
-                    int[] path2 = paths.get(0);
-                    calculate(path1[0] + path1[2], path1[1] + path1[3], path1[2], path1[3], board, places, points);
-                    calculate(path2[0] + path2[2], path2[1] + path2[3], path2[2], path2[3], board, places, points);
+                else if (orientation[0] == 1) {
+                    if (!nul(xpos, ypos - 1)) {
+                        points++;
+                        calculate(xpos, ypos - 1, -1, 0, board, new int[]{0, 1});
+                    }
+                    else if (!nul(xpos, ypos + 1)) {
+                        points++;
+                        calculate(xpos, ypos + 1, +1, 0, board, new int[]{0, 1});
+                    }
                 }
             }
         }
-        return points;
     }
 
-    private ArrayList<int[]> paths(ArrayList<Tile> places, Tile tile) {
-        ArrayList<int[]> paths = new ArrayList<>();
-        if (places.contains(tile)) {
-            int[] orientation = orientation(places);
+    private boolean isQwirkle() {
+        return getPlayerHighestCCount(qwirkle) == 6 || getPlayerHighestSCount(qwirkle) == 6;
+    }
+
+    private boolean isBonus() {
+        return tiles.size() == 0;
+    }
+
+    private void getWithPaths(Tile tile, int[] orientation) {
+        if (places.contains(tile) && !paths2.contains(tile)) {
             // Check y
             if (orientation[1] == 1) {
                 int x = 0;
                 if (!nul(tile.xPos + 1, tile.yPos)) {
-                    paths.add(new int[]{tile.xPos, tile.yPos, 1, 0});
+                    paths2.add(tile);
                     x++;
                 }
 
                 if (!nul(tile.xPos - 1, tile.yPos)) {
-                    if (x > 0)
-                        paths.add(new int[]{tile.xPos - 1, tile.yPos, -1, 0});
-                    paths.add(new int[]{tile.xPos, tile.yPos, -1, 0});
+                    if (!(x > 0))
+                        paths2.add(tile);
                 }
             }
             // Check x
             else if (orientation[0] == 1) {
                 int y = 0;
                 if (!nul(tile.xPos, tile.yPos + 1)) {
-                    paths.add(new int[]{tile.xPos, tile.yPos, 0, 1});
+                    paths2.add(tile);
                     y++;
                 }
 
                 if (!nul(tile.xPos, tile.yPos - 1)) {
-                    if (y > 0)
-                        paths.add(new int[]{tile.xPos, tile.yPos - 1, 0, -1});
-                    else
-                        paths.add(new int[]{tile.xPos, tile.yPos, 0, -1});
+                    if (!(y > 0))
+                        paths2.add(tile);
                 }
             }
         }
-        return paths;
     }
 
     private int[] orientation(ArrayList<Tile> places) {
         if (places.size() >= 1) {
             if (places.size() == 1)
-                return new int[]{1, 0};
-            if (places.get(0).yPos == places.get(1).yPos)
-                return new int[]{1, 0};
-            else
                 return new int[]{0, 1};
+            if (places.get(0).yPos == places.get(1).yPos) {
+                return new int[]{1, 0};
+            }
+            else {
+                return new int[]{0, 1};
+            }
         }
         return new int[] {0, 0};
     }
@@ -532,7 +579,7 @@ public class GameModel {
             Tile curTile = places.get(0);
             if (nul(curTile.xPos + 1, curTile.yPos) || nul(curTile.xPos - 1, curTile.yPos))
                 return curTile;
-            while (board[curTile.xPos + 1][curTile.yPos] != null) {
+            while (!nul(curTile.xPos + 1, curTile.yPos) && board[curTile.xPos + 1][curTile.yPos] != null) {
                 curTile = board[curTile.xPos + 1][curTile.yPos];
             }
             return curTile;
@@ -541,19 +588,11 @@ public class GameModel {
             Tile curTile = places.get(0);
             if (nul(curTile.xPos, curTile.yPos + 1) || nul(curTile.xPos, curTile.yPos - 1))
                 return curTile;
-            while (board[curTile.xPos][curTile.yPos + 1] != null) {
-                curTile = board[curTile.xPos + 1][curTile.yPos];
+            while (!nul(curTile.xPos, curTile.yPos + 1) && board[curTile.xPos][curTile.yPos + 1] != null) {
+                curTile = board[curTile.xPos][curTile.yPos + 1];
             }
             return curTile;
         }
         return null;
-    }
-
-    private void score() {
-        Log.i(TAG, "---------------------------------------");
-        for (Player player: players) {
-            Log.i(TAG, player.name + ": " + player.points);
-        }
-        Log.i(TAG, "---------------------------------------");
     }
 }
