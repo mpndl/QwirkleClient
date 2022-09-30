@@ -1,36 +1,34 @@
 package za.nmu.wrpv.qwirkle;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import static android.content.Context.VIBRATOR_SERVICE;
 
-import android.content.Context;
-import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import androidx.gridlayout.widget.GridLayout;
-import androidx.viewpager2.widget.ViewPager2;
-
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.gridlayout.widget.GridLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class GameFragment extends Fragment {
     public GameModel model;
     private ImageAdapter imageAdapter;
     private StatusAdapter statusAdapter;
@@ -40,34 +38,24 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = "game";
     private boolean multiSelected = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Intent intent = getIntent();
-
-        if(intent != null) {
-            Bundle extras = intent.getExtras();
-            if (extras != null) {
-                model = new GameModel(Integer.parseInt(extras.getString("playerCount")), this);
-
-                /*setupPlayersStatus();
-                setupGridLayout();
-                setupRecyclerView();
-                setupBagCount();
-                initializeCurrentPlayer();*/
-                
-                setupViewPager(model);
-            }
-        }
+    public GameFragment(GameModel model) {
+        this.model = model;
     }
 
-    private void setupViewPager(GameModel model) {
-        ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
-        List<Fragment> fragments = new ArrayList<>(Arrays.asList(new GameFragment(model), new MessagesFragment(model)));
-        PagerAdapter adapter = new PagerAdapter(this, fragments);
-        viewPager2.setAdapter(adapter);
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_game2, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupPlayersStatus();
+        setupGridLayout();
+        setupRecyclerView();
+        setupBagCount();
+        initializeCurrentPlayer();
     }
 
     private void initializeCurrentPlayer() {
@@ -87,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetWidthExcept(ImageView imageView) {
-        RecyclerView rvPlayerTiles = findViewById(R.id.player_tiles);
+        RecyclerView rvPlayerTiles = getActivity().findViewById(R.id.player_tiles);
         for (int i = 0; i < rvPlayerTiles.getChildCount(); i++) {
             ConstraintLayout constraintLayout = (ConstraintLayout) rvPlayerTiles.getChildAt(i);
             ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
@@ -100,29 +88,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupCurrentPlayer() {
-        GridView gvPlayersStatus = findViewById(R.id.gv_players_status);
+        GridView gvPlayersStatus = getActivity().findViewById(R.id.gv_players_status);
 
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String playerName = imageView.getTag().toString();
             if (playerName.equals(model.cPlayer.name.toString())) {
-                cardView.setCardBackgroundColor(getColor(R.color.purple_200));
+                cardView.setCardBackgroundColor(getActivity().getColor(R.color.purple_200));
             }
             else {
-                cardView.setCardBackgroundColor(getColor(R.color.blue));
+                cardView.setCardBackgroundColor(getActivity().getColor(R.color.blue));
             }
         }
     }
 
     private void setupPlayersStatus() {
-        GridView gvPlayersStatus = findViewById(R.id.gv_players_status);
-        statusAdapter = new StatusAdapter(this, (ArrayList<Player>) model.players.clone());
+        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
+        statusAdapter = new StatusAdapter(getContext(), (ArrayList<Player>) model.players.clone());
         gvPlayersStatus.setAdapter(statusAdapter);
     }
 
     private void setupBagCount() {
-        TextView tvTileCount = findViewById(R.id.tv_tileCount);
+        TextView tvTileCount = getView().findViewById(R.id.tv_tileCount);
         tvTileCount.setText(model.geBagCount() + "");
     }
 
@@ -131,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupGridLayout() {
-        GridLayout glBoard = findViewById(R.id.board);
+        GridLayout glBoard = getView().findViewById(R.id.board);
         glBoard.setColumnCount(model.XLENGTH);
         glBoard.setRowCount(model.YLENGTH);
         populate(glBoard);
@@ -141,9 +129,9 @@ public class MainActivity extends AppCompatActivity {
         grid.removeAllViews();
         for (int i = 0; i < model.XLENGTH; i++) {
             for (int j = 0; j < model.YLENGTH; j++) {
-                ImageButton button = new ImageButton(this);
-                button.setMinimumWidth(90);
-                button.setMinimumHeight(90);
+                ImageButton button = new ImageButton(getActivity());
+                button.setMinimumWidth(100);
+                button.setMinimumHeight(100);
                 button.setTag(i + "_" + j);
                 button.setPadding(0, 0, 0, 0);
                 button.setOnClickListener(this::onTileClicked);
@@ -154,18 +142,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void onTileClicked(View view) {
         if (selectedTiles.size() > 0) {
-            ImageButton imageButton = (ImageButton) view;
-            String[] rowCol = imageButton.getTag().toString().split("_");
+            ImageButton button = (ImageButton) view;
+            String[] rowCol = button.getTag().toString().split("_");
             int row_no = Integer.parseInt(rowCol[1]);
             int col_no = Integer.parseInt(rowCol[0]);
             GameModel.Legality legality = model.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
                 imageAdapter.removeItem(selectedTiles.get(0));
                 updateTags();
+
+                Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
+                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+
+                Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, button.getWidth()/3, button.getHeight()/3, true));
+
                 // set image resource to the tile selected by a player
-                imageButton.setImageResource(getDrawable(selectedTiles.get(0).toString()));
+                button.setImageDrawable(d);
+
                 // no further interaction allowed
-                imageButton.setEnabled(false);
+                button.setEnabled(false);
             }
         }
 
@@ -175,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateTags() {
-        RecyclerView rvPlayerTiles = findViewById(R.id.player_tiles);
+        RecyclerView rvPlayerTiles = getView().findViewById(R.id.player_tiles);
         for (int i = 0; i < rvPlayerTiles.getChildCount(); i++) {
             ConstraintLayout constraintLayout = (ConstraintLayout) rvPlayerTiles.getChildAt(i);
             ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
@@ -184,16 +179,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int getDrawable(String name) {
-        return getResources().getIdentifier(name, "drawable", getPackageName());
+        return getResources().getIdentifier(name, "drawable", getContext().getPackageName());
     }
 
     private void setupRecyclerView() {
-        RecyclerView rvPlayerTilesView = findViewById(R.id.player_tiles);
-        LinearLayoutManager layoutManager= new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
+        LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-        imageAdapter = new ImageAdapter(model.cPlayer.tiles, getApplicationContext());
+        imageAdapter = new ImageAdapter(model.cPlayer.tiles, getActivity());
         imageAdapter.setOnClickListener(view -> {
             ImageView imageView = view.findViewById(R.id.iv_tile);
             updateTags();
@@ -260,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
         rvPlayerTilesView.setAdapter(imageAdapter);
     }
 
-    public void onPlay2(View view) {
+    public void onPlay(View view) {
         if(model.places.size() > 0) {
             model.recover();
             model.play();
@@ -275,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setOnDraw2(View view) {
+    public void setOnDraw(View view) {
         imageAdapter.tiles.addAll(placedTiles);
         model.cPlayer.tiles.addAll(placedTiles);
         imageAdapter.notifyDataSetChanged();
@@ -293,12 +288,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void undoTiles(ArrayList<Tile> selectedTiles) {
-        GridLayout glBoard = findViewById(R.id.board);
+        GridLayout glBoard = getView().findViewById(R.id.board);
         for (Tile tile: selectedTiles) {
             int index = tile.yPos * model.XLENGTH + tile.xPos;
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
-            ImageButton button = new ImageButton(this);
+            ImageButton button = new ImageButton(getActivity());
             button.setMinimumWidth(90);
             button.setMinimumHeight(90);
             button.setTag(imageButton2.getTag());
@@ -316,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void vibrate(int milliseconds) {
-        Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        Vibrator v = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {

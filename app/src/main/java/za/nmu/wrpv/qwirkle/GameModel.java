@@ -6,6 +6,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Stack;
 
 public class GameModel {
@@ -30,6 +32,10 @@ public class GameModel {
     ArrayList<Tile> ts = new ArrayList<>();
     public boolean placing = false;
     private MainActivity mainActivity;
+
+    public List<PlayerMessage> playerMessages = new ArrayList<>();
+    private int orderCount = 0;
+
     public enum Legality {
         LEGAL, ILLEGAL;
     }
@@ -41,6 +47,7 @@ public class GameModel {
         initializePlayers();
         initialDraw();
         initialPlayer();
+        initializePlayerMessages();
     }
 
     public int geBagCount() {
@@ -101,6 +108,27 @@ public class GameModel {
                 cPlayer = player;
             }
         }
+    }
+
+    private void initializePlayerMessages() {
+        PlayerMessage playerMessage1 = new PlayerMessage();
+        playerMessage1.message = "Good game";
+        playerMessage1.order = 1;
+        playerMessage1.player = players.get(0);
+
+        PlayerMessage playerMessage2 = new PlayerMessage();
+        playerMessage2.message = "Yeah";
+        playerMessage2.order = 2;
+        playerMessage2.player = players.get(1);
+
+        insertPlayerMessage(playerMessage2);
+        insertPlayerMessage(playerMessage1);
+    }
+
+    private void insertPlayerMessage(PlayerMessage playerMessage) {
+        int index = Collections.binarySearch(playerMessages, playerMessage, Comparator.comparing(o -> o.order));
+        if (index < 0)
+            playerMessages.add(-index-1, playerMessage);
     }
 
     private int getPlayerHighestCCount(ArrayList<Tile> playerTiles) {
