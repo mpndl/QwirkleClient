@@ -286,7 +286,6 @@ public class GameModel {
     private Legality legal(int xpos, int ypos, Tile tile) {
         if (tempBoard == null) backup();
         if (tempBoard[xpos][ypos] != null) {
-            Toast.makeText(mainActivity, "Something", Toast.LENGTH_SHORT).show();
             return Legality.ILLEGAL;
         }
         if(tempTurns == 0 || placesCount == 0)
