@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -40,12 +41,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        model = new GameModel(4, this);
+        Intent intent = getIntent();
 
-        setupPlayersStatus();
-        setupGridLayout();
-        setupRecyclerView();
-        setupBagCount();
+        if(intent != null) {
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                model = new GameModel(Integer.parseInt(extras.getString("playerCount")), this);
+
+                setupPlayersStatus();
+                setupGridLayout();
+                setupRecyclerView();
+                setupBagCount();
+
+                new Thread(() -> {
+                    int i = 0;
+                    boolean set = false;
+                    while (!set && i < 5) {
+                        try {
+                            Thread.sleep(1000);
+                            setupCurrentPlayer();
+                            set = true;
+                        } catch (Exception ignored) {
+                        }
+                        i++;
+                    }
+                }).start();
+            }
+        }
     }
 
 
@@ -117,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onTileClicked(View view) {
-        setupCurrentPlayer();
         if (selectedTiles.size() > 0) {
             ImageButton imageButton = (ImageButton) view;
             String[] rowCol = imageButton.getTag().toString().split("_");
