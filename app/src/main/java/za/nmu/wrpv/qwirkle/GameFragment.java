@@ -3,8 +3,10 @@ package za.nmu.wrpv.qwirkle;
 import static android.content.Context.VIBRATOR_SERVICE;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -13,6 +15,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -32,12 +36,14 @@ import java.util.ArrayList;
 public class GameFragment extends Fragment {
     public GameModel model;
     private ImageAdapter imageAdapter;
-    private StatusAdapter statusAdapter;
+    public StatusAdapter statusAdapter;
     private ArrayList<Tile> selectedTiles = new ArrayList<>();
     private ArrayList<Tile> placedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private final String TAG = "game";
     private boolean multiSelected = false;
+
+    private final int SIZE = 100;
 
     public GameFragment(GameModel model) {
         this.model = model;
@@ -46,33 +52,30 @@ public class GameFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_game2, container, false);
+        return inflater.inflate(R.layout.fragment_game, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupPlayersStatus();
         setupGridLayout();
         setupRecyclerView();
+        setupPlayersStatus();
         setupBagCount();
-        initializeCurrentPlayer();
+        setButtonListeners();
     }
 
-    private void initializeCurrentPlayer() {
-        new Thread(() -> {
-            int i = 0;
-            boolean set = false;
-            while (!set && i < 5) {
-                try {
-                    Thread.sleep(1000);
-                    setupCurrentPlayer();
-                    set = true;
-                } catch (Exception ignored) {
-                }
-                i++;
-            }
-        }).start();
+    private void setButtonListeners() {
+        Button btnDraw = getView().findViewById(R.id.btn_draw);
+        Button btnPlay = getView().findViewById(R.id.btn_play);
+        btnDraw.setOnClickListener(this::setOnDraw);
+        btnPlay.setOnClickListener(this:: setOnPlay);
+    }
+
+    private void setupPlayersStatus() {
+        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
+        statusAdapter = new StatusAdapter(getActivity(), model.players);
+        gvPlayersStatus.setAdapter(statusAdapter);
     }
 
     private void resetWidthExcept(ImageView imageView) {
@@ -90,24 +93,24 @@ public class GameFragment extends Fragment {
 
     private void setupCurrentPlayer() {
         GridView gvPlayersStatus = getActivity().findViewById(R.id.gv_players_status);
-
+        
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
+            TextView textView = cardView.findViewById(R.id.tv_player_name);
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String playerName = imageView.getTag().toString();
             if (playerName.equals(model.cPlayer.name.toString())) {
-                cardView.setCardBackgroundColor(getActivity().getColor(R.color.purple_200));
+                textView.setTextColor(Color.BLUE);
             }
             else {
-                cardView.setCardBackgroundColor(getActivity().getColor(R.color.blue));
+                textView.setTextColor(getActivity().getColor(R.color.white));
             }
         }
-    }
 
-    private void setupPlayersStatus() {
-        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
-        statusAdapter = new StatusAdapter(getContext(), (ArrayList<Player>) model.players.clone());
-        gvPlayersStatus.setAdapter(statusAdapter);
+        ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
+        GradientDrawable gradientDrawable=new GradientDrawable();
+        gradientDrawable.setStroke(4,model.cPlayer.color);
+        constraintLayout.setBackground(gradientDrawable);
     }
 
     private void setupBagCount() {
@@ -131,8 +134,8 @@ public class GameFragment extends Fragment {
         for (int i = 0; i < model.XLENGTH; i++) {
             for (int j = 0; j < model.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
-                button.setMinimumWidth(100);
-                button.setMinimumHeight(100);
+                button.setMinimumWidth(SIZE);
+                button.setMinimumHeight(SIZE);
                 button.setTag(i + "_" + j);
                 button.setPadding(0, 0, 0, 0);
                 button.setOnClickListener(this::onTileClicked);
@@ -152,13 +155,13 @@ public class GameFragment extends Fragment {
                 imageAdapter.removeItem(selectedTiles.get(0));
                 updateTags();
 
-                Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
+                /*Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
                 Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
 
                 Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, button.getWidth()/3, button.getHeight()/3, true));
-
+*/
                 // set image resource to the tile selected by a player
-                button.setImageDrawable(d);
+                button.setImageResource(getDrawable(selectedTiles.get(0).toString()));
 
                 // no further interaction allowed
                 button.setEnabled(false);
@@ -188,6 +191,14 @@ public class GameFragment extends Fragment {
         LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
+
+        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                setupCurrentPlayer();
+            }
+        });
 
         imageAdapter = new ImageAdapter(model.cPlayer.tiles, getActivity());
         imageAdapter.setOnClickListener(view -> {
@@ -256,7 +267,7 @@ public class GameFragment extends Fragment {
         rvPlayerTilesView.setAdapter(imageAdapter);
     }
 
-    public void onPlay(View view) {
+    public void setOnPlay(View view) {
         if(model.places.size() > 0) {
             model.recover();
             model.play();
@@ -272,20 +283,22 @@ public class GameFragment extends Fragment {
     }
 
     public void setOnDraw(View view) {
-        imageAdapter.tiles.addAll(placedTiles);
-        model.cPlayer.tiles.addAll(placedTiles);
-        imageAdapter.notifyDataSetChanged();
-        model.turn();
-        selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-        model.draw(selectedTiles);
-        updatePlayerTiles(selectedTiles);
-        setupBagCount();
-        resetWidthExcept(null);
-        setupCurrentPlayer();
-        resetMultiSelect();
-        placedTiles = new ArrayList<>();
-        undoTiles(model.places);
-        model.tempBoard = null;
+        if (view != null) {
+            imageAdapter.tiles.addAll(placedTiles);
+            model.cPlayer.tiles.addAll(placedTiles);
+            imageAdapter.notifyDataSetChanged();
+            model.turn();
+            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+            model.draw(selectedTiles);
+            updatePlayerTiles(selectedTiles);
+            setupBagCount();
+            resetWidthExcept(null);
+            setupCurrentPlayer();
+            resetMultiSelect();
+            placedTiles = new ArrayList<>();
+            undoTiles(model.places);
+            model.tempBoard = null;
+        }
     }
 
     private void undoTiles(ArrayList<Tile> selectedTiles) {
@@ -295,8 +308,8 @@ public class GameFragment extends Fragment {
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
             ImageButton button = new ImageButton(getActivity());
-            button.setMinimumWidth(90);
-            button.setMinimumHeight(90);
+            button.setMinimumWidth(SIZE);
+            button.setMinimumHeight(SIZE);
             button.setTag(imageButton2.getTag());
             button.setPadding(0, 0, 0, 0);
             button.setOnClickListener(this::onTileClicked);

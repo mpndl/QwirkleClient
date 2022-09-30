@@ -1,6 +1,10 @@
 package za.nmu.wrpv.qwirkle;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdapter.ViewHolder> {
-    private List<PlayerMessage> playerMessages = new ArrayList<>();
+    public List<PlayerMessage> playerMessages = new ArrayList<>();
     private Context context;
 
     public PlayerMessageAdapter(List<PlayerMessage> playerMessages, Context context) {
@@ -50,8 +54,11 @@ public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdap
         }
 
         public void set(PlayerMessage playerMessage) {
-            playerName.setText(playerMessage.player.name.toString());
+            SpannableString content = new SpannableString(playerMessage.player.name.toString());
+            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+            playerName.setText(content);
             message.setText(playerMessage.message);
+            itemView.setBackgroundColor(playerMessage.player.color);
         }
     }
 }

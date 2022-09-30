@@ -1,16 +1,23 @@
 package za.nmu.wrpv.qwirkle;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class MessagesFragment extends Fragment {
     private GameModel model;
+    private PlayerMessageAdapter playerMessageAdapter;
     public MessagesFragment(GameModel model) {
         this.model = model;
     }
@@ -19,5 +26,53 @@ public class MessagesFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_messages, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        setupRecycleView();
+        setupListeners();
+    }
+
+    private void setupListeners() {
+        Button btnSendMessage = getView().findViewById(R.id.btn_send_message);
+        EditText etMessage = getView().findViewById(R.id.et_message);
+        etMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                btnSendMessage.setEnabled(!charSequence.toString().isEmpty());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        btnSendMessage.setOnClickListener(view -> {
+            PlayerMessage playerMessage = new PlayerMessage();
+            playerMessage.player = model.cPlayer;
+            playerMessage.message = etMessage.getText().toString();
+            model.insertPlayerMessage(playerMessage);
+            playerMessageAdapter.notifyItemInserted(playerMessageAdapter.playerMessages.size() - 1);
+            etMessage.setText("");
+        });
+    }
+
+    private void setupRecycleView() {
+        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
+        LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+        rvPlayerTilesView.setLayoutManager(layoutManager);
+        rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
+
+        playerMessageAdapter = new PlayerMessageAdapter(model.playerMessages, getContext());
+        rvPlayerTilesView.setAdapter(playerMessageAdapter);
     }
 }

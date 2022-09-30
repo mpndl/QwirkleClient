@@ -1,7 +1,11 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +44,7 @@ public class GameModel {
         LEGAL, ILLEGAL;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public GameModel(int pcount, MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         PCOUNT = pcount;
@@ -47,7 +52,6 @@ public class GameModel {
         initializePlayers();
         initialDraw();
         initialPlayer();
-        initializePlayerMessages();
     }
 
     public int geBagCount() {
@@ -77,11 +81,16 @@ public class GameModel {
         Collections.shuffle(tiles);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void initializePlayers() {
         ArrayList<Player.Name> names = new ArrayList<>(Arrays.asList(Player.Name.PLAYER1, Player.Name.PLAYER2, Player.Name.PLAYER3, Player.Name.PLAYER4));
+        ArrayList<Integer> colors = new ArrayList<>(Arrays.asList(Color.argb(.3f, 1f, 0f, 0f),
+                Color.argb(.3f, 0f, 1f, 0f), Color.argb(.3f, 0f, 1f, 1f),
+                Color.argb(.3f, 1f, 1f, 0f)));
         for (int i = 0; i < PCOUNT; i++) {
             Player temp = new Player();
             temp.name = names.get(i);
+            temp.color = colors.get(i);
             players.add(temp);
         }
     }
@@ -93,6 +102,10 @@ public class GameModel {
                 player.tiles.add(temp);
             }
         }
+    }
+
+    public int playerCount() {
+        return players.size();
     }
 
     private void initialPlayer() {
@@ -110,25 +123,8 @@ public class GameModel {
         }
     }
 
-    private void initializePlayerMessages() {
-        PlayerMessage playerMessage1 = new PlayerMessage();
-        playerMessage1.message = "Good game";
-        playerMessage1.order = 1;
-        playerMessage1.player = players.get(0);
-
-        PlayerMessage playerMessage2 = new PlayerMessage();
-        playerMessage2.message = "Yeah";
-        playerMessage2.order = 2;
-        playerMessage2.player = players.get(1);
-
-        insertPlayerMessage(playerMessage2);
-        insertPlayerMessage(playerMessage1);
-    }
-
-    private void insertPlayerMessage(PlayerMessage playerMessage) {
-        int index = Collections.binarySearch(playerMessages, playerMessage, Comparator.comparing(o -> o.order));
-        if (index < 0)
-            playerMessages.add(-index-1, playerMessage);
+    public void insertPlayerMessage(PlayerMessage playerMessage) {
+        playerMessages.add(playerMessage);
     }
 
     private int getPlayerHighestCCount(ArrayList<Tile> playerTiles) {
@@ -244,6 +240,7 @@ public class GameModel {
             cPlayer.tiles.remove(tile);
             tempBoard[tile.xPos][tile.yPos] = tile;
             placesCount++;
+            tempTurns++;
             return Legality.LEGAL;
         }
         else {

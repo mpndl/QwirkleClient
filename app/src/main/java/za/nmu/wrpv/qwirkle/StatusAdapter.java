@@ -17,7 +17,7 @@ public class StatusAdapter extends ArrayAdapter<Player> {
     ArrayList<Player> players;
     public StatusAdapter(@NonNull Context context, ArrayList<Player> players) {
         super(context, 0, players);
-        this.players = (ArrayList<Player>) players.clone();
+        this.players = players;
     }
 
     public void updatePlayerScore(Player player) {
@@ -47,6 +47,8 @@ public class StatusAdapter extends ArrayAdapter<Player> {
         tvPlayerName.setText(player.name.toString());
 
         imageView.setTag(player.name);
+
+        listItemView.setBackgroundColor(player.color);
 
         tvScore.setText(getContext().getString(R.string.score, player.points + ""));
         return listItemView;
