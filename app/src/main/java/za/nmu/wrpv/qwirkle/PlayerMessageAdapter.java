@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdapter.ViewHolder> {
-    public List<PlayerMessage> playerMessages = new ArrayList<>();
+    public List<PlayerMessage> playerMessages;
     private Context context;
 
     public PlayerMessageAdapter(List<PlayerMessage> playerMessages, Context context) {

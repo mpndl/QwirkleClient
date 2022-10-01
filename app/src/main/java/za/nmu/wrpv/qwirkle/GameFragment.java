@@ -283,22 +283,20 @@ public class GameFragment extends Fragment {
     }
 
     public void setOnDraw(View view) {
-        if (view != null) {
-            imageAdapter.tiles.addAll(placedTiles);
-            model.cPlayer.tiles.addAll(placedTiles);
-            imageAdapter.notifyDataSetChanged();
-            model.turn();
-            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-            model.draw(selectedTiles);
-            updatePlayerTiles(selectedTiles);
-            setupBagCount();
-            resetWidthExcept(null);
-            setupCurrentPlayer();
-            resetMultiSelect();
-            placedTiles = new ArrayList<>();
-            undoTiles(model.places);
-            model.tempBoard = null;
-        }
+        imageAdapter.tiles.addAll(placedTiles);
+        model.cPlayer.tiles.addAll(placedTiles);
+        imageAdapter.notifyDataSetChanged();
+        model.turn();
+        selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
+        model.draw(selectedTiles);
+        updatePlayerTiles(selectedTiles);
+        setupBagCount();
+        resetWidthExcept(null);
+        setupCurrentPlayer();
+        resetMultiSelect();
+        placedTiles = new ArrayList<>();
+        undoTiles(model.places);
+        model.tempBoard = null;
     }
 
     private void undoTiles(ArrayList<Tile> selectedTiles) {

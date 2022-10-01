@@ -61,13 +61,14 @@ public class MainActivity extends AppCompatActivity {
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle("Forfeit Game")
                 .setMessage("Are you sure you want to forfeit this game?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    if (model.playerCount() > 2) {
+                        Player oldPlayer = model.cPlayer;
+                        ((GameFragment)fragments.get(0)).setOnDraw(null);
+                        ((GameFragment)fragments.get(0)).statusAdapter.players.remove(oldPlayer);
+                        ((GameFragment)fragments.get(0)).statusAdapter.notifyDataSetChanged();
                     }
-
+                    else finish();
                 })
                 .setNegativeButton("No", null)
                 .show();
