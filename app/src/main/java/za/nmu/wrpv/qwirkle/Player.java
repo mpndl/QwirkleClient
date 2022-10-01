@@ -2,10 +2,11 @@ package za.nmu.wrpv.qwirkle;
 
 import android.graphics.Color;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Player {
+public class Player implements Serializable {
     public ArrayList<Tile> tiles = new ArrayList<>();
     public Name name;
     public int color;

@@ -14,10 +14,11 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdapter.ViewHolder> {
+public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdapter.ViewHolder> implements Serializable {
     public List<PlayerMessage> playerMessages;
     private Context context;
 

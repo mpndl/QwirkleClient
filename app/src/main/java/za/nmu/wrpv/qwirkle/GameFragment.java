@@ -49,9 +49,10 @@ import androidx.gridlayout.widget.GridLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class GameFragment extends Fragment {
+public class GameFragment extends Fragment implements Serializable {
     public GameModel model;
     private ImageAdapter imageAdapter;
     public StatusAdapter statusAdapter;
@@ -215,79 +216,94 @@ public class GameFragment extends Fragment {
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        class SerializableViewTreeObserver implements ViewTreeObserver.OnGlobalLayoutListener, Serializable {
             @Override
             public void onGlobalLayout() {
                 rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 setupCurrentPlayer();
             }
-        });
+        }
+
+        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new SerializableViewTreeObserver());
+
+
 
         imageAdapter = new ImageAdapter(model.cPlayer.tiles, getActivity());
-        imageAdapter.setOnClickListener(view -> {
-            ImageView imageView = view.findViewById(R.id.iv_tile);
-            updateTags();
+        imageAdapter.setOnClickListener((IaOnclickListener) this::iaOnclickListener);
 
-            // multi-select feature
-            if (selectedTiles.size() > 1)
-                multiSelected = true;
-            if (selectedTiles.size() < 2 && multiSelected) {
-                multiSelect = false;
-                multiSelected = false;
-            }
+        imageAdapter.setOnLongClickListener((IaOnLongclickListener) this::iaLongClickListener);
 
-            Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
-            placedTiles.add(selectedTile);
-            if (multiSelect) {
-                if (!selectedTiles.contains(selectedTile))
-                    selectedTiles.add(selectedTile);
-                ViewGroup.LayoutParams params = imageView.getLayoutParams();
-                if (params.width == 50) {
-                    params.width = 60;
-                } else {
-                    params.width = 50;
-                    selectedTiles.remove(selectedTile);
-                }
-                imageView.setLayoutParams(params);
-            }
-            else {
-                selectedTiles = new ArrayList<>();
+        rvPlayerTilesView.setAdapter(imageAdapter);
+    }
+
+    public interface IaOnclickListener extends Serializable, View.OnClickListener {
+
+    }
+
+    public interface IaOnLongclickListener extends Serializable, View.OnLongClickListener {
+
+    }
+
+    public void iaOnclickListener(View view) {
+        ImageView imageView = view.findViewById(R.id.iv_tile);
+        updateTags();
+
+        // multi-select feature
+        if (selectedTiles.size() > 1)
+            multiSelected = true;
+        if (selectedTiles.size() < 2 && multiSelected) {
+            multiSelect = false;
+            multiSelected = false;
+        }
+
+        Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        placedTiles.add(selectedTile);
+        if (multiSelect) {
+            if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
-                ViewGroup.LayoutParams params = imageView.getLayoutParams();
-                if (params.width == 50) {
-                    params.width = 60;
-                } else {
-                    params.width = 50;
-                    selectedTiles.remove(selectedTile);
-                }
-                imageView.setLayoutParams(params);
-                resetWidthExcept(imageView);
-            }
-
-        });
-
-        imageAdapter.setOnLongClickListener(view -> {
-            multiSelect = !multiSelect;
-            vibrate(50);
-            resetWidthExcept(null);
-            if (selectedTiles == null)
-                selectedTiles = new ArrayList<>();
-            ImageView imageView = view.findViewById(R.id.iv_tile);
-            Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
-            selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == 50) {
                 params.width = 60;
-            }
-            else {
+            } else {
                 params.width = 50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
-            return true;
-        });
+        }
+        else {
+            selectedTiles = new ArrayList<>();
+            selectedTiles.add(selectedTile);
+            ViewGroup.LayoutParams params = imageView.getLayoutParams();
+            if (params.width == 50) {
+                params.width = 60;
+            } else {
+                params.width = 50;
+                selectedTiles.remove(selectedTile);
+            }
+            imageView.setLayoutParams(params);
+            resetWidthExcept(imageView);
+        }
+    }
 
-        rvPlayerTilesView.setAdapter(imageAdapter);
+    public boolean iaLongClickListener(View view) {
+        multiSelect = !multiSelect;
+        vibrate(50);
+        resetWidthExcept(null);
+        if (selectedTiles == null)
+            selectedTiles = new ArrayList<>();
+        ImageView imageView = view.findViewById(R.id.iv_tile);
+        Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        selectedTiles.add(selectedTile);
+        ViewGroup.LayoutParams params = imageView.getLayoutParams();
+        if (params.width == 50) {
+            params.width = 60;
+        }
+        else {
+            params.width = 50;
+            selectedTiles.remove(selectedTile);
+        }
+        imageView.setLayoutParams(params);
+        return true;
     }
 
     public void setOnPlay(View view) {

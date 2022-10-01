@@ -4,9 +4,10 @@ import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 
+import java.io.Serializable;
 import java.util.Locale;
 
-public class Tile {
+public class Tile implements Serializable {
     public int xPos;
     public int yPos;
     public Shape shape;

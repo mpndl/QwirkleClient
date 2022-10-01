@@ -36,7 +36,7 @@ public class GameModel implements Serializable {
     public Tile[][] tempBoard = null;
     ArrayList<Tile> ts = new ArrayList<>();
     public boolean placing = false;
-    private MainActivity mainActivity;
+    private final MainActivity mainActivity;
 
     public List<PlayerMessage> playerMessages = new ArrayList<>();
     private int orderCount = 0;

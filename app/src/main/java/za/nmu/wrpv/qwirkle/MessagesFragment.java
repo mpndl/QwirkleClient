@@ -15,7 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class MessagesFragment extends Fragment {
+import java.io.Serializable;
+
+public class MessagesFragment extends Fragment implements Serializable {
     private GameModel model;
     private PlayerMessageAdapter playerMessageAdapter;
 
