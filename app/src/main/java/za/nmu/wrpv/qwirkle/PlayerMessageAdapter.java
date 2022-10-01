@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -58,7 +59,8 @@ public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdap
             content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
             playerName.setText(content);
             message.setText(playerMessage.message);
-            itemView.setBackgroundColor(playerMessage.player.color);
+            ((CardView) itemView).setRadius(10);
+            ((CardView) itemView).setBackgroundColor(playerMessage.player.color);
         }
     }
 }

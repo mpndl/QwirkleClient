@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Qwirkle</string>
+    <string name="btn_play">Dlala</string>
+    <string name="btn_draw">Yikha</string>
+    <string name="score">Umphumela: %s</string>
+    <string name="btn_start_game">Qala Umdlalo</string>
+    <string name="tv_number_of_players">Inani labadlali</string>
+    <string name="et_message">Umyalezo</string>
+    <string name="conf_forfeit">Uqinisekile ukuthi ufuna ukuyeka lo mdlalo?</string>
+    <string name="title_forfeit">Yeka umdlalo</string>
+    <string name="yes">Yebo</string>
+    <string name="no">Cha</string>
+</resources>

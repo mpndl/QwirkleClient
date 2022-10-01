@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
-public class GameModel {
+public class GameModel implements Serializable {
     public Player cPlayer;
     private ArrayList<Tile> tiles = new ArrayList<>();
     public ArrayList<Player> players = new ArrayList<>();

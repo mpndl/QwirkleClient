@@ -57,11 +57,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        String titleForfeit = getResources().getString(R.string.title_forfeit);
+        String confForfeit = getResources().getString(R.string.conf_forfeit);
+        String yes = getResources().getString(R.string.yes);
+        String no = getResources().getString(R.string.no);
+
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle("Forfeit Game")
-                .setMessage("Are you sure you want to forfeit this game?")
-                .setPositiveButton("Yes", (dialog, which) -> {
+                .setTitle(titleForfeit)
+                .setMessage(confForfeit)
+                .setPositiveButton(yes, (dialog, which) -> {
                     if (model.playerCount() > 2) {
                         Player oldPlayer = model.cPlayer;
                         ((GameFragment)fragments.get(0)).setOnDraw(null);
@@ -70,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else finish();
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton(no, null)
                 .show();
     }
 
     private void setupViewPager(GameModel model) {
         ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
-        fragments = new ArrayList<>(Arrays.asList(new GameFragment(model), new MessagesFragment(model)));
+        fragments = new ArrayList<>(Arrays.asList(GameFragment.newInstance(model), MessagesFragment.newInstance(model)));
         PagerAdapter adapter = new PagerAdapter(this, fragments);
         viewPager2.setAdapter(adapter);
     }

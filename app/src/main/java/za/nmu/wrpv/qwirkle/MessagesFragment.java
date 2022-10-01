@@ -18,13 +18,20 @@ import androidx.recyclerview.widget.RecyclerView;
 public class MessagesFragment extends Fragment {
     private GameModel model;
     private PlayerMessageAdapter playerMessageAdapter;
-    public MessagesFragment(GameModel model) {
-        this.model = model;
+
+    public static MessagesFragment newInstance(GameModel model) {
+        MessagesFragment messagesFragment = new MessagesFragment();
+        Bundle bundle = new Bundle(1);
+        bundle.putSerializable("model", model);
+        messagesFragment.setArguments(bundle);
+        return messagesFragment;
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        model = (GameModel) getArguments().getSerializable("model");
+
         return inflater.inflate(R.layout.fragment_messages, container, false);
     }
 

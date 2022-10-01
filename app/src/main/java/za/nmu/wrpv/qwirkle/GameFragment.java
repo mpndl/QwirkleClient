@@ -63,13 +63,18 @@ public class GameFragment extends Fragment {
 
     private final int SIZE = 100;
 
-    public GameFragment(GameModel model) {
-        this.model = model;
+    public static GameFragment newInstance(GameModel model) {
+        GameFragment gameFragment = new GameFragment();
+        Bundle bundle = new Bundle(1);
+        bundle.putSerializable("model", model);
+        gameFragment.setArguments(bundle);
+        return gameFragment;
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        model = (GameModel) getArguments().getSerializable("model");
         return inflater.inflate(R.layout.fragment_game, container, false);
     }
 
