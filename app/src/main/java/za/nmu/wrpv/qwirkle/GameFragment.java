@@ -1,6 +1,22 @@
 package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
+import static android.view.Gravity.AXIS_PULL_AFTER;
+import static android.view.Gravity.AXIS_PULL_BEFORE;
+import static android.view.Gravity.AXIS_SPECIFIED;
+import static android.view.Gravity.AXIS_X_SHIFT;
+import static android.view.Gravity.AXIS_Y_SHIFT;
+import static android.view.Gravity.HORIZONTAL_GRAVITY_MASK;
+import static android.view.Gravity.VERTICAL_GRAVITY_MASK;
+
+import static androidx.gridlayout.widget.GridLayout.BOTTOM;
+import static androidx.gridlayout.widget.GridLayout.CENTER;
+import static androidx.gridlayout.widget.GridLayout.END;
+import static androidx.gridlayout.widget.GridLayout.FILL;
+import static androidx.gridlayout.widget.GridLayout.LEFT;
+import static androidx.gridlayout.widget.GridLayout.RIGHT;
+import static androidx.gridlayout.widget.GridLayout.START;
+import static androidx.gridlayout.widget.GridLayout.TOP;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -12,6 +28,7 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +43,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -100,9 +118,11 @@ public class GameFragment extends Fragment {
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String playerName = imageView.getTag().toString();
             if (playerName.equals(model.cPlayer.name.toString())) {
+                textView.setText("> " + playerName);
                 textView.setTextColor(Color.BLUE);
             }
             else {
+                textView.setText(playerName);
                 textView.setTextColor(getActivity().getColor(R.color.white));
             }
         }
@@ -131,6 +151,7 @@ public class GameFragment extends Fragment {
 
     private void populate(GridLayout grid) {
         grid.removeAllViews();
+
         for (int i = 0; i < model.XLENGTH; i++) {
             for (int j = 0; j < model.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
@@ -155,13 +176,10 @@ public class GameFragment extends Fragment {
                 imageAdapter.removeItem(selectedTiles.get(0));
                 updateTags();
 
-                /*Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
-                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
 
-                Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, button.getWidth()/3, button.getHeight()/3, true));
-*/
                 // set image resource to the tile selected by a player
-                button.setImageResource(getDrawable(selectedTiles.get(0).toString()));
+                button.setForeground(drawable);
 
                 // no further interaction allowed
                 button.setEnabled(false);
@@ -306,8 +324,8 @@ public class GameFragment extends Fragment {
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
             ImageButton button = new ImageButton(getActivity());
-            button.setMinimumWidth(SIZE);
-            button.setMinimumHeight(SIZE);
+            button.setMinimumWidth(imageButton2.getMinimumWidth());
+            button.setMinimumHeight(imageButton2.getMinimumHeight());
             button.setTag(imageButton2.getTag());
             button.setPadding(0, 0, 0, 0);
             button.setOnClickListener(this::onTileClicked);
