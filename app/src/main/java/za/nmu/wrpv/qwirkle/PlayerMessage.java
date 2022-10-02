@@ -1,6 +1,9 @@
 package za.nmu.wrpv.qwirkle;
 
-public class PlayerMessage {
+import java.io.Serializable;
+
+public class PlayerMessage implements Serializable {
     public String message;
     public Player player;
+    public String time;
 }

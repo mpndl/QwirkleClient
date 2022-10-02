@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,6 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MessagesFragment extends Fragment implements Serializable {
     private GameModel model;
@@ -69,6 +73,9 @@ public class MessagesFragment extends Fragment implements Serializable {
             PlayerMessage playerMessage = new PlayerMessage();
             playerMessage.player = model.cPlayer;
             playerMessage.message = etMessage.getText().toString();
+
+            playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+
             model.insertPlayerMessage(playerMessage);
             playerMessageAdapter.notifyItemInserted(playerMessageAdapter.playerMessages.size() - 1);
             etMessage.setText("");

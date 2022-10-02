@@ -34,9 +34,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -61,6 +64,8 @@ public class GameFragment extends Fragment implements Serializable {
     private final String TAG = "game";
     private boolean multiSelected = false;
 
+    private final int SIZE = 100;
+
     public static GameFragment newInstance(GameModel model) {
         GameFragment gameFragment = new GameFragment();
         Bundle bundle = new Bundle(1);
@@ -84,6 +89,17 @@ public class GameFragment extends Fragment implements Serializable {
         setupPlayersStatus();
         setupBagCount();
         setButtonListeners();
+        center();
+    }
+
+    private void center() {
+        HorizontalScrollView hsv = getView().findViewById(R.id.horizontalScrollView);
+        ScrollView sv = getView().findViewById(R.id.scrollView2);
+
+        hsv.post(() -> {
+            sv.smoothScrollBy((SIZE * model.XLENGTH) /2, (SIZE * model.XLENGTH) /2);
+            hsv.smoothScrollBy((SIZE * model.XLENGTH) /2, (SIZE * model.XLENGTH) /2);
+        });
     }
 
     private void setButtonListeners() {
@@ -158,7 +174,7 @@ public class GameFragment extends Fragment implements Serializable {
         for (int i = 0; i < model.XLENGTH; i++) {
             for (int j = 0; j < model.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
-                int SIZE = 100;
+
                 button.setMinimumWidth(SIZE);
                 button.setMinimumHeight(SIZE);
                 button.setTag(i + "_" + j);

@@ -48,11 +48,13 @@ public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdap
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView playerName;
         public TextView message;
+        public TextView time;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             playerName = itemView.findViewById(R.id.tv_message_player_name);
             message = itemView.findViewById(R.id.tv_player_message);
+            time = itemView.findViewById(R.id.tv_send_time);
         }
 
         public void set(PlayerMessage playerMessage) {
@@ -60,8 +62,10 @@ public class PlayerMessageAdapter extends RecyclerView.Adapter<PlayerMessageAdap
             content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
             playerName.setText(content);
             message.setText(playerMessage.message);
-            ((CardView) itemView).setRadius(10);
-            ((CardView) itemView).setBackgroundColor(playerMessage.player.color);
+            time.setText(playerMessage.time);
+            time.setTextColor(Color.GREEN);
+
+            ((CardView) itemView).setCardBackgroundColor(playerMessage.player.color);
         }
     }
 }
