@@ -306,6 +306,14 @@ public class GameModel implements Serializable {
         if (illegalOrientation(xpos, ypos))
             return Legality.ILLEGAL;
 
+        if (!adjcEquivalent(xpos, ypos, tile, places))
+            return Legality.ILLEGAL;
+
+        if (nullInBetween(xpos, ypos, places)) {
+            Log.i(TAG, "legal: nullInBetween(xpos, ypos, places)");
+            return Legality.ILLEGAL;
+        }
+
         if (next(xpos, ypos, tile))
             return Legality.LEGAL;
 
@@ -314,6 +322,60 @@ public class GameModel implements Serializable {
 
     private boolean allSidesNull(int xpos, int ypos) {
         return nul(xpos + 1, ypos) && nul(xpos - 1, ypos) && nul(xpos, ypos + 1) && nul(xpos, ypos - 1);
+    }
+
+    private boolean nullInBetween(int xpos, int ypos, ArrayList<Tile> ts) {
+        Tile nullTile = nullTile(ts, tempBoard);
+
+        if (nullTile != null) {
+            Log.i(TAG, "nullInBetween: " + nullTile);
+
+            Tile tile = new Tile();
+            tile.xPos = xpos;
+            tile.yPos = ypos;
+
+            ArrayList<Tile> tempTs = new ArrayList<>(ts);
+            tempTs.add(tile);
+
+            Tile tempNullTile = new Tile();
+            tempNullTile.xPos = nullTile.xPos;
+            tempNullTile.yPos = nullTile.yPos;
+            int[] orientation = orientation(tempTs);
+
+            if (orientation[0] == 1) {
+                if (tempNullTile.xPos > xpos) {
+                    while (tempNullTile.xPos > xpos) {
+                        if (tempBoard[tempNullTile.xPos][tempNullTile.yPos] == null)
+                            return true;
+                        tempNullTile.xPos--;
+                    }
+                }
+                else {
+                    while (tempNullTile.xPos < xpos) {
+                        Log.i(TAG, "nullInBetween: " + tempBoard[tempNullTile.xPos][tempNullTile.yPos]);
+                        if (tempBoard[tempNullTile.xPos][tempNullTile.yPos] == null)
+                            return true;
+                        tempNullTile.xPos++;
+                    }
+                }
+            } else if (orientation[1] == 1) {
+                if (tempNullTile.yPos > ypos) {
+                    while (tempNullTile.yPos > ypos) {
+                        if (tempBoard[tempNullTile.xPos][tempNullTile.yPos] == null)
+                            return true;
+                        tempNullTile.yPos--;
+                    }
+                }
+                else {
+                    while (tempNullTile.yPos < ypos) {
+                        if (tempBoard[tempNullTile.xPos][tempNullTile.yPos] == null)
+                            return true;
+                        tempNullTile.yPos++;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private boolean illegalOrientation(int xpos, int ypos) {
@@ -356,9 +418,11 @@ public class GameModel implements Serializable {
         }
         else if (ts.size() == 1) {
             Tile tile2 = ts.get(0);
-            if(tile2.color.equals(tile.color))
-                return true;
-            else return tile2.shape.equals(tile.shape);
+            if (xpos == tile2.xPos || ypos == tile2.yPos) {
+                if (tile2.color.equals(tile.color))
+                    return true;
+                else return tile2.shape.equals(tile.shape);
+            }
         }
         else {
             ts.size();
@@ -495,7 +559,7 @@ public class GameModel implements Serializable {
     private void assignPoints() {
         int[] orientation = orientation(places);
         Tile tile = nullTile(places, tempBoard);
-        Log.i(TAG, "nullTile: " + tile);
+        //Log.i(TAG, "nullTile: " + tile);
         if (orientation[0] == 1) {
             if (tile != null) {
                 if (!nul(tile.xPos + 1, tile.yPos))
@@ -529,7 +593,7 @@ public class GameModel implements Serializable {
 
     private void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
-            Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points + " orientation " + Arrays.asList(orientation[0], orientation[1]));
+            //Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points + " orientation " + Arrays.asList(orientation[0], orientation[1]));
             getWithPaths(board[xpos][ypos], orientation(places));
             if (!qwirkleMonitor.contains(board[xpos][ypos]))
                 qwirkleMonitor.add(board[xpos][ypos]);
@@ -540,22 +604,18 @@ public class GameModel implements Serializable {
                     points++;
                 if (orientation[1] == 1) {
                     if (!nul(xpos - 1, ypos)) {
-                        //points++;
                         calculate(xpos - 1, ypos, -1, 0, board, new int[]{1, 0});
                     }
                     else if (!nul(xpos + 1, ypos)) {
-                        //points++;
                         calculate(xpos + 1, ypos, +1, 0, board, new int[]{1, 0});
                     }
                 }
                 else if (orientation[0] == 1) {
                     if (!nul(xpos, ypos - 1)) {
-                        //points++;
                         calculate(xpos, ypos - 1, 0, -1, board, new int[]{0, 1});
                     }
                     else if (!nul(xpos, ypos + 1)) {
-                        //points++;
-                        calculate(xpos, ypos + 1, 0, -1, board, new int[]{0, 1});
+                        calculate(xpos, ypos + 1, 0, +1, board, new int[]{0, 1});
                     }
                 }
             }
