@@ -536,7 +536,8 @@ public class GameModel implements Serializable {
             points++;
             calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, orientation);
             if (paths2.contains(board[xpos][ypos])) {
-                points++;
+                if (places.size() > 1)
+                    points++;
                 if (orientation[1] == 1) {
                     if (!nul(xpos - 1, ypos)) {
                         //points++;
