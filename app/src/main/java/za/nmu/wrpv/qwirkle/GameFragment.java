@@ -57,12 +57,9 @@ public class GameFragment extends Fragment implements Serializable {
     private ImageAdapter imageAdapter;
     public StatusAdapter statusAdapter;
     private ArrayList<Tile> selectedTiles = new ArrayList<>();
-    private ArrayList<Tile> placedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private final String TAG = "game";
     private boolean multiSelected = false;
-
-    private final int SIZE = 100;
 
     public static GameFragment newInstance(GameModel model) {
         GameFragment gameFragment = new GameFragment();
@@ -161,6 +158,7 @@ public class GameFragment extends Fragment implements Serializable {
         for (int i = 0; i < model.XLENGTH; i++) {
             for (int j = 0; j < model.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
+                int SIZE = 100;
                 button.setMinimumWidth(SIZE);
                 button.setMinimumHeight(SIZE);
                 button.setTag(i + "_" + j);
@@ -179,13 +177,11 @@ public class GameFragment extends Fragment implements Serializable {
             int col_no = Integer.parseInt(rowCol[0]);
             GameModel.Legality legality = model.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
-                imageAdapter.removeItem(selectedTiles.get(0));
                 updateTags();
-
-                Drawable drawable = getResources().getDrawable(getDrawable(selectedTiles.get(0).toString()));
+                imageAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
-                button.setForeground(drawable);
+                button.setForeground(getDrawable(selectedTiles.get(0).toString()));
 
                 // no further interaction allowed
                 button.setEnabled(false);
@@ -193,8 +189,7 @@ public class GameFragment extends Fragment implements Serializable {
         }
 
         resetWidthExcept(null);
-        selectedTiles = new ArrayList<>();
-        multiSelect = false;
+        resetMultiSelect();
     }
 
     private void updateTags() {
@@ -206,8 +201,8 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    private int getDrawable(String name) {
-        return getResources().getIdentifier(name, "drawable", getContext().getPackageName());
+    private Drawable getDrawable(String name) {
+        return getResources().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
     }
 
     private void setupRecyclerView() {
@@ -226,21 +221,19 @@ public class GameFragment extends Fragment implements Serializable {
 
         rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new SerializableViewTreeObserver());
 
-
-
         imageAdapter = new ImageAdapter(model.cPlayer.tiles, getActivity());
-        imageAdapter.setOnClickListener((IaOnclickListener) this::iaOnclickListener);
+        imageAdapter.setOnClickListener((IaOnClickListener) this::iaOnclickListener);
 
-        imageAdapter.setOnLongClickListener((IaOnLongclickListener) this::iaLongClickListener);
+        imageAdapter.setOnLongClickListener((IaOnLongClickListener) this::iaLongClickListener);
 
         rvPlayerTilesView.setAdapter(imageAdapter);
     }
 
-    public interface IaOnclickListener extends Serializable, View.OnClickListener {
+    public interface IaOnClickListener extends Serializable, View.OnClickListener {
 
     }
 
-    public interface IaOnLongclickListener extends Serializable, View.OnLongClickListener {
+    public interface IaOnLongClickListener extends Serializable, View.OnLongClickListener {
 
     }
 
@@ -256,8 +249,7 @@ public class GameFragment extends Fragment implements Serializable {
             multiSelected = false;
         }
 
-        Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
-        placedTiles.add(selectedTile);
+        Tile selectedTile = imageAdapter.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         if (multiSelect) {
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
@@ -312,33 +304,31 @@ public class GameFragment extends Fragment implements Serializable {
             model.play();
             updatePlayerScore();
             model.turn();
+
             setupBagCount();
             selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
             updatePlayerTiles(selectedTiles);
             setupCurrentPlayer();
             resetMultiSelect();
-            placedTiles = new ArrayList<>();
         }
     }
 
     public void setOnDraw(View view) {
-        imageAdapter.tiles.addAll(placedTiles);
-        model.cPlayer.tiles.addAll(placedTiles);
-        imageAdapter.notifyDataSetChanged();
+        if (selectedTiles.size() > 0)
+            model.draw(false ,selectedTiles);
+        else
+            model.draw(false, null);
         model.turn();
-        selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-        model.draw(selectedTiles);
-        updatePlayerTiles(selectedTiles);
+        updatePlayerTiles(model.cPlayer.tiles);
+
         setupBagCount();
         resetWidthExcept(null);
         setupCurrentPlayer();
         resetMultiSelect();
-        placedTiles = new ArrayList<>();
-        undoTiles(model.places);
-        model.tempBoard = null;
+        undoPlacedTiles(model.places);
     }
 
-    private void undoTiles(ArrayList<Tile> selectedTiles) {
+    private void undoPlacedTiles(ArrayList<Tile> selectedTiles) {
         GridLayout glBoard = getView().findViewById(R.id.board);
         for (Tile tile: selectedTiles) {
             int index = tile.yPos * model.XLENGTH + tile.xPos;

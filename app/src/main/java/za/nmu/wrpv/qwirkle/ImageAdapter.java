@@ -19,7 +19,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private View.OnLongClickListener onLongClickListener;
 
     public ImageAdapter(ArrayList<Tile> tiles, Context context) {
-        this.tiles = (ArrayList<Tile>) tiles.clone();
+        this.tiles = tiles;
         this.context = context;
     }
 
@@ -35,22 +35,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
-    public void removeItem(Tile tile) {
-        int pos = tiles.indexOf(tile);
-        //if (pos > -1) {
-            tiles.remove(pos);
-            notifyItemRemoved(pos);
-        //}
-    }
-
-    public void addItem(Tile tile) {
-        int index = getItemCount();
-        tiles.add(tile);
-        notifyItemInserted(index);
-    }
-
-    public void updateTiles(ArrayList<Tile> newTiles) {
-        tiles = (ArrayList<Tile>) newTiles.clone();
+    public void updateTiles(ArrayList<Tile> playerTiles) {
+        this.tiles = playerTiles;
         notifyDataSetChanged();
     }
 

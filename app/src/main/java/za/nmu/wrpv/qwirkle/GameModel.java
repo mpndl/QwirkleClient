@@ -17,10 +17,10 @@ import java.util.Stack;
 
 public class GameModel implements Serializable {
     public Player cPlayer;
-    private ArrayList<Tile> tiles = new ArrayList<>();
+    private ArrayList<Tile> bag = new ArrayList<>();
     public ArrayList<Player> players = new ArrayList<>();
     private Stack<Tile> paths2 = new Stack<>();
-    private ArrayList<Tile> qwirkle = new ArrayList<>();
+    private ArrayList<Tile> qwirkleMonitor = new ArrayList<>();
     private final int TCOUNT = 108;
     private final int PCOUNT;
     public final int HCOUNT = 6;
@@ -28,13 +28,11 @@ public class GameModel implements Serializable {
     public final int XLENGTH = 50;
     public final int YLENGTH = 50;
     public ArrayList<Tile> places = new ArrayList<>();
-    private int turns = 0;
-    private int tempTurns = 0;
-    private int placesCount = 0;
+    private int placedCount = 0;
     private int points = 0;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
     public Tile[][] tempBoard = null;
-    ArrayList<Tile> ts = new ArrayList<>();
+    private ArrayList<Tile> ts = new ArrayList<>();
     public boolean placing = false;
     private final MainActivity mainActivity;
 
@@ -56,7 +54,7 @@ public class GameModel implements Serializable {
     }
 
     public int geBagCount() {
-        return tiles.size();
+        return bag.size();
     }
 
     private void initializeTiles() {
@@ -76,10 +74,10 @@ public class GameModel implements Serializable {
             temp.color = colors.get(k);
             temp.shape = shapes.get(j);
 
-            tiles.add(temp);
+            bag.add(temp);
             j++;
         }
-        Collections.shuffle(tiles);
+        Collections.shuffle(bag);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -99,7 +97,7 @@ public class GameModel implements Serializable {
     private void initialDraw() {
         for (Player player: players) {
             for (int i = 0; i < HCOUNT; i++) {
-                Tile temp = tiles.remove(i);
+                Tile temp = bag.remove(i);
                 player.tiles.add(temp);
             }
         }
@@ -192,26 +190,35 @@ public class GameModel implements Serializable {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public void draw(ArrayList<Tile> ts) {
+    public void draw(boolean played, ArrayList<Tile> playerTiles) {
         int hcount = HCOUNT;
-        if(tiles.size() > 0) {
-            if(ts == null) {
-                if(tiles.size() < 6) hcount = tiles.size();
+        if(bag.size() > 0) {
+            // Player has played
+            if(played) {
+                if(bag.size() < HCOUNT) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(cPlayer.tiles.size() < 6) {
-                        cPlayer.tiles.add(tiles.remove(i));
+                    if(cPlayer.tiles.size() < HCOUNT) {
+                        cPlayer.tiles.add(bag.remove(i));
                     }
                 }
             }
+            // Player has drawn
             else {
-                for (Tile t : (ArrayList<Tile>) ts.clone()) {
-                    cPlayer.tiles.remove(t);
-                    tiles.add(t);
+                cPlayer.tiles.addAll(places);
+                if (playerTiles == null) {
+                    bag.addAll(cPlayer.tiles);
+                    hcount = HCOUNT;
+                    cPlayer.tiles.removeAll((ArrayList<Tile>)cPlayer.tiles.clone());
                 }
-                Collections.shuffle(tiles);
-                for (int i = 0; i < ts.size(); i++) {
-                    Tile newTile = tiles.remove(i);
-                    cPlayer.tiles.add(newTile);
+                else {
+                    bag.addAll(playerTiles);
+                    hcount = playerTiles.size();
+                    cPlayer.tiles.removeAll((ArrayList<Tile>)playerTiles.clone());
+                }
+                Collections.shuffle(bag);
+                for (int i = 0; i < hcount; i++) {
+                    Tile tile = bag.remove(i);
+                    cPlayer.tiles.add(tile);
                 }
             }
             placing = false;
@@ -225,23 +232,30 @@ public class GameModel implements Serializable {
                 i++;
                 if(i >= players.size()) i = 0;
                 cPlayer = players.get(i);
-                turns++;
+                tempBoard = null;
                 return;
             }
         }
     }
 
     public Legality place(int xpos, int ypos, Tile tile) {
+        if(!placing) {
+            places = new ArrayList<>();
+        }
         if(legal(xpos, ypos, tile) == Legality.LEGAL) {
-            if(!placing)
+            if(!placing) {
                 placing = true;
+            }
+
+            cPlayer.tiles.remove(tile);
+
             tile.xPos = xpos;
             tile.yPos = ypos;
+
             places.add(tile);
-            cPlayer.tiles.remove(tile);
-            tempBoard[tile.xPos][tile.yPos] = tile;
-            placesCount++;
-            //tempTurns++;
+
+            tempBoard[xpos][ypos] = tile;
+
             return Legality.LEGAL;
         }
         else {
@@ -253,8 +267,6 @@ public class GameModel implements Serializable {
     public void recover() {
         if(tempBoard != null) {
             board = copy(tempBoard);
-            //turns = tempTurns;
-            placesCount = 0;
         }
     }
 
@@ -268,32 +280,35 @@ public class GameModel implements Serializable {
 
     public void backup() {
         tempBoard = copy(board);
-        //tempTurns = turns;
     }
 
     public ArrayList<Tile> play() {
         if(places.size() > 0) {
             placing = false;
+            placedCount = placedCount + places.size();
             assignPoints();
-            draw(null);
-            return tiles;
+            draw(true, null);
+            return bag;
         }
         return null;
     }
 
     private Legality legal(int xpos, int ypos, Tile tile) {
         if (tempBoard == null) backup();
-        if (tempBoard[xpos][ypos] != null) {
+
+        if(places.size() == 0 && placedCount == 0) {
+            return Legality.LEGAL;
+        }
+        else if (allSidesNull(xpos, ypos)) {
             return Legality.ILLEGAL;
         }
-        if(turns == 0 && placesCount == 0)
-            return Legality.LEGAL;
-        else if (allSidesNull(xpos, ypos))
-            return Legality.ILLEGAL;
+
         if (illegalOrientation(xpos, ypos))
             return Legality.ILLEGAL;
+
         if (next(xpos, ypos, tile))
             return Legality.LEGAL;
+
         return Legality.ILLEGAL;
     }
 
@@ -480,7 +495,7 @@ public class GameModel implements Serializable {
     private void assignPoints() {
         int[] orientation = orientation(places);
         Tile tile = nullTile(places, tempBoard);
-        //Log.i(TAG, "nullTile: " + tile);
+        Log.i(TAG, "nullTile: " + tile);
         if (orientation[0] == 1) {
             if (tile != null) {
                 if (!nul(tile.xPos + 1, tile.yPos))
@@ -504,41 +519,42 @@ public class GameModel implements Serializable {
         if (isBonus())
             cPlayer.points = cPlayer.points + 6;
         cPlayer.points = cPlayer.points + points;
-       // Log.i(TAG, "assignPoints: " + points);
-        //Log.i(TAG, "assignPoints: ---------------------------------------");
+        Log.i(TAG, "assignPoints: " + points);
+        Log.i(TAG, "assignPoints: ---------------------------------------");
         // reinitialize
         places = new ArrayList<>();
-        qwirkle = new ArrayList<>();
+        qwirkleMonitor = new ArrayList<>();
         points = 0;
     }
 
     private void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
-            //Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points);
+            Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points + " orientation " + Arrays.asList(orientation[0], orientation[1]));
             getWithPaths(board[xpos][ypos], orientation(places));
-            if (!qwirkle.contains(board[xpos][ypos]))
-                qwirkle.add(board[xpos][ypos]);
+            if (!qwirkleMonitor.contains(board[xpos][ypos]))
+                qwirkleMonitor.add(board[xpos][ypos]);
             points++;
             calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, orientation);
             if (paths2.contains(board[xpos][ypos])) {
+                points++;
                 if (orientation[1] == 1) {
                     if (!nul(xpos - 1, ypos)) {
-                        points++;
+                        //points++;
                         calculate(xpos - 1, ypos, -1, 0, board, new int[]{1, 0});
                     }
                     else if (!nul(xpos + 1, ypos)) {
-                        points++;
+                        //points++;
                         calculate(xpos + 1, ypos, +1, 0, board, new int[]{1, 0});
                     }
                 }
                 else if (orientation[0] == 1) {
                     if (!nul(xpos, ypos - 1)) {
-                        points++;
-                        calculate(xpos, ypos - 1, -1, 0, board, new int[]{0, 1});
+                        //points++;
+                        calculate(xpos, ypos - 1, 0, -1, board, new int[]{0, 1});
                     }
                     else if (!nul(xpos, ypos + 1)) {
-                        points++;
-                        calculate(xpos, ypos + 1, +1, 0, board, new int[]{0, 1});
+                        //points++;
+                        calculate(xpos, ypos + 1, 0, -1, board, new int[]{0, 1});
                     }
                 }
             }
@@ -546,11 +562,11 @@ public class GameModel implements Serializable {
     }
 
     private boolean isQwirkle() {
-        return getPlayerHighestCCount(qwirkle) == 6 || getPlayerHighestSCount(qwirkle) == 6;
+        return getPlayerHighestCCount(qwirkleMonitor) == 6 || getPlayerHighestSCount(qwirkleMonitor) == 6;
     }
 
     private boolean isBonus() {
-        return tiles.size() == 0;
+        return bag.size() == 0;
     }
 
     private void getWithPaths(Tile tile, int[] orientation) {
