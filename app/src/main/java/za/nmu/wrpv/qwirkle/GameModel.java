@@ -225,10 +225,10 @@ public class GameModel implements Serializable {
                 i++;
                 if(i >= players.size()) i = 0;
                 cPlayer = players.get(i);
+                turns++;
                 return;
             }
         }
-        turns++;
     }
 
     public Legality place(int xpos, int ypos, Tile tile) {
@@ -241,7 +241,7 @@ public class GameModel implements Serializable {
             cPlayer.tiles.remove(tile);
             tempBoard[tile.xPos][tile.yPos] = tile;
             placesCount++;
-            tempTurns++;
+            //tempTurns++;
             return Legality.LEGAL;
         }
         else {
@@ -253,7 +253,7 @@ public class GameModel implements Serializable {
     public void recover() {
         if(tempBoard != null) {
             board = copy(tempBoard);
-            turns = tempTurns;
+            //turns = tempTurns;
             placesCount = 0;
         }
     }
@@ -268,7 +268,7 @@ public class GameModel implements Serializable {
 
     public void backup() {
         tempBoard = copy(board);
-        tempTurns = turns;
+        //tempTurns = turns;
     }
 
     public ArrayList<Tile> play() {
@@ -286,7 +286,7 @@ public class GameModel implements Serializable {
         if (tempBoard[xpos][ypos] != null) {
             return Legality.ILLEGAL;
         }
-        if(tempTurns == 0 || placesCount == 0)
+        if(turns == 0 && placesCount == 0)
             return Legality.LEGAL;
         else if (allSidesNull(xpos, ypos))
             return Legality.ILLEGAL;
@@ -504,8 +504,8 @@ public class GameModel implements Serializable {
         if (isBonus())
             cPlayer.points = cPlayer.points + 6;
         cPlayer.points = cPlayer.points + points;
-        Log.i(TAG, "assignPoints: " + points);
-        Log.i(TAG, "assignPoints: ---------------------------------------");
+       // Log.i(TAG, "assignPoints: " + points);
+        //Log.i(TAG, "assignPoints: ---------------------------------------");
         // reinitialize
         places = new ArrayList<>();
         qwirkle = new ArrayList<>();
@@ -514,7 +514,7 @@ public class GameModel implements Serializable {
 
     private void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
-            Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points);
+            //Log.i(TAG, "calculate: " + board[xpos][ypos] + " -> " + points);
             getWithPaths(board[xpos][ypos], orientation(places));
             if (!qwirkle.contains(board[xpos][ypos]))
                 qwirkle.add(board[xpos][ypos]);
