@@ -11,4 +11,5 @@
     <string name="title_forfeit">Forfeit Game</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="congrats">Congratulations %s you won by %s points!</string>
 </resources>

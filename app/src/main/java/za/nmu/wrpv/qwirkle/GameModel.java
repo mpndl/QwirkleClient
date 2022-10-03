@@ -193,16 +193,17 @@ public class GameModel implements Serializable {
     public void draw(boolean played, ArrayList<Tile> playerTiles) {
         int hcount = HCOUNT;
         if(bag.size() > 0) {
-            // Player has played
             if(played) {
                 if(bag.size() < HCOUNT) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
                     if(cPlayer.tiles.size() < HCOUNT) {
                         cPlayer.tiles.add(bag.remove(i));
+                        hcount--;
                     }
                 }
+                if(isBonus())
+                    cPlayer.points = cPlayer.points + 6;
             }
-            // Player has drawn
             else {
                 cPlayer.tiles.addAll(places);
                 if (playerTiles == null) {
@@ -270,6 +271,16 @@ public class GameModel implements Serializable {
         }
     }
 
+    public Player getWinner() {
+        int max = Integer.MIN_VALUE;
+        Player winner = null;
+        for (Player player: players) {
+            if (player.points > max)
+                winner = player;
+        }
+        return winner;
+    }
+
     private Tile[][] copy(Tile[][] src) {
         Tile[][] temp = new Tile[src.length][src[0].length];
         for(int i=0; i<src.length; i++) {
@@ -287,7 +298,8 @@ public class GameModel implements Serializable {
             placing = false;
             placedCount = placedCount + places.size();
             assignPoints();
-            draw(true, null);
+            if (geBagCount() > 0)
+                draw(true, null);
             return bag;
         }
         return null;
@@ -580,8 +592,8 @@ public class GameModel implements Serializable {
         }
         if (isQwirkle())
             cPlayer.points = cPlayer.points + 6;
-        if (isBonus())
-            cPlayer.points = cPlayer.points + 6;
+        //if (isBonus())
+          //  cPlayer.points = cPlayer.points + 6;
         cPlayer.points = cPlayer.points + points;
         Log.i(TAG, "assignPoints: " + points);
         Log.i(TAG, "assignPoints: ---------------------------------------");

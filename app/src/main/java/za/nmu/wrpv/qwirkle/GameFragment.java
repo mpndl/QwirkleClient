@@ -18,6 +18,7 @@ import static androidx.gridlayout.widget.GridLayout.RIGHT;
 import static androidx.gridlayout.widget.GridLayout.START;
 import static androidx.gridlayout.widget.GridLayout.TOP;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -322,26 +323,36 @@ public class GameFragment extends Fragment implements Serializable {
             model.turn();
 
             setupBagCount();
-            selectedTiles = (ArrayList<Tile>) model.cPlayer.tiles.clone();
-            updatePlayerTiles(selectedTiles);
+            updatePlayerTiles(model.cPlayer.tiles);
             setupCurrentPlayer();
             resetMultiSelect();
+
+            if (model.cPlayer.tiles.size() == 0)
+                gameFinished();
         }
     }
 
-    public void setOnDraw(View view) {
-        if (selectedTiles.size() > 0)
-            model.draw(false ,selectedTiles);
-        else
-            model.draw(false, null);
-        model.turn();
-        updatePlayerTiles(model.cPlayer.tiles);
+    public void gameFinished() {
+        Intent intent = new Intent(getActivity(), EndActivity.class);
+        intent.putExtra("winner", model.getWinner());
+        startActivity(intent);
+    }
 
-        setupBagCount();
-        resetWidthExcept(null);
-        setupCurrentPlayer();
-        resetMultiSelect();
-        undoPlacedTiles(model.places);
+    public void setOnDraw(View view) {
+        if (model.geBagCount() > 0) {
+            if (selectedTiles.size() > 0)
+                model.draw(false, selectedTiles);
+            else
+                model.draw(false, null);
+            model.turn();
+            updatePlayerTiles(model.cPlayer.tiles);
+
+            setupBagCount();
+            resetWidthExcept(null);
+            setupCurrentPlayer();
+            resetMultiSelect();
+            undoPlacedTiles(model.places);
+        }
     }
 
     private void undoPlacedTiles(ArrayList<Tile> selectedTiles) {
@@ -378,7 +389,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void updatePlayerTiles(ArrayList<Tile> selectedTiles) {
-        if (selectedTiles.size() == 0 || selectedTiles.size() == 6)
+        //if (selectedTiles.size() == 0 || selectedTiles.size() == 6)
             imageAdapter.updateTiles(model.cPlayer.tiles);
     }
 }
