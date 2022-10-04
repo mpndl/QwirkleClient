@@ -228,6 +228,7 @@ public class GameFragment extends Fragment implements Serializable {
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
+
         class SerializableViewTreeObserver implements ViewTreeObserver.OnGlobalLayoutListener, Serializable {
             @Override
             public void onGlobalLayout() {

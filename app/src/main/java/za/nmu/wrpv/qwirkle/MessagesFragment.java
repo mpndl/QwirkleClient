@@ -1,5 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,9 +15,13 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationBuilderWithBuilderAccessor;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -47,6 +54,7 @@ public class MessagesFragment extends Fragment implements Serializable {
 
         setupRecycleView();
         setupListeners();
+        setupScrollToBottom();
     }
 
     private void setupListeners() {
@@ -82,13 +90,34 @@ public class MessagesFragment extends Fragment implements Serializable {
         });
     }
 
+    private void setupScrollToBottom() {
+        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
+        FloatingActionButton actionButton = getView().findViewById(R.id.fab_scroll_to_bottom);
+        actionButton.setOnClickListener(view -> {
+            rvPlayerTilesView.smoothScrollToPosition(playerMessageAdapter.getItemCount());
+        });
+
+        rvPlayerTilesView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                actionButton.setEnabled(recyclerView.canScrollVertically(1));
+            }
+        });
+    }
+
     private void setupRecycleView() {
         RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
         LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        linearLayoutManager.setStackFromEnd(true);
+
         playerMessageAdapter = new PlayerMessageAdapter(model.playerMessages, getContext());
         rvPlayerTilesView.setAdapter(playerMessageAdapter);
+        rvPlayerTilesView.setLayoutManager(linearLayoutManager);
+        rvPlayerTilesView.smoothScrollToPosition(playerMessageAdapter.getItemCount());
     }
 }
