@@ -1,8 +1,5 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.text.Editable;
@@ -15,8 +12,6 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationBuilderWithBuilderAccessor;
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
