@@ -17,9 +17,10 @@ public class EndActivity extends AppCompatActivity {
         if (intent != null) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
+                ServerHandler.activity = this;
                 Player winner = (Player) bundle.getSerializable("winner");
                 TextView textView = findViewById(R.id.tv_winner);
-                textView.setTextColor(winner.color);
+                textView.setTextColor(getResources().getIdentifier(winner.color, "color", getPackageName()));
                 textView.setText(getResources().getString(R.string.congrats, winner.name, winner.points + ""));
             }
         }
@@ -27,7 +28,7 @@ public class EndActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(getApplicationContext(), StartActivity.class);
+        Intent intent = new Intent(getApplicationContext(), BeginActivity.class);
         startActivity(intent);
     }
 }

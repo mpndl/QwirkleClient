@@ -11,14 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> implements Serializable {
-    public ArrayList<Tile> tiles;
+    public List<Tile> tiles;
     private final Context context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
 
-    public ImageAdapter(ArrayList<Tile> tiles, Context context) {
+    public ImageAdapter(List<Tile> tiles, Context context) {
         this.tiles = tiles;
         this.context = context;
     }
@@ -35,7 +36,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
-    public void updateTiles(ArrayList<Tile> playerTiles) {
+    public void updateTiles(List<Tile> playerTiles) {
         this.tiles = playerTiles;
         notifyDataSetChanged();
     }

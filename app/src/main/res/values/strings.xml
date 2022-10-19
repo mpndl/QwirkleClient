@@ -12,4 +12,9 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="congrats">Congratulations %s you won by %s points!</string>
+    <string name="connecting">Establishing connection</string>
+    <string name="connection_error">Please check your connection</string>
+    <string name="waiting">Waiting for players to join</string>
+    <string name="stop">Stop</string>
+    <string name="you">You</string>
 </resources>

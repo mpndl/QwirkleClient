@@ -2,32 +2,14 @@ package za.nmu.wrpv.qwirkle;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import androidx.gridlayout.widget.GridLayout;
-import androidx.viewpager2.widget.ViewPager2;
 
-import android.widget.Button;
-import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
+import androidx.viewpager2.widget.ViewPager2;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements Serializable {
-    public GameModel model;
     List<Fragment> fragments;
     private final String TAG = "game";
 
@@ -50,10 +31,26 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         if(intent != null) {
             Bundle extras = intent.getExtras();
             if (extras != null) {
-                model = new GameModel(Integer.parseInt(extras.getString("playerCount")), this);
-                setupViewPager(model);
+                if (extras.containsKey("bundle")) {
+                    Bundle bundle = extras.getBundle("bundle");
+                    Player currentPlayer = (Player) bundle.get("currentPlayer");
+                    List<Tile> bag = (List<Tile>) bundle.get("bag");
+                    List<Player> players = (List<Player>)  bundle.get("players");
+
+                    ServerHandler.activity = this;
+                    GameModel.currentPlayer = currentPlayer;
+                    GameModel.bag = bag;
+                    GameModel.players = players;
+                    GameModel.player = getPlayer(ServerHandler.playerName, players);
+
+                    setupViewPager();
+                }
             }
         }
+    }
+
+    private Player getPlayer(String name, List<Player> players) {
+        return (Player) players.stream().filter(player -> player.name.toString().equals(name)).toArray()[0];
     }
 
     @Override
@@ -68,8 +65,8 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 .setTitle(titleForfeit)
                 .setMessage(confForfeit)
                 .setPositiveButton(yes, (dialog, which) -> {
-                    if (model.playerCount() > 2) {
-                        Player oldPlayer = model.cPlayer;
+                    if (GameModel.playerCount() > 2) {
+                        Player oldPlayer = GameModel.player;
                         ((GameFragment)fragments.get(0)).setOnDraw(null);
                         ((GameFragment)fragments.get(0)).statusAdapter.players.remove(oldPlayer);
                         ((GameFragment)fragments.get(0)).statusAdapter.notifyDataSetChanged();
@@ -80,9 +77,9 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 .show();
     }
 
-    private void setupViewPager(GameModel model) {
+    private void setupViewPager() {
         ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
-        fragments = new ArrayList<>(Arrays.asList(GameFragment.newInstance(model), MessagesFragment.newInstance(model)));
+        fragments = new ArrayList<>(Arrays.asList(GameFragment.newInstance(), MessagesFragment.newInstance()));
         PagerAdapter adapter = new PagerAdapter(this, fragments);
         viewPager2.setAdapter(adapter);
     }

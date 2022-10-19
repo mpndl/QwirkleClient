@@ -1,9 +1,11 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.annotation.SuppressLint;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,36 +21,53 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+
+import za.nmu.wrpv.qwirkle.messages.client.IMessage;
 
 public class MessagesFragment extends Fragment implements Serializable {
-    private GameModel model;
-    private PlayerMessageAdapter playerMessageAdapter;
+    public static final BlockingDeque<Runnable> runs = new LinkedBlockingDeque<>();
+    private Thread thread;
+    @SuppressLint("StaticFieldLeak")
+    public static MessagesAdapter adapter;
 
-    public static MessagesFragment newInstance(GameModel model) {
-        MessagesFragment messagesFragment = new MessagesFragment();
-        Bundle bundle = new Bundle(1);
-        bundle.putSerializable("model", model);
-        messagesFragment.setArguments(bundle);
-        return messagesFragment;
+    public static MessagesFragment newInstance() {
+        return new MessagesFragment();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        model = (GameModel) getArguments().getSerializable("model");
-
         return inflater.inflate(R.layout.fragment_messages, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        thread = new Thread(() -> {
+            try {
+                do {
+                    runs.take().run();
+                }while (true);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
         setupRecycleView();
         setupListeners();
         setupScrollToBottom();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (thread != null && thread.isAlive())
+            thread.interrupt();
     }
 
     private void setupListeners() {
@@ -73,13 +92,15 @@ public class MessagesFragment extends Fragment implements Serializable {
 
         btnSendMessage.setOnClickListener(view -> {
             PlayerMessage playerMessage = new PlayerMessage();
-            playerMessage.player = model.cPlayer;
+            playerMessage.player = GameModel.player;
             playerMessage.message = etMessage.getText().toString();
-
             playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
-            model.insertPlayerMessage(playerMessage);
-            playerMessageAdapter.notifyItemInserted(playerMessageAdapter.playerMessages.size() - 1);
+            IMessage msg = new IMessage();
+            msg.put("message", playerMessage);
+
+            ServerHandler.send(msg);
+
             etMessage.setText("");
         });
     }
@@ -88,7 +109,7 @@ public class MessagesFragment extends Fragment implements Serializable {
         RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
         FloatingActionButton actionButton = getView().findViewById(R.id.fab_scroll_to_bottom);
         actionButton.setOnClickListener(view -> {
-            rvPlayerTilesView.smoothScrollToPosition(playerMessageAdapter.getItemCount());
+            rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
         });
 
         rvPlayerTilesView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -109,9 +130,10 @@ public class MessagesFragment extends Fragment implements Serializable {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setStackFromEnd(true);
 
-        playerMessageAdapter = new PlayerMessageAdapter(model.playerMessages, getContext());
-        rvPlayerTilesView.setAdapter(playerMessageAdapter);
+        adapter = new MessagesAdapter(new ArrayList<>());
+        GameModel.adapter = adapter;
+        rvPlayerTilesView.setAdapter(adapter);
         rvPlayerTilesView.setLayoutManager(linearLayoutManager);
-        rvPlayerTilesView.smoothScrollToPosition(playerMessageAdapter.getItemCount());
+        rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
     }
 }

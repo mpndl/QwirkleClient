@@ -1,41 +1,20 @@
 package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
-import static android.view.Gravity.AXIS_PULL_AFTER;
-import static android.view.Gravity.AXIS_PULL_BEFORE;
-import static android.view.Gravity.AXIS_SPECIFIED;
-import static android.view.Gravity.AXIS_X_SHIFT;
-import static android.view.Gravity.AXIS_Y_SHIFT;
-import static android.view.Gravity.HORIZONTAL_GRAVITY_MASK;
-import static android.view.Gravity.VERTICAL_GRAVITY_MASK;
-
-import static androidx.gridlayout.widget.GridLayout.BOTTOM;
-import static androidx.gridlayout.widget.GridLayout.CENTER;
-import static androidx.gridlayout.widget.GridLayout.END;
-import static androidx.gridlayout.widget.GridLayout.FILL;
-import static androidx.gridlayout.widget.GridLayout.LEFT;
-import static androidx.gridlayout.widget.GridLayout.RIGHT;
-import static androidx.gridlayout.widget.GridLayout.START;
-import static androidx.gridlayout.widget.GridLayout.TOP;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -47,7 +26,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -55,36 +33,31 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class GameFragment extends Fragment implements Serializable {
-    public GameModel model;
     private ImageAdapter imageAdapter;
     public StatusAdapter statusAdapter;
     private ArrayList<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
-    private final String TAG = "game";
     private boolean multiSelected = false;
 
     private final int SIZE = 100;
 
-    public static GameFragment newInstance(GameModel model) {
-        GameFragment gameFragment = new GameFragment();
-        Bundle bundle = new Bundle(1);
-        bundle.putSerializable("model", model);
-        gameFragment.setArguments(bundle);
-        return gameFragment;
+    public static GameFragment newInstance() {
+        return new GameFragment();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        model = (GameModel) getArguments().getSerializable("model");
         return inflater.inflate(R.layout.fragment_game, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setButtons();
         setupGridLayout();
         setupRecyclerView();
         setupPlayersStatus();
@@ -98,8 +71,8 @@ public class GameFragment extends Fragment implements Serializable {
         ScrollView sv = getView().findViewById(R.id.scrollView2);
 
         hsv.post(() -> {
-            sv.smoothScrollBy((SIZE * model.XLENGTH) /2, (SIZE * model.XLENGTH) /2);
-            hsv.smoothScrollBy((SIZE * model.XLENGTH) /2, (SIZE * model.XLENGTH) /2);
+            sv.smoothScrollBy((SIZE * GameModel.XLENGTH) /2, (SIZE * GameModel.XLENGTH) /2);
+            hsv.smoothScrollBy((SIZE * GameModel.XLENGTH) /2, (SIZE * GameModel.XLENGTH) /2);
         });
     }
 
@@ -112,7 +85,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     private void setupPlayersStatus() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
-        statusAdapter = new StatusAdapter(getActivity(), model.players);
+        statusAdapter = new StatusAdapter(getActivity(), GameModel.players);
         gvPlayersStatus.setAdapter(statusAdapter);
     }
 
@@ -137,7 +110,7 @@ public class GameFragment extends Fragment implements Serializable {
             TextView textView = cardView.findViewById(R.id.tv_player_name);
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String playerName = imageView.getTag().toString();
-            if (playerName.equals(model.cPlayer.name.toString())) {
+            if (playerName.equals(GameModel.currentPlayer.name.toString())) {
                 textView.setText("> " + playerName);
                 textView.setTextColor(Color.BLUE);
             }
@@ -147,33 +120,35 @@ public class GameFragment extends Fragment implements Serializable {
             }
         }
 
-        ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
-        GradientDrawable gradientDrawable=new GradientDrawable();
-        gradientDrawable.setStroke(4,model.cPlayer.color);
-        constraintLayout.setBackground(gradientDrawable);
+        if (GameModel.isTurn()) {
+            ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
+            GradientDrawable gradientDrawable = new GradientDrawable();
+            gradientDrawable.setStroke(4, getActivity().getResources().getIdentifier(GameModel.currentPlayer.color, "color", getActivity().getPackageName()));
+            constraintLayout.setBackground(gradientDrawable);
+        }
     }
 
     private void setupBagCount() {
         TextView tvTileCount = getView().findViewById(R.id.tv_tileCount);
-        tvTileCount.setText(model.geBagCount() + "");
+        tvTileCount.setText(GameModel.geBagCount() + "");
     }
 
     private void updatePlayerScore() {
-        statusAdapter.updatePlayerScore(model.cPlayer);
+        statusAdapter.updatePlayerScore(GameModel.currentPlayer);
     }
 
     private void setupGridLayout() {
         GridLayout glBoard = getView().findViewById(R.id.board);
-        glBoard.setColumnCount(model.XLENGTH);
-        glBoard.setRowCount(model.YLENGTH);
+        glBoard.setColumnCount(GameModel.XLENGTH);
+        glBoard.setRowCount(GameModel.YLENGTH);
         populate(glBoard);
     }
 
     private void populate(GridLayout grid) {
         grid.removeAllViews();
 
-        for (int i = 0; i < model.XLENGTH; i++) {
-            for (int j = 0; j < model.YLENGTH; j++) {
+        for (int i = 0; i < GameModel.XLENGTH; i++) {
+            for (int j = 0; j < GameModel.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
 
                 button.setMinimumWidth(SIZE);
@@ -192,7 +167,7 @@ public class GameFragment extends Fragment implements Serializable {
             String[] rowCol = button.getTag().toString().split("_");
             int row_no = Integer.parseInt(rowCol[1]);
             int col_no = Integer.parseInt(rowCol[0]);
-            GameModel.Legality legality = model.place(row_no, col_no, selectedTiles.get(0));
+            GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
                 updateTags();
                 imageAdapter.notifyDataSetChanged();
@@ -222,6 +197,19 @@ public class GameFragment extends Fragment implements Serializable {
         return getResources().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
     }
 
+    public void setButtons() {
+        Button btnSend = getView().findViewById(R.id.btn_play);
+        Button btnDraw = getView().findViewById(R.id.btn_draw);
+        if (GameModel.player.name != GameModel.currentPlayer.name) {
+            btnSend.setEnabled(false);
+            btnDraw.setEnabled(false);
+        }
+        else {
+            btnSend.setEnabled(true);
+            btnDraw.setEnabled(true);
+        }
+    }
+
     private void setupRecyclerView() {
         RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
         LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
@@ -239,7 +227,7 @@ public class GameFragment extends Fragment implements Serializable {
 
         rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new SerializableViewTreeObserver());
 
-        imageAdapter = new ImageAdapter(model.cPlayer.tiles, getActivity());
+        imageAdapter = new ImageAdapter(GameModel.player.tiles, getActivity());
         imageAdapter.setOnClickListener((IaOnClickListener) this::iaOnclickListener);
 
         imageAdapter.setOnLongClickListener((IaOnLongClickListener) this::iaLongClickListener);
@@ -302,7 +290,7 @@ public class GameFragment extends Fragment implements Serializable {
         if (selectedTiles == null)
             selectedTiles = new ArrayList<>();
         ImageView imageView = view.findViewById(R.id.iv_tile);
-        Tile selectedTile = model.cPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        Tile selectedTile = GameModel.currentPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         selectedTiles.add(selectedTile);
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == 50) {
@@ -317,49 +305,49 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setOnPlay(View view) {
-        if(model.places.size() > 0) {
-            model.recover();
-            model.play();
+        if(GameModel.places.size() > 0) {
+            GameModel.recover();
+            GameModel.play();
             updatePlayerScore();
-            model.turn();
+            GameModel.turn();
 
             setupBagCount();
-            updatePlayerTiles(model.cPlayer.tiles);
+            updatePlayerTiles(GameModel.currentPlayer.tiles);
             setupCurrentPlayer();
             resetMultiSelect();
 
-            if (model.cPlayer.tiles.size() == 0)
+            if (GameModel.currentPlayer.tiles.size() == 0)
                 gameFinished();
         }
     }
 
     public void gameFinished() {
         Intent intent = new Intent(getActivity(), EndActivity.class);
-        intent.putExtra("winner", model.getWinner());
+        intent.putExtra("winner", GameModel.getWinner());
         startActivity(intent);
     }
 
     public void setOnDraw(View view) {
-        if (model.geBagCount() > 0) {
+        if (GameModel.geBagCount() > 0) {
             if (selectedTiles.size() > 0)
-                model.draw(false, selectedTiles);
+                GameModel.draw(false, selectedTiles);
             else
-                model.draw(false, null);
-            model.turn();
-            updatePlayerTiles(model.cPlayer.tiles);
+                GameModel.draw(false, null);
+            GameModel.turn();
+            updatePlayerTiles(GameModel.currentPlayer.tiles);
 
             setupBagCount();
             resetWidthExcept(null);
             setupCurrentPlayer();
             resetMultiSelect();
-            undoPlacedTiles(model.places);
+            undoPlacedTiles(GameModel.places);
         }
     }
 
-    private void undoPlacedTiles(ArrayList<Tile> selectedTiles) {
+    private void undoPlacedTiles(List<Tile> selectedTiles) {
         GridLayout glBoard = getView().findViewById(R.id.board);
         for (Tile tile: selectedTiles) {
-            int index = tile.yPos * model.XLENGTH + tile.xPos;
+            int index = tile.yPos * GameModel.XLENGTH + tile.xPos;
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
             ImageButton button = new ImageButton(getActivity());
@@ -389,8 +377,7 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    public void updatePlayerTiles(ArrayList<Tile> selectedTiles) {
-        //if (selectedTiles.size() == 0 || selectedTiles.size() == 6)
-            imageAdapter.updateTiles(model.cPlayer.tiles);
+    public void updatePlayerTiles(List<Tile> selectedTiles) {
+            imageAdapter.updateTiles(GameModel.currentPlayer.tiles);
     }
 }

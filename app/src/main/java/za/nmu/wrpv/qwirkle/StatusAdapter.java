@@ -1,6 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,10 +15,11 @@ import androidx.annotation.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class StatusAdapter extends ArrayAdapter<Player> implements Serializable {
-    ArrayList<Player> players;
-    public StatusAdapter(@NonNull Context context, ArrayList<Player> players) {
+    public final List<Player> players;
+    public StatusAdapter(@NonNull Context context, List<Player> players) {
         super(context, 0, players);
         this.players = players;
     }
@@ -49,9 +52,23 @@ public class StatusAdapter extends ArrayAdapter<Player> implements Serializable 
 
         imageView.setTag(player.name);
 
-        listItemView.setBackgroundColor(player.color);
-
+        listItemView.setBackgroundColor(getColor(player));
         tvScore.setText(getContext().getString(R.string.score, player.points + ""));
         return listItemView;
+    }
+
+    public static int getColor(Player player) {
+        Activity activity = ServerHandler.activity;
+        switch (player.color) {
+            case "red":
+                return activity.getColor(R.color.red);
+            case "green":
+                return activity.getColor(R.color.green);
+            case "blue":
+                return activity.getColor(R.color.blue);
+            case "purple":
+                return activity.getColor(R.color.purple);
+        }
+        return 0;
     }
 }

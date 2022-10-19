@@ -2,23 +2,26 @@ package za.nmu.wrpv.qwirkle;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.ConnectException;
 import java.net.Socket;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Stop;
-import za.nmu.wrpv.qwirkle.messages.client.Subscribe;
 
 public class ServerHandler implements Serializable {
     private static final BlockingQueue<Message> messages = new LinkedBlockingQueue<>();
-    private static final String serverAddress = "10.0.245.165";
+    public static String serverAddress;
+    public static String playerName;
 
     public static ObjectOutputStream ous;
     public static ObjectInputStream ois;
@@ -29,13 +32,16 @@ public class ServerHandler implements Serializable {
 
     public static void start() {
         if (!running()) {
+            Log.i("game", "run: starting client");
             serverReader = new ServerReader();
             serverReader.start();
+            return;
         }
+        Log.i("game", "run: already running");
     }
 
     public static boolean running() {
-        return serverReader != null;
+        return serverReader != null && serverReader.isAlive();
     }
 
     private static class ServerWriter extends Thread implements Serializable {
@@ -51,6 +57,14 @@ public class ServerHandler implements Serializable {
                 e.printStackTrace();
                 serverWriter = null;
             }
+        }
+    }
+
+    public static void interrupt() {
+        if (running()) {
+            Log.i("game", "interrupt: ");
+            serverReader.interrupt();
+            serverReader = null;
         }
     }
 
@@ -72,9 +86,17 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
+            } catch (ConnectException e) {
+                activity.runOnUiThread(() -> {
+                    Toast.makeText(activity, R.string.connection_error, Toast.LENGTH_LONG).show();
+                    Button button = activity.findViewById(R.id.btn_start_game);
+                    button.setEnabled(true);
+                    button.setText(R.string.btn_start_game);
+                });
+
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 serverReader = null;
                 ServerHandler.stop();
             }
@@ -86,6 +108,7 @@ public class ServerHandler implements Serializable {
     }
 
     public static void stop() {
+        Log.i("game", "run: client stopped");
         Message message = new Stop();
         send(message);
     }

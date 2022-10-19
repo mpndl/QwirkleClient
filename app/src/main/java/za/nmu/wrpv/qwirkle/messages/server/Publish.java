@@ -1,4 +1,4 @@
-package za.nmu.wrpv.qwirkle.messages.client;
+package za.nmu.wrpv.qwirkle.messages.server;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 
