@@ -150,7 +150,6 @@ public class GameFragment extends Fragment implements Serializable {
 
     private void setupPlayersStatus() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
-        //scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
         gvPlayersStatus.setAdapter(scoreAdapter);
     }
 

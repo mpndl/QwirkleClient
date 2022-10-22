@@ -227,40 +227,40 @@ public class GameModel implements Serializable {
     private static Legality legal(int xpos, int ypos, Tile tile) {
         if (tempBoard == null) backup();
 
-        System.out.println("====================================================================");
+        /*System.out.println("====================================================================");
         System.out.println("--------------------- left = " + tempBoard[xpos - 1][ypos]);
         System.out.println("--------------------- right = " + tempBoard[xpos + 1][ypos]);
         System.out.println("--------------------- up = " + tempBoard[xpos][ypos + 1]);
         System.out.println("--------------------- down = " + tempBoard[xpos][ypos - 1]);
-        System.out.println("====================================================================");
+        System.out.println("====================================================================");*/
 
-        if(places.size() == 0 && placedCount == 0) {
-            return Legality.LEGAL;
+        if(places.size() != 0 || placedCount != 0) {
+            return Legality.ILLEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
-            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
+            //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (illegalOrientation(xpos, ypos)) {
-            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
+            //System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
-            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
+            //System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.ILLEGAL;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
-            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
+            //System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.ILLEGAL;
         }
 
-        if (next(xpos, ypos, tile))
-            return Legality.LEGAL;
+        if (!next(xpos, ypos, tile))
+            return Legality.ILLEGAL;
 
-        System.out.println("--------------------------------------- ALL");
+        //System.out.println("--------------------------------------- ALL");
         return Legality.LEGAL;
     }
 
