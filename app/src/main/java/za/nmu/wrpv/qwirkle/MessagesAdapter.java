@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
@@ -9,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,9 +18,11 @@ import java.util.List;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder> implements Serializable {
     public List<PlayerMessage> playerMessages;
+    private Context context;
 
-    public MessagesAdapter(List<PlayerMessage> playerMessages) {
+    public MessagesAdapter(List<PlayerMessage> playerMessages, Context context) {
         this.playerMessages = playerMessages;
+        this.context = context;
     }
 
     public void add(PlayerMessage playerMessage) {
@@ -72,11 +74,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
         public void set(PlayerMessage playerMessage) {
 
-            if (GameModel.player.name.equals(playerMessage.player.name)) {
+            if (GameModel.clientPlayer.name.equals(playerMessage.player.name)) {
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
-                clLeft.setBackgroundColor(StatusAdapter.getColor(playerMessage.player));
+                clLeft.setBackgroundColor(ScoreAdapter.getColor(playerMessage.player, clLeft.getContext()));
                 playerNameLeft.setText(R.string.you);
                 messageLeft.setText(playerMessage.message);
                 timeLeft.setText(playerMessage.time);
@@ -86,7 +88,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
-                clRight.setBackgroundColor(StatusAdapter.getColor(playerMessage.player));
+                clRight.setBackgroundColor(ScoreAdapter.getColor(playerMessage.player, clRight.getContext()));
                 playerNameRight.setText(content);
                 messageRight.setText(playerMessage.message);
                 timeRight.setText(playerMessage.time);

@@ -1,7 +1,5 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.widget.Toast;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +9,8 @@ import java.util.Stack;
 
 public class GameModel implements Serializable {
     public static Player currentPlayer;
-    public static Player player;
+    public static Player clientPlayer;
+    public static String clientPlayerName;
     public static List<Tile> bag = new ArrayList<>();
     public static List<Player> players;
     private static final Stack<Tile> paths2 = new Stack<>();
@@ -19,33 +18,32 @@ public class GameModel implements Serializable {
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
     public static List<Tile> places = new ArrayList<>();
-    private static int placedCount = 0;
+    public static int placedCount = 0;
     private static int points = 0;
-    private static Tile[][] board = new Tile[XLENGTH][YLENGTH];
+    public static Tile[][] board = new Tile[XLENGTH][YLENGTH];
     private static Tile[][] tempBoard = null;
     private static List<Tile> ts = new ArrayList<>();
-    private static boolean placing = false;
-
-    public static MessagesAdapter adapter;
+    public static boolean placing = false;
 
     public enum Legality {
         LEGAL, ILLEGAL;
     }
 
-    public static int geBagCount() {
+    public static void updatePlayerTiles(Player player) {
+        for (Player p: players) {
+            if (p.name == player.name) {
+                p.tiles = player.tiles;
+                return;
+            }
+        }
+    }
+
+    public static int getBagCount() {
         return bag.size();
     }
 
-    public static int playerCount() {
-        return players.size();
-    }
-
-    public static void addMessage(PlayerMessage playerMessage) {
-        adapter.add(playerMessage);
-    }
-
     public static boolean isTurn() {
-        return player.name == currentPlayer.name;
+        return clientPlayer.name == currentPlayer.name;
     }
 
     private static int getPlayerHighestCCount(List<Tile> playerTiles) {
@@ -112,15 +110,15 @@ public class GameModel implements Serializable {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public static void draw(boolean played, List<Tile> playerTiles) {
+    public static void draw(boolean played, List<Tile> playerTiles, PlayerTilesAdapter playerTilesAdapter) {
         int HCOUNT = 6;
         int hcount = HCOUNT;
         if(bag.size() > 0) {
             if(played) {
                 if(bag.size() < HCOUNT) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(currentPlayer.tiles.size() < HCOUNT) {
-                        currentPlayer.tiles.add(bag.remove(i));
+                    if(playerTilesAdapter.tiles.size() < HCOUNT) {
+                        playerTilesAdapter.add(bag.remove(i));
                         hcount--;
                     }
                 }
@@ -128,21 +126,21 @@ public class GameModel implements Serializable {
                     currentPlayer.points = currentPlayer.points + 6;
             }
             else {
-                currentPlayer.tiles.addAll(places);
+                playerTilesAdapter.addAll(places);
                 if (playerTiles == null) {
                     bag.addAll(currentPlayer.tiles);
                     hcount = HCOUNT;
-                    currentPlayer.tiles.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
+                    playerTilesAdapter.tiles.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
                 }
                 else {
                     bag.addAll(playerTiles);
                     hcount = playerTiles.size();
-                    currentPlayer.tiles.removeAll((ArrayList<Tile>)((ArrayList)playerTiles).clone());
+                    playerTilesAdapter.removeAll((ArrayList<Tile>)((ArrayList)playerTiles).clone());
                 }
                 Collections.shuffle(bag);
                 for (int i = 0; i < hcount; i++) {
                     Tile tile = bag.remove(i);
-                    currentPlayer.tiles.add(tile);
+                    playerTilesAdapter.add(tile);
                 }
             }
             placing = false;
@@ -162,7 +160,7 @@ public class GameModel implements Serializable {
         }
     }
 
-    public static Legality place(int xpos, int ypos, Tile tile) {
+    public static Legality place(int xpos, int ypos, Tile tile, PlayerTilesAdapter playerTilesAdapter) {
         if(!placing) {
             places = new ArrayList<>();
         }
@@ -171,7 +169,7 @@ public class GameModel implements Serializable {
                 placing = true;
             }
 
-            currentPlayer.tiles.remove(tile);
+            playerTilesAdapter.tiles.remove(tile);
 
             tile.xPos = xpos;
             tile.yPos = ypos;
@@ -180,10 +178,10 @@ public class GameModel implements Serializable {
 
             tempBoard[xpos][ypos] = tile;
 
+
             return Legality.LEGAL;
         }
         else {
-            Toast.makeText(ServerHandler.activity, "ILLEGAL MOVE", Toast.LENGTH_SHORT).show();
             return Legality.ILLEGAL;
         }
     }
@@ -216,42 +214,54 @@ public class GameModel implements Serializable {
         tempBoard = copy(board);
     }
 
-    public static List<Tile> play() {
+    public static void play(PlayerTilesAdapter playerTilesAdapter) {
         if(places.size() > 0) {
             placing = false;
             placedCount = placedCount + places.size();
             assignPoints();
-            if (geBagCount() > 0)
-                draw(true, null);
-            return bag;
+            if (getBagCount() > 0)
+                draw(true, null, playerTilesAdapter);
         }
-        return null;
     }
 
     private static Legality legal(int xpos, int ypos, Tile tile) {
         if (tempBoard == null) backup();
 
+        System.out.println("====================================================================");
+        System.out.println("--------------------- left = " + tempBoard[xpos - 1][ypos]);
+        System.out.println("--------------------- right = " + tempBoard[xpos + 1][ypos]);
+        System.out.println("--------------------- up = " + tempBoard[xpos][ypos + 1]);
+        System.out.println("--------------------- down = " + tempBoard[xpos][ypos - 1]);
+        System.out.println("====================================================================");
+
         if(places.size() == 0 && placedCount == 0) {
             return Legality.LEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
+            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
-        if (illegalOrientation(xpos, ypos))
+        if (illegalOrientation(xpos, ypos)) {
+            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ILLEGAL;
+        }
 
-        if (!adjEquivalent(xpos, ypos, tile, places))
+        if (!adjEquivalent(xpos, ypos, tile, places)) {
+            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.ILLEGAL;
+        }
 
         if (nullInBetween(xpos, ypos, places)) {
+            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.ILLEGAL;
         }
 
         if (next(xpos, ypos, tile))
             return Legality.LEGAL;
 
-        return Legality.ILLEGAL;
+        System.out.println("--------------------------------------- ALL");
+        return Legality.LEGAL;
     }
 
     private static boolean allSidesNull(int xpos, int ypos) {
@@ -514,7 +524,7 @@ public class GameModel implements Serializable {
             currentPlayer.points = currentPlayer.points + 6;
         currentPlayer.points = currentPlayer.points + points;
         // reinitialize
-        places = new ArrayList<>();
+        //places = new ArrayList<>();
         qwirkleMonitor = new ArrayList<>();
         points = 0;
     }

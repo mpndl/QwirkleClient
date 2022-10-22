@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,16 +34,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+
+import za.nmu.wrpv.qwirkle.messages.client.Drawn;
+import za.nmu.wrpv.qwirkle.messages.client.Played;
 
 public class GameFragment extends Fragment implements Serializable {
-    private ImageAdapter imageAdapter;
-    public StatusAdapter statusAdapter;
-    private ArrayList<Tile> selectedTiles = new ArrayList<>();
+    private PlayerTilesAdapter playerTilesAdapter;
+    private ScoreAdapter scoreAdapter;
+    private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
 
-    private final int SIZE = 100;
+    private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
+    private Thread thread;
 
     public static GameFragment newInstance() {
         return new GameFragment();
@@ -57,7 +66,34 @@ public class GameFragment extends Fragment implements Serializable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setButtons();
+
+        scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
+
+        Button btnPlay = getView().findViewById(R.id.btn_play);
+        Button btnDraw = getView().findViewById(R.id.btn_draw);
+        btnDraw.setEnabled(false);
+        btnPlay.setEnabled(false);
+        if (GameModel.isTurn()) {
+            btnDraw.setEnabled(true);
+            btnPlay.setEnabled(true);
+        }
+
+        thread = new Thread(() -> {
+            do {
+                Map<String, Object> data = new HashMap<>();
+                data.put("adapter", scoreAdapter);
+                data.put("context", getContext());
+                data.put("fragment", this);
+                try {
+                    Run run = runs.take();
+                    getActivity().runOnUiThread(() -> run.run(data));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }while (true);
+        });
+        thread.start();
+
         setupGridLayout();
         setupRecyclerView();
         setupPlayersStatus();
@@ -66,14 +102,43 @@ public class GameFragment extends Fragment implements Serializable {
         center();
     }
 
+    public static void runLater(Run run) {
+        runs.add(run);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (thread.isAlive()) thread.interrupt();
+    }
+
     private void center() {
         HorizontalScrollView hsv = getView().findViewById(R.id.horizontalScrollView);
         ScrollView sv = getView().findViewById(R.id.scrollView2);
-
         hsv.post(() -> {
-            sv.smoothScrollBy((SIZE * GameModel.XLENGTH) /2, (SIZE * GameModel.XLENGTH) /2);
-            hsv.smoothScrollBy((SIZE * GameModel.XLENGTH) /2, (SIZE * GameModel.XLENGTH) /2);
+            sv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
+            hsv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
         });
+    }
+
+    public void focusOnView(final ScrollView scroll, final  HorizontalScrollView hScroll, final View view) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+
+        int scrollTo = ((View) view.getParent().getParent()).getTop() + view.getTop() - (height/2);
+        scroll.smoothScrollTo(0, scrollTo);
+
+        hsvFocusOnView(hScroll, view);
+    }
+
+    private void hsvFocusOnView(final HorizontalScrollView scroll, final View view) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = displayMetrics.widthPixels;
+
+        int scrollTo = ((View)view.getParent()).getLeft() + view.getLeft() - (width/2);
+        scroll.scrollTo(scrollTo,0);
     }
 
     private void setButtonListeners() {
@@ -85,8 +150,8 @@ public class GameFragment extends Fragment implements Serializable {
 
     private void setupPlayersStatus() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
-        statusAdapter = new StatusAdapter(getActivity(), GameModel.players);
-        gvPlayersStatus.setAdapter(statusAdapter);
+        //scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
+        gvPlayersStatus.setAdapter(scoreAdapter);
     }
 
     private void resetWidthExcept(ImageView imageView) {
@@ -102,39 +167,48 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    private void setupCurrentPlayer() {
-        GridView gvPlayersStatus = getActivity().findViewById(R.id.gv_players_status);
+    public void setupCurrentPlayer() {
+        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
         
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             TextView textView = cardView.findViewById(R.id.tv_player_name);
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
-            String playerName = imageView.getTag().toString();
+            String[] data = imageView.getTag().toString().split(",");
+            String playerName = data[1];
+            String you = data[0];
             if (playerName.equals(GameModel.currentPlayer.name.toString())) {
-                textView.setText("> " + playerName);
+                if (playerName.equals(GameModel.clientPlayerName))
+                    textView.setText("> " + you);
+                else
+                    textView.setText("> " + playerName);
                 textView.setTextColor(Color.BLUE);
             }
             else {
-                textView.setText(playerName);
+                if (playerName.equals(GameModel.clientPlayerName))
+                    textView.setText(you);
+                else
+                    textView.setText(playerName);
                 textView.setTextColor(getActivity().getColor(R.color.white));
             }
         }
 
+        ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
         if (GameModel.isTurn()) {
-            ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
             GradientDrawable gradientDrawable = new GradientDrawable();
-            gradientDrawable.setStroke(4, getActivity().getResources().getIdentifier(GameModel.currentPlayer.color, "color", getActivity().getPackageName()));
+            gradientDrawable.setStroke(8, ScoreAdapter.getColor(GameModel.currentPlayer, getContext()));
             constraintLayout.setBackground(gradientDrawable);
         }
+        else constraintLayout.setBackground(null);
     }
 
-    private void setupBagCount() {
+    public void setupBagCount() {
         TextView tvTileCount = getView().findViewById(R.id.tv_tileCount);
-        tvTileCount.setText(GameModel.geBagCount() + "");
+        tvTileCount.setText(GameModel.getBagCount() + "");
     }
 
-    private void updatePlayerScore() {
-        statusAdapter.updatePlayerScore(GameModel.currentPlayer);
+    public void updatePlayerScore() {
+        scoreAdapter.updatePlayerScore(GameModel.currentPlayer);
     }
 
     private void setupGridLayout() {
@@ -147,30 +221,35 @@ public class GameFragment extends Fragment implements Serializable {
     private void populate(GridLayout grid) {
         grid.removeAllViews();
 
+        int index = 0;
         for (int i = 0; i < GameModel.XLENGTH; i++) {
             for (int j = 0; j < GameModel.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
 
-                button.setMinimumWidth(SIZE);
-                button.setMinimumHeight(SIZE);
-                button.setTag(i + "_" + j);
+                button.setMinimumWidth(100);
+                button.setMinimumHeight(100);
+                button.setTag(i + "_" + j + "_" + index);
                 button.setPadding(0, 0, 0, 0);
                 button.setOnClickListener(this::onTileClicked);
-                grid.addView(button);
+                grid.addView(button, index);
+
+                index++;
             }
         }
     }
 
     private void onTileClicked(View view) {
-        if (selectedTiles.size() > 0) {
+        if (selectedTiles.size() > 0 && GameModel.isTurn()) {
             ImageButton button = (ImageButton) view;
-            String[] rowCol = button.getTag().toString().split("_");
-            int row_no = Integer.parseInt(rowCol[1]);
-            int col_no = Integer.parseInt(rowCol[0]);
-            GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0));
+            String[] rowColIndex = button.getTag().toString().split("_");
+            int row_no = Integer.parseInt(rowColIndex[1]);
+            int col_no = Integer.parseInt(rowColIndex[0]);
+            selectedTiles.get(0).index = Integer.parseInt(rowColIndex[2]);
+            System.out.println("TILE CLICKED INDEX = " + selectedTiles.get(0).index);
+            GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0), playerTilesAdapter);
             if (legality == GameModel.Legality.LEGAL) {
                 updateTags();
-                imageAdapter.notifyDataSetChanged();
+                playerTilesAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
                 button.setForeground(getDrawable(selectedTiles.get(0).toString()));
@@ -178,6 +257,8 @@ public class GameFragment extends Fragment implements Serializable {
                 // no further interaction allowed
                 button.setEnabled(false);
             }
+        }else {
+            System.out.println("NOT YOUR TURN "+ GameModel.clientPlayer.name +" BUT " + GameModel.currentPlayer.name + "'s");
         }
 
         resetWidthExcept(null);
@@ -197,19 +278,6 @@ public class GameFragment extends Fragment implements Serializable {
         return getResources().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
     }
 
-    public void setButtons() {
-        Button btnSend = getView().findViewById(R.id.btn_play);
-        Button btnDraw = getView().findViewById(R.id.btn_draw);
-        if (GameModel.player.name != GameModel.currentPlayer.name) {
-            btnSend.setEnabled(false);
-            btnDraw.setEnabled(false);
-        }
-        else {
-            btnSend.setEnabled(true);
-            btnDraw.setEnabled(true);
-        }
-    }
-
     private void setupRecyclerView() {
         RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
         LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
@@ -227,12 +295,12 @@ public class GameFragment extends Fragment implements Serializable {
 
         rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new SerializableViewTreeObserver());
 
-        imageAdapter = new ImageAdapter(GameModel.player.tiles, getActivity());
-        imageAdapter.setOnClickListener((IaOnClickListener) this::iaOnclickListener);
+        playerTilesAdapter = new PlayerTilesAdapter(GameModel.clientPlayer.tiles, getActivity());
+        playerTilesAdapter.setOnClickListener((IaOnClickListener) this::iaOnclickListener);
 
-        imageAdapter.setOnLongClickListener((IaOnLongClickListener) this::iaLongClickListener);
+        playerTilesAdapter.setOnLongClickListener((IaOnLongClickListener) this::iaLongClickListener);
 
-        rvPlayerTilesView.setAdapter(imageAdapter);
+        rvPlayerTilesView.setAdapter(playerTilesAdapter);
     }
 
     public interface IaOnClickListener extends Serializable, View.OnClickListener {
@@ -255,7 +323,7 @@ public class GameFragment extends Fragment implements Serializable {
             multiSelected = false;
         }
 
-        Tile selectedTile = imageAdapter.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        Tile selectedTile = playerTilesAdapter.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         if (multiSelect) {
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
@@ -307,17 +375,45 @@ public class GameFragment extends Fragment implements Serializable {
     public void setOnPlay(View view) {
         if(GameModel.places.size() > 0) {
             GameModel.recover();
-            GameModel.play();
+            GameModel.play(playerTilesAdapter);
             updatePlayerScore();
+
+            List<Tile> temp = new ArrayList<>();
+            for (Tile tile: GameModel.places) {
+                Tile tempTile = new Tile();
+                tempTile.xPos = tile.xPos;
+                tempTile.yPos = tile.yPos;
+                tempTile.color = tile.color;
+                tempTile.shape = tile.shape;
+                tempTile.index = tile.index;
+                temp.add(tempTile);
+            }
+
+            Played message = new Played();
+            message.put("bag", GameModel.bag);
+            message.put("player", GameModel.currentPlayer);
+            message.put("places", temp);
+            message.put("board", GameModel.board);
+            message.put("placedCount", GameModel.placedCount);
+
             GameModel.turn();
 
             setupBagCount();
-            updatePlayerTiles(GameModel.currentPlayer.tiles);
+            updatePlayerTiles();
             setupCurrentPlayer();
             resetMultiSelect();
 
             if (GameModel.currentPlayer.tiles.size() == 0)
                 gameFinished();
+
+            System.out.println("PLACES = " + GameModel.places.get(0).index);
+            GameModel.places = new ArrayList<>();
+            ServerHandler.send(message);
+
+            Button btnPlay = getView().findViewById(R.id.btn_play);
+            Button btnDraw = getView().findViewById(R.id.btn_draw);
+            btnDraw.setEnabled(false);
+            btnPlay.setEnabled(false);
         }
     }
 
@@ -328,19 +424,30 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setOnDraw(View view) {
-        if (GameModel.geBagCount() > 0) {
+        if (GameModel.getBagCount() > 0) {
             if (selectedTiles.size() > 0)
-                GameModel.draw(false, selectedTiles);
+                GameModel.draw(false, selectedTiles, playerTilesAdapter);
             else
-                GameModel.draw(false, null);
+                GameModel.draw(false, null, playerTilesAdapter);
+
+            Drawn message = new Drawn();
+            message.put("bag", GameModel.bag);
+            message.put("player", GameModel.currentPlayer);
+
             GameModel.turn();
-            updatePlayerTiles(GameModel.currentPlayer.tiles);
+            updatePlayerTiles();
+
+            ServerHandler.send(message);
 
             setupBagCount();
             resetWidthExcept(null);
             setupCurrentPlayer();
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
+            Button btnPlay = getView().findViewById(R.id.btn_play);
+            Button btnDraw = getView().findViewById(R.id.btn_draw);
+            btnDraw.setEnabled(false);
+            btnPlay.setEnabled(false);
         }
     }
 
@@ -377,7 +484,7 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    public void updatePlayerTiles(List<Tile> selectedTiles) {
-            imageAdapter.updateTiles(GameModel.currentPlayer.tiles);
+    public void updatePlayerTiles() {
+            playerTilesAdapter.updateTiles(GameModel.clientPlayer.tiles);
     }
 }

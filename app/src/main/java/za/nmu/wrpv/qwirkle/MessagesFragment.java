@@ -1,11 +1,9 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.annotation.SuppressLint;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,17 +21,18 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import za.nmu.wrpv.qwirkle.messages.client.IMessage;
 
 public class MessagesFragment extends Fragment implements Serializable {
-    public static final BlockingDeque<Runnable> runs = new LinkedBlockingDeque<>();
+    private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
-    @SuppressLint("StaticFieldLeak")
-    public static MessagesAdapter adapter;
+    public MessagesAdapter adapter;
 
     public static MessagesFragment newInstance() {
         return new MessagesFragment();
@@ -48,14 +47,21 @@ public class MessagesFragment extends Fragment implements Serializable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        adapter = new MessagesAdapter(new ArrayList<>(), getContext());
+
         thread = new Thread(() -> {
-            try {
-                do {
-                    runs.take().run();
-                }while (true);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            do {
+                Map<String, Object> data = new HashMap<>();
+                data.put("adapter", adapter);
+                data.put("context", this);
+                try {
+                    Run run = runs.take();
+                    getActivity().runOnUiThread(() -> run.run(data));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }while (true);
         });
         thread.start();
         setupRecycleView();
@@ -66,8 +72,7 @@ public class MessagesFragment extends Fragment implements Serializable {
     @Override
     public void onPause() {
         super.onPause();
-        if (thread != null && thread.isAlive())
-            thread.interrupt();
+        if (thread.isAlive()) thread.interrupt();
     }
 
     private void setupListeners() {
@@ -92,7 +97,7 @@ public class MessagesFragment extends Fragment implements Serializable {
 
         btnSendMessage.setOnClickListener(view -> {
             PlayerMessage playerMessage = new PlayerMessage();
-            playerMessage.player = GameModel.player;
+            playerMessage.player = GameModel.clientPlayer;
             playerMessage.message = etMessage.getText().toString();
             playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
@@ -130,10 +135,12 @@ public class MessagesFragment extends Fragment implements Serializable {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setStackFromEnd(true);
 
-        adapter = new MessagesAdapter(new ArrayList<>());
-        GameModel.adapter = adapter;
         rvPlayerTilesView.setAdapter(adapter);
         rvPlayerTilesView.setLayoutManager(linearLayoutManager);
         rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
+    }
+
+    public static void runLater(Run run) {
+        runs.add(run);
     }
 }

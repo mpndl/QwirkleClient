@@ -1,10 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,23 +17,17 @@ import za.nmu.wrpv.qwirkle.messages.client.Stop;
 public class ServerHandler implements Serializable {
     private static final BlockingQueue<Message> messages = new LinkedBlockingQueue<>();
     public static String serverAddress;
-    public static String playerName;
 
     public static ObjectOutputStream ous;
     public static ObjectInputStream ois;
     private static ServerReader serverReader;
     private static ServerWriter serverWriter;
-    @SuppressLint("StaticFieldLeak")
-    public static Activity activity;
 
     public static void start() {
         if (!running()) {
-            Log.i("game", "run: starting client");
             serverReader = new ServerReader();
             serverReader.start();
-            return;
         }
-        Log.i("game", "run: already running");
     }
 
     public static boolean running() {
@@ -86,13 +76,7 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
-            } catch (ConnectException e) {
-                activity.runOnUiThread(() -> {
-                    Toast.makeText(activity, R.string.connection_error, Toast.LENGTH_LONG).show();
-                    Button button = activity.findViewById(R.id.btn_start_game);
-                    button.setEnabled(true);
-                    button.setText(R.string.btn_start_game);
-                });
+            } catch (ConnectException ignored) {
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

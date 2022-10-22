@@ -10,16 +10,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> implements Serializable {
+public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> implements Serializable {
     public List<Tile> tiles;
     private final Context context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
 
-    public ImageAdapter(List<Tile> tiles, Context context) {
+    public PlayerTilesAdapter(List<Tile> tiles, Context context) {
         this.tiles = tiles;
         this.context = context;
     }
@@ -39,6 +38,20 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void updateTiles(List<Tile> playerTiles) {
         this.tiles = playerTiles;
         notifyDataSetChanged();
+    }
+
+    public void add(Tile tile) {
+        tiles.add(tile);
+        notifyItemInserted(getItemCount() - 1);
+    }
+
+    public void addAll(List<Tile> tiles) {
+        this.tiles.addAll(tiles);
+        notifyDataSetChanged();
+    }
+
+    public void removeAll(List<Tile> tiles){
+        this.tiles.removeAll(tiles);
     }
 
     @NonNull

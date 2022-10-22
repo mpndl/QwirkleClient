@@ -17,7 +17,6 @@ public class EndActivity extends AppCompatActivity {
         if (intent != null) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-                ServerHandler.activity = this;
                 Player winner = (Player) bundle.getSerializable("winner");
                 TextView textView = findViewById(R.id.tv_winner);
                 textView.setTextColor(getResources().getIdentifier(winner.color, "color", getPackageName()));

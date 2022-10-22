@@ -12,4 +12,5 @@
     <color name="red">#A1FF0000</color>
     <color name="green">#9955FF00</color>
     <color name="purple">#A4AA00FF</color>
+    <color name="transparent">#00AA00FF</color>
 </resources>

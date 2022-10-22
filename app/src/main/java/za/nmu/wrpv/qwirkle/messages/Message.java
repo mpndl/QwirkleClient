@@ -11,4 +11,7 @@ public abstract class Message implements Serializable {
     public void put(String key, Object value) {
         data.put(key, value);
     }
+    public Object get(String key) {
+        return data.get(key);
+    }
 }
