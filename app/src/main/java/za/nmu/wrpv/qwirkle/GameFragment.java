@@ -68,6 +68,7 @@ public class GameFragment extends Fragment implements Serializable {
         super.onViewCreated(view, savedInstanceState);
 
         scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
+        playerTilesAdapter = new PlayerTilesAdapter(GameModel.clientPlayer.tiles, getActivity());
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
@@ -168,7 +169,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void setupCurrentPlayer() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
-        
+
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             TextView textView = cardView.findViewById(R.id.tv_player_name);
@@ -195,7 +196,7 @@ public class GameFragment extends Fragment implements Serializable {
         ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
         if (GameModel.isTurn()) {
             GradientDrawable gradientDrawable = new GradientDrawable();
-            gradientDrawable.setStroke(8, ScoreAdapter.getColor(GameModel.currentPlayer, getContext()));
+            gradientDrawable.setStroke(15, ScoreAdapter.getColor(GameModel.currentPlayer, getContext()));
             constraintLayout.setBackground(gradientDrawable);
         }
         else constraintLayout.setBackground(null);
@@ -244,7 +245,6 @@ public class GameFragment extends Fragment implements Serializable {
             int row_no = Integer.parseInt(rowColIndex[1]);
             int col_no = Integer.parseInt(rowColIndex[0]);
             selectedTiles.get(0).index = Integer.parseInt(rowColIndex[2]);
-            System.out.println("TILE CLICKED INDEX = " + selectedTiles.get(0).index);
             GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0), playerTilesAdapter);
             if (legality == GameModel.Legality.LEGAL) {
                 updateTags();
@@ -257,7 +257,11 @@ public class GameFragment extends Fragment implements Serializable {
                 button.setEnabled(false);
             }
         }else {
-            System.out.println("NOT YOUR TURN "+ GameModel.clientPlayer.name +" BUT " + GameModel.currentPlayer.name + "'s");
+            if (!GameModel.isTurn())
+                System.out.println("NOT YOUR TURN "+ GameModel.clientPlayer.name +" BUT " + GameModel.currentPlayer.name + "'s");
+            else {
+                System.out.println("SELECT TILES TO PLACE " + GameModel.currentPlayer.name);
+            }
         }
 
         resetWidthExcept(null);
@@ -279,35 +283,25 @@ public class GameFragment extends Fragment implements Serializable {
 
     private void setupRecyclerView() {
         RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
-        LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
-        rvPlayerTilesView.setLayoutManager(layoutManager);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-
-        class SerializableViewTreeObserver implements ViewTreeObserver.OnGlobalLayoutListener, Serializable {
+        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 setupCurrentPlayer();
             }
-        }
+        });
 
-        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new SerializableViewTreeObserver());
+        playerTilesAdapter.setOnClickListener(this::iaOnclickListener);
 
-        playerTilesAdapter = new PlayerTilesAdapter(GameModel.clientPlayer.tiles, getActivity());
-        playerTilesAdapter.setOnClickListener((IaOnClickListener) this::iaOnclickListener);
-
-        playerTilesAdapter.setOnLongClickListener((IaOnLongClickListener) this::iaLongClickListener);
+        playerTilesAdapter.setOnLongClickListener(this::iaLongClickListener);
 
         rvPlayerTilesView.setAdapter(playerTilesAdapter);
-    }
 
-    public interface IaOnClickListener extends Serializable, View.OnClickListener {
-
-    }
-
-    public interface IaOnLongClickListener extends Serializable, View.OnLongClickListener {
-
+        GradientDrawable gradientDrawable = new GradientDrawable();
+        gradientDrawable.setStroke(15, ScoreAdapter.getColor(GameModel.clientPlayer, getContext()));
+        rvPlayerTilesView.setBackground(gradientDrawable);
     }
 
     public void iaOnclickListener(View view) {
@@ -322,7 +316,7 @@ public class GameFragment extends Fragment implements Serializable {
             multiSelected = false;
         }
 
-        Tile selectedTile = playerTilesAdapter.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        Tile selectedTile = playerTilesAdapter.get(Integer.parseInt(imageView.getTag().toString()));
         if (multiSelect) {
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
@@ -405,7 +399,6 @@ public class GameFragment extends Fragment implements Serializable {
             if (GameModel.currentPlayer.tiles.size() == 0)
                 gameFinished();
 
-            System.out.println("PLACES = " + GameModel.places.get(0).index);
             GameModel.places = new ArrayList<>();
             ServerHandler.send(message);
 
@@ -448,6 +441,10 @@ public class GameFragment extends Fragment implements Serializable {
             btnDraw.setEnabled(false);
             btnPlay.setEnabled(false);
         }
+    }
+
+    public void removePlayer(Player player) {
+        scoreAdapter.remove(player);
     }
 
     private void undoPlacedTiles(List<Tile> selectedTiles) {

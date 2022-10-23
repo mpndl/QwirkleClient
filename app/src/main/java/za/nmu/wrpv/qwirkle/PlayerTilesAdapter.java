@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.Serializable;
 import java.util.List;
 
-public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> implements Serializable {
-    public List<Tile> tiles;
+public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> {
+    private List<Tile> tiles;
     private final Context context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
@@ -50,16 +50,26 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         notifyDataSetChanged();
     }
 
+    public Tile get(int index) {
+        return tiles.get(index);
+    }
+
+    public void remove(Tile tile) {
+        int index = tiles.indexOf(tile);
+        tiles.remove(index);
+        notifyItemRemoved(index);
+    }
+
     public void removeAll(List<Tile> tiles){
         this.tiles.removeAll(tiles);
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.board_tile,parent, false);
-        ImageViewHolder imageViewHolder = new ImageViewHolder(view);
-        return imageViewHolder;
+        return new ImageViewHolder(view);
     }
 
     @Override

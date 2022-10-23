@@ -4,9 +4,11 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.Button;
 
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -18,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import za.nmu.wrpv.qwirkle.messages.client.Forfeit;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 public class MainActivity extends AppCompatActivity implements Serializable {
     private List<Fragment> fragments;
@@ -50,14 +55,17 @@ public class MainActivity extends AppCompatActivity implements Serializable {
             if (extras != null) {
                 if (extras.containsKey("bundle")) {
                     Bundle bundle = extras.getBundle("bundle");
-                    Player currentPlayer = (Player) bundle.get("currentPlayer");
-                    List<Tile> bag = (List<Tile>) bundle.get("bag");
                     List<Player> players = (List<Player>)  bundle.get("players");
+                    int currentPlayerIndex = (int) bundle.get("currentPlayerIndex");
+                    List<Tile> bag = (List<Tile>) bundle.get("bag");
 
-                    GameModel.currentPlayer = currentPlayer;
+                    System.out.println("------------------------------ MAIN ACTIVITY ----------------------");
+                    System.out.println("player count = " + players.size());
+                    GameModel.currentPlayer = players.get(currentPlayerIndex);
                     GameModel.bag = bag;
                     GameModel.players = players;
                     GameModel.clientPlayer = getPlayer(GameModel.clientPlayerName, players);
+
                     setupViewPager();
                 }
             }
@@ -76,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
 
     @Override
     public void onBackPressed() {
-        /*String titleForfeit = getResources().getString(R.string.title_forfeit);
+        String titleForfeit = getResources().getString(R.string.title_forfeit);
         String confForfeit = getResources().getString(R.string.conf_forfeit);
         String yes = getResources().getString(R.string.yes);
         String no = getResources().getString(R.string.no);
@@ -86,16 +94,13 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 .setTitle(titleForfeit)
                 .setMessage(confForfeit)
                 .setPositiveButton(yes, (dialog, which) -> {
-                    if (GameModel.playerCount() > 2) {
-                        Player oldPlayer = GameModel.player;
-                        ((GameFragment)fragments.get(0)).setOnDraw(null);
-                        ((GameFragment)fragments.get(0)).scoreAdapter.players.remove(oldPlayer);
-                        ((GameFragment)fragments.get(0)).scoreAdapter.notifyDataSetChanged();
-                    }
-                    else finish();
+                    Stop message = new Stop();
+                    message.put("player", GameModel.clientPlayer);
+                    ServerHandler.send(message);
+                    finish();
                 })
                 .setNegativeButton(no, null)
-                .show();*/
+                .show();
     }
 
     private void setupViewPager() {
