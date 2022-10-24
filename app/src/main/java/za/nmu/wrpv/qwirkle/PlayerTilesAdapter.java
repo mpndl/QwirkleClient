@@ -1,6 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +16,11 @@ import java.util.List;
 
 public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> {
     private List<Tile> tiles;
-    private final Context context;
+    private final Activity context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
 
-    public PlayerTilesAdapter(List<Tile> tiles, Context context) {
+    public PlayerTilesAdapter(List<Tile> tiles, Activity context) {
         this.tiles = tiles;
         this.context = context;
     }
@@ -31,7 +33,7 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         this.onLongClickListener = onLongClickListener;
     }
 
-    private int getDrawable(String name) {
+    private int getDrawableInt(String name) {
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
@@ -96,7 +98,8 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         }
 
         public void setImageResource(Tile tile, int position) {
-            imageView.setImageResource(getDrawable(tile.toString()));
+            int drawableInt = getDrawableInt(tile.toString());
+            imageView.setImageResource(drawableInt);
             imageView.setTag(position);
         }
     }

@@ -24,7 +24,7 @@ public class Tile implements Serializable {
     @Override
     public String toString() {
         if (color != null)
-            return color.toString().toLowerCase() + "_" + shape.toString().toLowerCase() + " ";
+            return color.toString().toLowerCase() + "_" + shape.toString().toLowerCase();
         else return "blank";
     }
 }
