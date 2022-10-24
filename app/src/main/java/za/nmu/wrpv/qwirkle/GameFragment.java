@@ -149,6 +149,13 @@ public class GameFragment extends Fragment implements Serializable {
         btnPlay.setOnClickListener(this:: setOnPlay);
     }
 
+    private void setupGridLayout() {
+        GridLayout glBoard = getView().findViewById(R.id.board);
+        glBoard.setColumnCount(GameModel.XLENGTH);
+        glBoard.setRowCount(GameModel.YLENGTH);
+        populate(glBoard);
+    }
+
     private void setupPlayersStatus() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
         gvPlayersStatus.setAdapter(scoreAdapter);
@@ -165,6 +172,25 @@ public class GameFragment extends Fragment implements Serializable {
                 curImageView.setLayoutParams(params);
             }
         }
+    }
+
+    private void setupRecyclerView() {
+        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
+        rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
+
+        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                setupCurrentPlayer();
+            }
+        });
+
+        playerTilesAdapter.setOnClickListener(this::iaOnclickListener);
+
+        playerTilesAdapter.setOnLongClickListener(this::iaLongClickListener);
+
+        rvPlayerTilesView.setAdapter(playerTilesAdapter);
     }
 
     public void setupCurrentPlayer() {
@@ -209,13 +235,6 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void updatePlayerScore() {
         scoreAdapter.updatePlayerScore(GameModel.currentPlayer);
-    }
-
-    private void setupGridLayout() {
-        GridLayout glBoard = getView().findViewById(R.id.board);
-        glBoard.setColumnCount(GameModel.XLENGTH);
-        glBoard.setRowCount(GameModel.YLENGTH);
-        populate(glBoard);
     }
 
     private void populate(GridLayout grid) {
@@ -278,31 +297,10 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     private Drawable getDrawable(String name) {
-        return getResources().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
+        return getActivity().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
     }
 
-    private void setupRecyclerView() {
-        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
-        rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-        rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                setupCurrentPlayer();
-            }
-        });
-
-        playerTilesAdapter.setOnClickListener(this::iaOnclickListener);
-
-        playerTilesAdapter.setOnLongClickListener(this::iaLongClickListener);
-
-        rvPlayerTilesView.setAdapter(playerTilesAdapter);
-
-        GradientDrawable gradientDrawable = new GradientDrawable();
-        gradientDrawable.setStroke(15, ScoreAdapter.getColor(GameModel.clientPlayer, getContext()));
-        rvPlayerTilesView.setBackground(gradientDrawable);
-    }
 
     public void iaOnclickListener(View view) {
         ImageView imageView = view.findViewById(R.id.iv_tile);

@@ -14,8 +14,8 @@
     <string name="congrats">Siyakuhalalisela %s uwine ngamaphuzu angu-%s!</string>
     <string name="connecting">Isungula uxhumano</string>
     <string name="connection_error">Sicela uhlole ukuxhumana kwakho</string>
-    <string name="waiting">Ilinde abadlali ukuthi bajoyine %s</string>
-    <string name="waiting_for">Munye kuphela umdlali ojoyine</string>
+    <string name="waiting">Ilinde abadlali ukuthi bajoyine</string>
+    <string name="waiting_countdown">Munye kuphela umdlali ojoyine (%d)</string>
     <string name="stop">Yeka</string>
     <string name="you">Wena</string>
     <string name="server_address">Ikheli leseva</string>

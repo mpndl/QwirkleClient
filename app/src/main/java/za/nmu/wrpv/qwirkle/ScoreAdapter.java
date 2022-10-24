@@ -33,6 +33,17 @@ public class ScoreAdapter extends ArrayAdapter<Player> implements Serializable {
         }
     }
 
+    public void remove(Player player) {
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+            if (p.name == player.name) {
+                players.remove(i);
+                notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {

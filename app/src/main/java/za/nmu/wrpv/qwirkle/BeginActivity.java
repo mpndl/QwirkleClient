@@ -18,12 +18,13 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 public class BeginActivity extends AppCompatActivity {
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
-    public boolean startGame = true;
+    public static boolean startGame = true;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,13 +87,9 @@ public class BeginActivity extends AppCompatActivity {
         }
         else {
             ServerHandler.stop();
-            Waiting.interrupt();
+            Countdown.interrupt();
             btnStartGame.setText(R.string.btn_start_game);
             startGame = true;
-
-            Intent intent = getIntent();
-            finish();
-            startActivity(intent);
         }
     }
 

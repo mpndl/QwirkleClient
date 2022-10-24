@@ -13,7 +13,7 @@ public class Forfeit extends Message implements Serializable {
     public void apply() {
         Player player = (Player) get("player");
         GameFragment.runLater((data1 -> {
-            GameFragment fragment = (GameFragment) get("fragment");
+            GameFragment fragment = (GameFragment) data1.get("fragment");
             fragment.removePlayer(player);
         }));
     }

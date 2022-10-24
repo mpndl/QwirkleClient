@@ -25,7 +25,7 @@ public class Begin extends Message {
             BeginActivity context = (BeginActivity) data.get("context");
 
             context.startGame = true;
-            Waiting.interrupt();
+            Countdown.interrupt();
 
             Intent intent = new Intent(context, MainActivity.class);
 

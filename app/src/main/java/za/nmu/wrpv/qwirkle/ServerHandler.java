@@ -46,8 +46,6 @@ public class ServerHandler implements Serializable {
             }
             finally {
                 serverWriter = null;
-                Stop stop = new Stop();
-                stop.apply();
             }
         }
     }
@@ -77,13 +75,10 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
-            } catch (ConnectException ignored) {
-
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             } finally {
                 serverReader = null;
-                ServerHandler.stop();
             }
         }
     }
@@ -93,9 +88,13 @@ public class ServerHandler implements Serializable {
     }
 
     public static void stop() {
-        Message message = new Stop();
-        message.put("player", GameModel.clientPlayer);
-        send(message);
+        if (serverWriter != null && serverWriter.isAlive()) {
+            Message message = new Stop();
+            message.put("player", GameModel.clientPlayer);
+            System.out.println("SENDING CLIENT PLAYER = " + message.get("player"));
+            send(message);
+        }
+        else System.out.println("SERVER WRITER NOT RUNNING");
         interrupt();
     }
 }

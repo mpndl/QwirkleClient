@@ -94,9 +94,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 .setTitle(titleForfeit)
                 .setMessage(confForfeit)
                 .setPositiveButton(yes, (dialog, which) -> {
-                    Stop message = new Stop();
-                    message.put("player", GameModel.clientPlayer);
-                    ServerHandler.send(message);
+                    ServerHandler.stop();
                     finish();
                 })
                 .setNegativeButton(no, null)
