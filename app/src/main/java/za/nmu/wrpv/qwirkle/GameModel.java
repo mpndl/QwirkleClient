@@ -117,9 +117,9 @@ public class GameModel implements Serializable {
             if(played) {
                 if(bag.size() < HCOUNT) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(playerTilesAdapter.tiles.size() < HCOUNT) {
+                    if(playerTilesAdapter.getItemCount()< HCOUNT) {
                         playerTilesAdapter.add(bag.remove(i));
-                        hcount--;
+                        //hcount--;
                     }
                 }
                 if(isBonus())
@@ -130,7 +130,7 @@ public class GameModel implements Serializable {
                 if (playerTiles == null) {
                     bag.addAll(currentPlayer.tiles);
                     hcount = HCOUNT;
-                    playerTilesAdapter.tiles.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
+                    playerTilesAdapter.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
                 }
                 else {
                     bag.addAll(playerTiles);
@@ -169,7 +169,7 @@ public class GameModel implements Serializable {
                 placing = true;
             }
 
-            playerTilesAdapter.tiles.remove(tile);
+            playerTilesAdapter.remove(tile);
 
             tile.xPos = xpos;
             tile.yPos = ypos;
@@ -234,33 +234,33 @@ public class GameModel implements Serializable {
         System.out.println("--------------------- down = " + tempBoard[xpos][ypos - 1]);
         System.out.println("====================================================================");*/
 
-        if(places.size() != 0 || placedCount != 0) {
-            return Legality.ILLEGAL;
+        if(places.size() == 0 && placedCount == 0) {
+            return Legality.LEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
-            //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
+            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (illegalOrientation(xpos, ypos)) {
-            //System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
+            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
-            //System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
+            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.ILLEGAL;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
-            //System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
+            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.ILLEGAL;
         }
 
-        if (!next(xpos, ypos, tile))
+        if (!next(xpos, ypos, tile)) {
+            System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
             return Legality.ILLEGAL;
-
-        //System.out.println("--------------------------------------- ALL");
+        }
         return Legality.LEGAL;
     }
 
@@ -340,17 +340,25 @@ public class GameModel implements Serializable {
             if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
                     && equivalent(xpos, ypos - 1, tile) && equivalent(xpos, ypos + 1, tile)) {
                 List<Tile> tsLeft = getAdjTiles(xpos, ypos, -1, 0);
+                System.out.println("---------------------------------- LEFT");
+                tsLeft.forEach(System.out::print);
                 ts = new ArrayList<>();
                 List<Tile> tsRight = getAdjTiles(xpos, ypos, 1, 0);
+                System.out.println("---------------------------------- RIGHT");
+                tsRight.forEach(System.out::print);
                 ts = new ArrayList<>();
                 List<Tile> tsTop = getAdjTiles(xpos, ypos, 0, -1);
+                System.out.println("----------------------------------- TOP");
+                tsTop.forEach(System.out::print);
                 ts = new ArrayList<>();
                 List<Tile> tsBottom = getAdjTiles(xpos, ypos, 0, 1);
+                System.out.println("------------------------------------ BOTTOM");
+                tsBottom.forEach(System.out::print);
 
                 return (adjEquivalent(xpos, ypos, tile, tsRight) && adjEquivalent(xpos, ypos, tile, tsLeft)
                         && adjEquivalent(xpos, ypos, tile, tsTop) && adjEquivalent(xpos, ypos, tile, tsBottom));
-            }
-        }
+            }else System.out.println("-------------------------------------------!EQUIVALENT");
+        }else System.out.println("---------------------------------------------- !IDENTICAL");
         return false;
     }
 
@@ -431,6 +439,7 @@ public class GameModel implements Serializable {
 
     private static List<Tile> getAdjTiles(int xpos, int ypos, int xdir, int ydir) {
         if (!nul(xpos + xdir, ypos + ydir)) {
+            //System.out.println("xpos + xdir = " + (xpos + xdir) + ", ypos + ydir = " + (ypos + ydir) + " -> " + tempBoard[xpos + xdir][ypos + ydir]);
             ts.add(tempBoard[xpos + xdir][ypos + ydir]);
 
             return getAdjTiles(xpos + xdir, ypos + ydir, xdir, ydir);

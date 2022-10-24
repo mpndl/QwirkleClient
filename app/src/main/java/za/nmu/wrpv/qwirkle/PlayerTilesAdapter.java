@@ -1,6 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,13 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.Serializable;
 import java.util.List;
 
-public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> implements Serializable {
-    public List<Tile> tiles;
-    private final Context context;
+public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> {
+    private List<Tile> tiles;
+    private final Activity context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
 
-    public PlayerTilesAdapter(List<Tile> tiles, Context context) {
+    public PlayerTilesAdapter(List<Tile> tiles, Activity context) {
         this.tiles = tiles;
         this.context = context;
     }
@@ -31,7 +33,7 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         this.onLongClickListener = onLongClickListener;
     }
 
-    private int getDrawable(String name) {
+    private int getDrawableInt(String name) {
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
@@ -50,16 +52,26 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         notifyDataSetChanged();
     }
 
+    public Tile get(int index) {
+        return tiles.get(index);
+    }
+
+    public void remove(Tile tile) {
+        int index = tiles.indexOf(tile);
+        tiles.remove(index);
+        notifyItemRemoved(index);
+    }
+
     public void removeAll(List<Tile> tiles){
         this.tiles.removeAll(tiles);
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.board_tile,parent, false);
-        ImageViewHolder imageViewHolder = new ImageViewHolder(view);
-        return imageViewHolder;
+        return new ImageViewHolder(view);
     }
 
     @Override
@@ -86,7 +98,8 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         }
 
         public void setImageResource(Tile tile, int position) {
-            imageView.setImageResource(getDrawable(tile.toString()));
+            int drawableInt = getDrawableInt(tile.toString());
+            imageView.setImageResource(drawableInt);
             imageView.setTag(position);
         }
     }

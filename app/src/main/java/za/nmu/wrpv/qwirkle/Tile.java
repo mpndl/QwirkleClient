@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 
 public class Tile implements Serializable {
@@ -18,6 +20,7 @@ public class Tile implements Serializable {
         RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE;
     }
 
+    @NonNull
     @Override
     public String toString() {
         if (color != null)

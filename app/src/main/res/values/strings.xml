@@ -14,7 +14,9 @@
     <string name="congrats">Congratulations %s you won by %s points!</string>
     <string name="connecting">Establishing connection</string>
     <string name="connection_error">Please check your connection</string>
-    <string name="waiting">Waiting for players to join</string>
+    <string name="waiting">Waiting for players to join %s</string>
+    <string name="waiting_for">Only one player has join</string>
     <string name="stop">Stop</string>
     <string name="you">You</string>
+    <string name="server_address">Server Address</string>
 </resources>

@@ -1,7 +1,5 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -45,14 +43,17 @@ public class ServerHandler implements Serializable {
                 }while (true);
             }catch (InterruptedException | IOException e) {
                 e.printStackTrace();
+            }
+            finally {
                 serverWriter = null;
+                Stop stop = new Stop();
+                stop.apply();
             }
         }
     }
 
     public static void interrupt() {
         if (running()) {
-            Log.i("game", "interrupt: ");
             serverReader.interrupt();
             serverReader = null;
         }
@@ -92,8 +93,9 @@ public class ServerHandler implements Serializable {
     }
 
     public static void stop() {
-        Log.i("game", "run: client stopped");
         Message message = new Stop();
+        message.put("player", GameModel.clientPlayer);
         send(message);
+        interrupt();
     }
 }

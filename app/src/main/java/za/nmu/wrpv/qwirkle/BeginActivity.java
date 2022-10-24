@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,9 +18,12 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import za.nmu.wrpv.qwirkle.messages.client.Waiting;
+
 public class BeginActivity extends AppCompatActivity {
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
+    public boolean startGame = true;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,8 +43,12 @@ public class BeginActivity extends AppCompatActivity {
         });
         thread.start();
 
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        String serverAddress = preferences.getString("server_address", "");
+
         EditText etPlayerCount = findViewById(R.id.et_server_address);
         etPlayerCount.setHint("X.X.X.X");
+        etPlayerCount.setText(serverAddress);
         etPlayerCount.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -59,16 +68,31 @@ public class BeginActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Button btnStartGame = findViewById(R.id.btn_start_game);
+        btnStartGame.setText(R.string.btn_start_game);
+    }
+
     public void onStartGame(View view) {
         Button btnStartGame = (Button)view;
-        if (btnStartGame.getText().toString().equals(getString(R.string.btn_start_game))) {
+        if (startGame) {
             EditText etServerAddress = findViewById(R.id.et_server_address);
+            getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
             ServerHandler.serverAddress = etServerAddress.getText().toString();
             ServerHandler.start();
+            startGame = false;
         }
         else {
             ServerHandler.stop();
+            Waiting.interrupt();
             btnStartGame.setText(R.string.btn_start_game);
+            startGame = true;
+
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
         }
     }
 
