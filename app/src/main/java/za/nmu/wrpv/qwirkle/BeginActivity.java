@@ -13,6 +13,8 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
@@ -50,6 +52,16 @@ public class BeginActivity extends AppCompatActivity {
         EditText etPlayerCount = findViewById(R.id.et_server_address);
         etPlayerCount.setHint("X.X.X.X");
         etPlayerCount.setText(serverAddress);
+
+        if (etPlayerCount.getText().toString().isEmpty()) {
+            try {
+                String address = InetAddress.getLocalHost().getHostAddress();
+                etPlayerCount.setText(address);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
+
         etPlayerCount.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {

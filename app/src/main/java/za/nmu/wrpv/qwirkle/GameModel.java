@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 public class GameModel implements Serializable {
@@ -138,35 +140,38 @@ public class GameModel implements Serializable {
         int hcount = HCOUNT;
         if(bag.size() > 0) {
             if(played) {
-                hcount = hcount - playerTilesAdapter.getItemCount();
+                hcount = hcount - currentPlayer.tiles.size();
                 if(bag.size() < hcount) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(playerTilesAdapter.getItemCount() < HCOUNT) {
-                        playerTilesAdapter.add(bag.remove(bag.size() - 1));
+                    if(currentPlayer.tiles.size() < HCOUNT) {
+                        currentPlayer.tiles.add(bag.remove(bag.size() - 1));
                     }
                 }
                 if(isBonus())
                     currentPlayer.points = currentPlayer.points + 6;
             }
             else {
-                playerTilesAdapter.addAll(places);
                 if (playerTiles == null) {
                     bag.addAll(currentPlayer.tiles);
                     hcount = HCOUNT;
-                    playerTilesAdapter.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
+                    currentPlayer.tiles.removeAll((ArrayList<Tile>)((ArrayList<Tile>) currentPlayer.tiles).clone());
                 }
                 else {
-                    bag.addAll(playerTiles);
-                    hcount = playerTiles.size();
-                    playerTilesAdapter.removeAll((ArrayList<Tile>)((ArrayList)playerTiles).clone());
+                    Set<Tile> set = new HashSet<>(playerTiles);
+                    List<Tile> uniqueTiles = new ArrayList<>(set);
+
+                    bag.addAll(uniqueTiles);
+                    hcount = uniqueTiles.size();
+                    currentPlayer.tiles.removeAll((ArrayList<Tile>)((ArrayList)uniqueTiles).clone());
                 }
                 Collections.shuffle(bag);
                 for (int i = 0; i < hcount; i++) {
-                    Tile tile = bag.remove(i);
-                    playerTilesAdapter.add(tile);
+                    Tile tile = bag.remove(bag.size() - 1);
+                    currentPlayer.tiles.add(tile);
                 }
             }
             placing = false;
+            playerTilesAdapter.notifyDataSetChanged();
         }
     }
 
@@ -232,16 +237,6 @@ public class GameModel implements Serializable {
         if(tempBoard != null) {
             board = copy(tempBoard);
         }
-    }
-
-    public static Player computeWinner(List<Player> players) {
-        int max = Integer.MIN_VALUE;
-        Player winner = null;
-        for (Player player: players) {
-            if (player.points > max)
-                winner = player;
-        }
-        return winner;
     }
 
     private static Tile[][] copy(Tile[][] src) {

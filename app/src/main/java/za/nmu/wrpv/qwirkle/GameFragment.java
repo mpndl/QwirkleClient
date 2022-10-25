@@ -2,6 +2,7 @@ package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -83,7 +84,7 @@ public class GameFragment extends Fragment implements Serializable {
             do {
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
-                data.put("playerTileAdapter",playerTilesAdapter);
+                data.put("playerTilesAdapter",playerTilesAdapter);
                 data.put("context", getContext());
                 data.put("fragment", this);
                 try {
@@ -267,7 +268,7 @@ public class GameFragment extends Fragment implements Serializable {
                 playerTilesAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
-                button.setForeground(getDrawable(selectedTiles.get(0).toString()));
+                button.setForeground(getDrawable(selectedTiles.get(0).toString(), getContext()));
 
                 // no further interaction allowed
                 button.setEnabled(false);
@@ -293,8 +294,8 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    private Drawable getDrawable(String name) {
-        return getActivity().getDrawable(getResources().getIdentifier(name, "drawable", getContext().getPackageName()));
+    public static Drawable getDrawable(String name, Context context) {
+        return context.getDrawable(context.getResources().getIdentifier(name, "drawable", context.getPackageName()));
     }
 
 

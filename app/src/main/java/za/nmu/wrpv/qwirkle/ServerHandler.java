@@ -61,7 +61,7 @@ public class ServerHandler implements Serializable {
         @Override
         public void run() {
             try {
-                Socket connection = new Socket(serverAddress, 5050);
+                Socket connection = new Socket(serverAddress, 5051);
                 ois = new ObjectInputStream(connection.getInputStream());
                 ous = new ObjectOutputStream(connection.getOutputStream());
                 ous.flush();

@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EndActivity"/>
+        <service android:name=".Notification$NotificationActionService" />
     </application>
 
 </manifest>

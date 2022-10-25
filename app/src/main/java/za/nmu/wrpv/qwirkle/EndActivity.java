@@ -1,12 +1,17 @@
 package za.nmu.wrpv.qwirkle;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class EndActivity extends AppCompatActivity {
@@ -20,10 +25,18 @@ public class EndActivity extends AppCompatActivity {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 List<Player> players = (List<Player>) bundle.getSerializable("players");
-                Player winner = GameModel.computeWinner(players);
-                TextView textView = findViewById(R.id.tv_winner);
-                textView.setTextColor(getResources().getIdentifier(winner.color, "color", getPackageName()));
-                textView.setText(getResources().getString(R.string.congrats, winner.name, winner.points + ""));
+                players.sort((player, t1) -> -Integer.compare(player.points, t1.points));
+
+                TableLayout scoreBoard = findViewById(R.id.tl_score_board);
+                for (int i = 0; i < players.size(); i++) {
+                    TableRow row = (TableRow) scoreBoard.getChildAt(i+1);
+                    TextView player = (TextView) row.getChildAt(0);
+                    TextView score = (TextView) row.getChildAt(1);
+                    player.setText(players.get(i).name + "");
+                    score.setText(players.get(i).points + "");
+
+                    row.setBackgroundColor(ScoreAdapter.getColor(players.get(i), this));
+                }
             }
         }
     }

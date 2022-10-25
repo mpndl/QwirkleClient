@@ -108,6 +108,13 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         viewPager2.setAdapter(adapter);
     }
 
+    public <F extends Fragment> void switchFragment(Class<F> clazz) {
+        ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
+        if (clazz.equals(GameFragment.class))
+            viewPager2.setCurrentItem(0);
+        else viewPager2.setCurrentItem(1);
+    }
+
     public static void runLater(Run run) {
         runs.add(run);
     }

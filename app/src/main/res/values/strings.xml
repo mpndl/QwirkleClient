@@ -19,4 +19,8 @@
     <string name="stop">Stop</string>
     <string name="you">You</string>
     <string name="server_address">Server Address</string>
+    <string name="player_column_title">Player</string>
+    <string name="score_column_title">Score</string>
+    <string name="notification_title">New Message</string>
+    <string name="notification_description">You have a new message</string>
 </resources>

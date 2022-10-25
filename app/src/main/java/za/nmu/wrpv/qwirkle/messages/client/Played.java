@@ -42,7 +42,7 @@ public class Played extends Message implements Serializable {
         GameFragment.runLater(data -> {
             Activity context = (Activity) data.get("context");
             ScoreAdapter adapter = (ScoreAdapter) data.get("adapter");
-            PlayerTilesAdapter playerTileAdapter = (PlayerTilesAdapter) data.get("playerTileAdapter");
+            PlayerTilesAdapter playerTileAdapter = (PlayerTilesAdapter) data.get("playerTilesAdapter");
             GameFragment fragment = (GameFragment) data.get("fragment");
 
             HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);

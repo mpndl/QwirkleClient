@@ -19,4 +19,8 @@
     <string name="stop">Yeka</string>
     <string name="you">Wena</string>
     <string name="server_address">Ikheli leseva</string>
+    <string name="player_column_title">Umdlali</string>
+    <string name="score_column_title">Umphumela</string>
+    <string name="notification_title">Umyalezo omusha</string>
+    <string name="notification_description">Unomyalezo omusha</string>
 </resources>
