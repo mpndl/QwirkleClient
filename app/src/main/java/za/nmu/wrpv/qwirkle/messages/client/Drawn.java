@@ -9,7 +9,9 @@ import java.util.List;
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.Player;
+import za.nmu.wrpv.qwirkle.PlayerTilesAdapter;
 import za.nmu.wrpv.qwirkle.R;
+import za.nmu.wrpv.qwirkle.ScoreAdapter;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
@@ -23,9 +25,10 @@ public class Drawn extends Message implements Serializable {
         GameFragment.runLater(data1 -> {
             Activity context = (Activity) data1.get("context");
             GameFragment fragment = (GameFragment) data1.get("fragment");
+            PlayerTilesAdapter adapter = (PlayerTilesAdapter) data1.get("playerTilesAdapter");
 
             if (player.name != GameModel.clientPlayer.name) {
-                GameModel.updatePlayerTiles(player);
+                GameModel.updatePlayerTiles(player, adapter);
                 GameModel.bag = bag;
 
                 GameModel.turn();

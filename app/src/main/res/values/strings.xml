@@ -15,7 +15,7 @@
     <string name="connecting">Establishing connection</string>
     <string name="connection_error">Please check your connection</string>
     <string name="waiting">Waiting for players to join</string>
-    <string name="waiting_countdown">Only one player has join (%d)</string>
+    <string name="waiting_countdown">Waiting for players to join (%d)</string>
     <string name="stop">Stop</string>
     <string name="you">You</string>
     <string name="server_address">Server Address</string>

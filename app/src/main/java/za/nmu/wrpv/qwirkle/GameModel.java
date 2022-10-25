@@ -24,18 +24,41 @@ public class GameModel implements Serializable {
     private static Tile[][] tempBoard = null;
     private static List<Tile> ts = new ArrayList<>();
     public static boolean placing = false;
+    public static boolean ended = false;
 
     public enum Legality {
         LEGAL, ILLEGAL;
     }
 
-    public static void updatePlayerTiles(Player player) {
+    public static void updatePlayerTiles(Player player, PlayerTilesAdapter adapter) {
         for (Player p: players) {
             if (p.name == player.name) {
                 p.tiles = player.tiles;
+                adapter.notifyDataSetChanged();
                 return;
             }
         }
+    }
+
+    public static void removePlayer(Player player, ScoreAdapter adapter) {
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+            if (player.name == p.name) {
+                players.remove(i);
+                adapter.notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+
+    public static boolean gameEnded(PlayerTilesAdapter adapter) {
+        if (clientPlayer.name == currentPlayer.name) {
+            if (adapter.getItemCount() == 0) {
+                ended = true;
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getBagCount() {
@@ -115,11 +138,11 @@ public class GameModel implements Serializable {
         int hcount = HCOUNT;
         if(bag.size() > 0) {
             if(played) {
-                if(bag.size() < HCOUNT) hcount = bag.size();
+                hcount = hcount - playerTilesAdapter.getItemCount();
+                if(bag.size() < hcount) hcount = bag.size();
                 for (int i = 0; i < hcount; i++) {
-                    if(playerTilesAdapter.getItemCount()< HCOUNT) {
-                        playerTilesAdapter.add(bag.remove(i));
-                        //hcount--;
+                    if(playerTilesAdapter.getItemCount() < HCOUNT) {
+                        playerTilesAdapter.add(bag.remove(bag.size() - 1));
                     }
                 }
                 if(isBonus())
@@ -160,6 +183,25 @@ public class GameModel implements Serializable {
         }
     }
 
+    public static Player clonePlayer(Player player) {
+        Player temp = new Player();
+        temp.name = player.name;
+        temp.color = player.color;
+        temp.points = player.points;
+        temp.tiles = player.tiles;
+        return temp;
+    }
+
+    public static void updatePlayerScore(Player player, ScoreAdapter adapter) {
+        for (Player p: players) {
+            if (p.name.toString().equals(player.name.toString())) {
+                p.points = player.points;
+                adapter.notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+
     public static Legality place(int xpos, int ypos, Tile tile, PlayerTilesAdapter playerTilesAdapter) {
         if(!placing) {
             places = new ArrayList<>();
@@ -176,7 +218,7 @@ public class GameModel implements Serializable {
 
             places.add(tile);
 
-            tempBoard[xpos][ypos] = tile;
+            tempBoard[xpos][ypos] = GameModel.cloneTile(tile);
 
 
             return Legality.LEGAL;
@@ -192,7 +234,7 @@ public class GameModel implements Serializable {
         }
     }
 
-    public static Player getWinner() {
+    public static Player computeWinner(List<Player> players) {
         int max = Integer.MIN_VALUE;
         Player winner = null;
         for (Player player: players) {
@@ -219,8 +261,9 @@ public class GameModel implements Serializable {
             placing = false;
             placedCount = placedCount + places.size();
             assignPoints();
+            playerTilesAdapter.notifyDataSetChanged();
             if (getBagCount() > 0)
-                draw(true, null, playerTilesAdapter);
+                draw(true, places, playerTilesAdapter);
         }
     }
 
@@ -238,27 +281,27 @@ public class GameModel implements Serializable {
             return Legality.LEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
-            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
+            //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (illegalOrientation(xpos, ypos)) {
-            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
+            //System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
-            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
+            //System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.ILLEGAL;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
-            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
+            //System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.ILLEGAL;
         }
 
         if (!next(xpos, ypos, tile)) {
-            System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
+            //System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
             return Legality.ILLEGAL;
         }
         return Legality.LEGAL;
@@ -339,27 +382,54 @@ public class GameModel implements Serializable {
                 !identical(xpos, ypos, 0, -1, tile) && !identical(xpos, ypos, 0, 1, tile)) {
             if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
                     && equivalent(xpos, ypos - 1, tile) && equivalent(xpos, ypos + 1, tile)) {
+                //System.out.println("----------------------------------------------- NEXT START ------------------------------------");
                 List<Tile> tsLeft = getAdjTiles(xpos, ypos, -1, 0);
-                System.out.println("---------------------------------- LEFT");
-                tsLeft.forEach(System.out::print);
+                //System.out.println("---------------------------------- LEFT");
+                //tsLeft.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsRight = getAdjTiles(xpos, ypos, 1, 0);
-                System.out.println("---------------------------------- RIGHT");
-                tsRight.forEach(System.out::print);
+                //System.out.println("---------------------------------- RIGHT");
+                //tsRight.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsTop = getAdjTiles(xpos, ypos, 0, -1);
-                System.out.println("----------------------------------- TOP");
-                tsTop.forEach(System.out::print);
+                //System.out.println("----------------------------------- TOP");
+                //tsTop.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsBottom = getAdjTiles(xpos, ypos, 0, 1);
-                System.out.println("------------------------------------ BOTTOM");
-                tsBottom.forEach(System.out::print);
+                //System.out.println("------------------------------------ BOTTOM");
+                //tsBottom.forEach(System.out::println);
 
-                return (adjEquivalent(xpos, ypos, tile, tsRight) && adjEquivalent(xpos, ypos, tile, tsLeft)
-                        && adjEquivalent(xpos, ypos, tile, tsTop) && adjEquivalent(xpos, ypos, tile, tsBottom));
-            }else System.out.println("-------------------------------------------!EQUIVALENT");
-        }else System.out.println("---------------------------------------------- !IDENTICAL");
+                boolean retLeft = adjEquivalent(xpos, ypos, tile, tsLeft);
+                //System.out.println("--------------------------- RET LEFT = " + retLeft);
+                boolean retRight = adjEquivalent(xpos, ypos, tile, tsRight);
+                //System.out.println("--------------------------- RET RIGHT = " + retRight);
+                boolean retTop = adjEquivalent(xpos, ypos, tile, tsTop);
+                //System.out.println("--------------------------- RET TOP = " + retTop);
+                boolean retBottom = adjEquivalent(xpos, ypos, tile, tsBottom);
+                //System.out.println("--------------------------- RET BOTTOM = " + retBottom);
+
+                return retRight && retLeft && retTop && retBottom;
+            }
+        }
         return false;
+    }
+
+    public static List<Tile> cloneTiles(List<Tile> tiles) {
+        List<Tile> temp = new ArrayList<>();
+        for (Tile tile: tiles) {
+            temp.add(cloneTile(tile));
+        }
+        return temp;
+    }
+
+    public static Tile cloneTile(Tile tile) {
+        Tile tempTile = new Tile();
+        tempTile.xPos = tile.xPos;
+        tempTile.yPos = tile.yPos;
+        tempTile.color = tile.color;
+        tempTile.shape = tile.shape;
+        tempTile.index = tile.index;
+        return tempTile;
     }
 
     private static boolean adjEquivalent(int xpos, int ypos, Tile tile, List<Tile> ts) {
@@ -378,6 +448,9 @@ public class GameModel implements Serializable {
             ts.size();
             Tile tile1 = ts.get(0);
             Tile tile2 = ts.get(1);
+            /*System.out.println("tile1.shape.equals(tile2.shape) -> " + tile1.shape + " == " + tile2.shape);
+            System.out.println("ypos == tile1.yPos -> " + ypos + " == " + tile1.yPos);
+            System.out.println("tile.shape.equals(tile1.shape) -> " + tile.shape + " == " + tile1.shape);*/
             if(tile1.shape.equals(tile2.shape)) {
                 if (tile1.yPos == tile2.yPos) {
                     if (ypos == tile1.yPos) {
@@ -533,7 +606,6 @@ public class GameModel implements Serializable {
             currentPlayer.points = currentPlayer.points + 6;
         currentPlayer.points = currentPlayer.points + points;
         // reinitialize
-        //places = new ArrayList<>();
         qwirkleMonitor = new ArrayList<>();
         points = 0;
     }

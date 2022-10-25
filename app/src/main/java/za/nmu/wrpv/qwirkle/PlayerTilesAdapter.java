@@ -16,12 +16,12 @@ import java.io.Serializable;
 import java.util.List;
 
 public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.ImageViewHolder> {
-    private List<Tile> tiles;
+    public List<Tile> tiles;
     private final Activity context;
     private View.OnClickListener onClickListener;
     private View.OnLongClickListener onLongClickListener;
 
-    public PlayerTilesAdapter(List<Tile> tiles, Activity context) {
+    public PlayerTilesAdapter(Activity context, List<Tile> tiles) {
         this.tiles = tiles;
         this.context = context;
     }

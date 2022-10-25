@@ -15,7 +15,7 @@
     <string name="connecting">Isungula uxhumano</string>
     <string name="connection_error">Sicela uhlole ukuxhumana kwakho</string>
     <string name="waiting">Ilinde abadlali ukuthi bajoyine</string>
-    <string name="waiting_countdown">Munye kuphela umdlali ojoyine (%d)</string>
+    <string name="waiting_countdown">Ilinde abadlali ukuthi bajoyine (%d)</string>
     <string name="stop">Yeka</string>
     <string name="you">Wena</string>
     <string name="server_address">Ikheli leseva</string>

@@ -29,7 +29,6 @@ import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
@@ -41,6 +40,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import za.nmu.wrpv.qwirkle.messages.client.Drawn;
+import za.nmu.wrpv.qwirkle.messages.client.GameEnded;
 import za.nmu.wrpv.qwirkle.messages.client.Played;
 
 public class GameFragment extends Fragment implements Serializable {
@@ -68,7 +68,7 @@ public class GameFragment extends Fragment implements Serializable {
         super.onViewCreated(view, savedInstanceState);
 
         scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
-        playerTilesAdapter = new PlayerTilesAdapter(GameModel.clientPlayer.tiles, getActivity());
+        playerTilesAdapter = new PlayerTilesAdapter(getActivity(), GameModel.clientPlayer.tiles);
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
@@ -83,6 +83,7 @@ public class GameFragment extends Fragment implements Serializable {
             do {
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
+                data.put("playerTileAdapter",playerTilesAdapter);
                 data.put("context", getContext());
                 data.put("fragment", this);
                 try {
@@ -233,10 +234,6 @@ public class GameFragment extends Fragment implements Serializable {
         tvTileCount.setText(GameModel.getBagCount() + "");
     }
 
-    public void updatePlayerScore() {
-        scoreAdapter.updatePlayerScore(GameModel.currentPlayer);
-    }
-
     private void populate(GridLayout grid) {
         grid.removeAllViews();
 
@@ -279,7 +276,7 @@ public class GameFragment extends Fragment implements Serializable {
             if (!GameModel.isTurn())
                 System.out.println("NOT YOUR TURN "+ GameModel.clientPlayer.name +" BUT " + GameModel.currentPlayer.name + "'s");
             else {
-                System.out.println("SELECT TILES TO PLACE " + GameModel.currentPlayer.name);
+                System.out.println("SELECT TILES TO PLACE " + GameModel.clientPlayer.name);
             }
         }
 
@@ -349,7 +346,7 @@ public class GameFragment extends Fragment implements Serializable {
         if (selectedTiles == null)
             selectedTiles = new ArrayList<>();
         ImageView imageView = view.findViewById(R.id.iv_tile);
-        Tile selectedTile = GameModel.currentPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        Tile selectedTile = GameModel.clientPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         selectedTiles.add(selectedTile);
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == 50) {
@@ -365,37 +362,25 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void setOnPlay(View view) {
         if(GameModel.places.size() > 0) {
+            System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
             GameModel.play(playerTilesAdapter);
-            updatePlayerScore();
-
-            List<Tile> temp = new ArrayList<>();
-            for (Tile tile: GameModel.places) {
-                Tile tempTile = new Tile();
-                tempTile.xPos = tile.xPos;
-                tempTile.yPos = tile.yPos;
-                tempTile.color = tile.color;
-                tempTile.shape = tile.shape;
-                tempTile.index = tile.index;
-                temp.add(tempTile);
-            }
+            GameModel.updatePlayerScore(GameModel.clientPlayer, scoreAdapter);
 
             Played message = new Played();
             message.put("bag", GameModel.bag);
-            message.put("player", GameModel.currentPlayer);
-            message.put("places", temp);
+            message.put("player", GameModel.clonePlayer(GameModel.clientPlayer));
+            message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
+
+            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
             GameModel.turn();
 
             setupBagCount();
-            updatePlayerTiles();
             setupCurrentPlayer();
             resetMultiSelect();
-
-            if (GameModel.currentPlayer.tiles.size() == 0)
-                gameFinished();
 
             GameModel.places = new ArrayList<>();
             ServerHandler.send(message);
@@ -407,10 +392,10 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
-    public void gameFinished() {
-        Intent intent = new Intent(getActivity(), EndActivity.class);
-        intent.putExtra("winner", GameModel.getWinner());
-        startActivity(intent);
+    public void gameEnded() {
+        GameEnded message = new GameEnded();
+        message.put("players", GameModel.players);
+        ServerHandler.send(message);
     }
 
     public void setOnDraw(View view) {
@@ -422,10 +407,10 @@ public class GameFragment extends Fragment implements Serializable {
 
             Drawn message = new Drawn();
             message.put("bag", GameModel.bag);
-            message.put("player", GameModel.currentPlayer);
+            message.put("player", GameModel.clientPlayer);
 
             GameModel.turn();
-            updatePlayerTiles();
+            GameModel.updatePlayerTiles(GameModel.clientPlayer, playerTilesAdapter);
 
             ServerHandler.send(message);
 
@@ -439,10 +424,6 @@ public class GameFragment extends Fragment implements Serializable {
             btnDraw.setEnabled(false);
             btnPlay.setEnabled(false);
         }
-    }
-
-    public void removePlayer(Player player) {
-        scoreAdapter.remove(player);
     }
 
     private void undoPlacedTiles(List<Tile> selectedTiles) {
@@ -476,9 +457,5 @@ public class GameFragment extends Fragment implements Serializable {
             //deprecated in API 26
             v.vibrate(milliseconds);
         }
-    }
-
-    public void updatePlayerTiles() {
-            playerTilesAdapter.updateTiles(GameModel.clientPlayer.tiles);
     }
 }
