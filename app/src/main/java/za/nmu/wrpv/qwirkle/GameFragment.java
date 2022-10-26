@@ -2,9 +2,11 @@ package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -98,6 +100,10 @@ public class GameFragment extends Fragment implements Serializable {
             btnPlay.setEnabled(true);
             btnUndo.setEnabled(true);
         }
+
+        TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
+        tvQwirkle.setTextSize(50);
+        tvQwirkle.setText(R.string.app_name);
 
         thread = new Thread(() -> {
             do {
@@ -214,6 +220,51 @@ public class GameFragment extends Fragment implements Serializable {
         playerTilesAdapter.setOnLongClickListener(this::iaLongClickListener);
 
         rvPlayerTilesView.setAdapter(playerTilesAdapter);
+    }
+
+    public static void qwirkleAnimate(Activity context, Player player) {
+        ConstraintLayout clFragmentGame = context.findViewById(R.id.cl_fragment_game);
+        Drawable gameBackground = clFragmentGame.getBackground();
+        int playerBackgroundColor = ScoreAdapter.getColor(player, context);
+        ColorDrawable colorDrawable = new ColorDrawable(playerBackgroundColor);
+
+        TextView tvQwirkle = context.findViewById(R.id.tv_qwirkle);
+        int tvQwirkleSize = (int) tvQwirkle.getTextSize();
+        new Thread(() -> {
+            try {
+                tvQwirkle.setVisibility(View.VISIBLE);
+                tvQwirkle.setTextColor(playerBackgroundColor);
+                context.runOnUiThread(() -> clFragmentGame.setBackground(colorDrawable));
+                for (int i = 255; i > 128; i-= 15) {
+                    colorDrawable.setAlpha(i);
+                    Thread.sleep(50);
+                }
+
+                for (int i = tvQwirkleSize; i > tvQwirkleSize - 50; i-=15) {
+                    int finalI = i;
+                    context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
+                    Thread.sleep(50);
+                }
+
+                for (int i = 128; i < 255; i+= 15) {
+                    colorDrawable.setAlpha(i);
+                    Thread.sleep(50);
+                }
+
+                for (int i = tvQwirkleSize - 50; i < tvQwirkleSize ; i+=15) {
+                    int finalI = i;
+                    context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
+                    Thread.sleep(50);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }finally {
+                context.runOnUiThread(() -> {
+                    clFragmentGame.setBackground(gameBackground);
+                    tvQwirkle.setVisibility(View.GONE);
+                });
+            }
+        }).start();
     }
 
     public void setupCurrentPlayer() {
@@ -422,8 +473,12 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
+            message.put("qwirkle",GameModel.qwirkle);
 
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+
+            if (GameModel.qwirkle)
+                qwirkleAnimate(getActivity(), GameModel.clientPlayer);
 
             GameModel.turn();
 
@@ -433,6 +488,7 @@ public class GameFragment extends Fragment implements Serializable {
             easeInTilePlacement(placementViews);
 
             GameModel.places = new ArrayList<>();
+            GameModel.qwirkle = false;
             ServerHandler.send(message);
 
             Button btnPlay = getView().findViewById(R.id.btn_play);

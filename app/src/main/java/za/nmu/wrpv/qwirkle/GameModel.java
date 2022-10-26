@@ -27,6 +27,7 @@ public class GameModel implements Serializable {
     private static List<Tile> ts = new ArrayList<>();
     public static boolean placing = false;
     public static boolean ended = false;
+    public static boolean qwirkle = false;
 
     public enum Legality {
         LEGAL, ILLEGAL;
@@ -643,7 +644,11 @@ public class GameModel implements Serializable {
     }
 
     private static boolean isQwirkle() {
-        return getPlayerHighestCCount(qwirkleMonitor) == 6 || getPlayerHighestSCount(qwirkleMonitor) == 6;
+        if ( getPlayerHighestCCount(qwirkleMonitor) == 6 || getPlayerHighestSCount(qwirkleMonitor) == 6) {
+            qwirkle = true;
+            return qwirkle;
+        }
+        return false;
     }
 
     private static boolean isBonus() {

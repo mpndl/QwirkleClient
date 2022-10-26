@@ -38,6 +38,7 @@ public class Played extends Message implements Serializable {
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
         List<Tile> places = (ArrayList<Tile>)data.get("places");
+        boolean qwirkle = (boolean) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(data -> {
             Activity context = (Activity) data.get("context");
@@ -64,6 +65,8 @@ public class Played extends Message implements Serializable {
                 }
 
                 fragment.focusOnView(sv,hsv, view);
+
+                if (qwirkle) GameFragment.qwirkleAnimate(context, player);
 
                 GameModel.turn();
 
