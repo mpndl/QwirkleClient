@@ -54,6 +54,8 @@ public class GameFragment extends Fragment implements Serializable {
     private int BOARD_TILE_SIZE;
     public static int PLAYER_TILE_SIZE_50;
     public static int PLAYER_TILE_SIZE_60;
+    public static int PLAYER_TILE_OPACITY = 128;
+    private static final List<ImageView> placementViews = new ArrayList<>();
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -274,6 +276,31 @@ public class GameFragment extends Fragment implements Serializable {
         }
     }
 
+    public static void easeInTilePlacement(List<ImageView> views) {
+        final int[] opacity = {PLAYER_TILE_OPACITY};
+        new Thread(() -> {
+            System.out.println("----------------------- EASE IN START ----------------------------");
+            try {
+                System.out.println("VIEW COUNT = " + views.size());
+                for (ImageView view : views) {
+                    System.out.println("------------------------ VIEW EASE --------------------------");
+                    do {
+                        view.getForeground().setAlpha(opacity[0]);
+                        Thread.sleep(50);
+                        System.out.println("EASING IN OPACITY = " + opacity[0]);
+                        opacity[0]+= 15;
+                    } while (opacity[0] < 255);
+                    opacity[0] = PLAYER_TILE_OPACITY;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }finally {
+                placementViews.clear();
+                System.out.println("----------------------------- EASE IN END ----------------------");
+            }
+        }).start();
+    }
+
     private void onTileClicked(View view) {
         if (selectedTiles.size() > 0 && GameModel.isTurn()) {
             ImageButton button = (ImageButton) view;
@@ -288,6 +315,8 @@ public class GameFragment extends Fragment implements Serializable {
 
                 // set image resource to the tile selected by a player
                 button.setForeground(getDrawable(selectedTiles.get(0).toString(), getContext()));
+                button.getForeground().setAlpha(PLAYER_TILE_OPACITY);
+                placementViews.add(button);
 
                 // no further interaction allowed
                 button.setEnabled(false);
@@ -401,6 +430,7 @@ public class GameFragment extends Fragment implements Serializable {
             setupBagCount();
             setupCurrentPlayer();
             resetMultiSelect();
+            easeInTilePlacement(placementViews);
 
             GameModel.places = new ArrayList<>();
             ServerHandler.send(message);
@@ -418,6 +448,13 @@ public class GameFragment extends Fragment implements Serializable {
         GameEnded message = new GameEnded();
         message.put("players", GameModel.players);
         ServerHandler.send(message);
+
+        Button btnPlay = getView().findViewById(R.id.btn_play);
+        Button btnDraw = getView().findViewById(R.id.btn_draw);
+        Button btnUndo = getView().findViewById(R.id.btn_undo);
+        btnDraw.setEnabled(false);
+        btnPlay.setEnabled(false);
+        btnUndo.setEnabled(false);
     }
 
     public void setOnUndo(View view) {
@@ -425,6 +462,7 @@ public class GameFragment extends Fragment implements Serializable {
         resetWidthExcept(null);
         resetMultiSelect();
         undoPlacedTiles(GameModel.places);
+        easeInTilePlacement(placementViews);
     }
 
     public void setOnDraw(View view) {
@@ -448,6 +486,7 @@ public class GameFragment extends Fragment implements Serializable {
             setupCurrentPlayer();
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
+
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
