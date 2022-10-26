@@ -20,7 +20,6 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class MainActivity extends AppCompatActivity implements Serializable {
-    private List<Fragment> fragments;
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -98,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
 
     private void setupViewPager() {
         ViewPager2 viewPager2 = findViewById(R.id.view_pager2);
-        fragments = new ArrayList<>(Arrays.asList(GameFragment.newInstance(), MessagesFragment.newInstance()));
+        List<Fragment> fragments = new ArrayList<>(Arrays.asList(GameFragment.newInstance(), MessagesFragment.newInstance()));
         PagerAdapter adapter = new PagerAdapter(this, fragments);
         viewPager2.setAdapter(adapter);
     }
