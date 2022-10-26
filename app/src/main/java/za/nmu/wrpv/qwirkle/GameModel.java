@@ -205,6 +205,14 @@ public class GameModel implements Serializable {
         return temp;
     }
 
+    public static List<Player> clonePlayers(List<Player> players) {
+        List<Player> playersCopy = new ArrayList<>();
+        for (Player player: players) {
+            playersCopy.add(clonePlayer(player));
+        }
+        return playersCopy;
+    }
+
     public static void updatePlayerScore(Player player, ScoreAdapter adapter) {
         for (Player p: players) {
             if (p.name.toString().equals(player.name.toString())) {
@@ -589,27 +597,31 @@ public class GameModel implements Serializable {
     private static void assignPoints() {
         System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
         int[] orientation = orientation(places);
-        Tile tile = nullTile(places, tempBoard);
-        System.out.println("NULL TILE = " + tile + " -> xpos, ypos = " + tile.xPos + ", " + tile.yPos);
-        if (!nul(tile.xPos+1, tile.yPos+1)) System.out.println("NULL TILE RIGHT = " + board[tile.xPos +1][tile.yPos]);
+        Tile nullTile = nullTile(places, tempBoard);
+        System.out.println("NULL TILE = " + nullTile + " -> xpos, ypos = " + nullTile.xPos + ", " + nullTile.yPos);
         if (orientation[0] == 1) {
-            System.out.println("---------------------------- HORIZONTAL ORIENTATION");
-            if (tile != null) {
-                if (!nul(tile.xPos + 1, tile.yPos)) {
-                    System.out.println("NULL TILE RIGHT = " + board[tile.xPos + 1][tile.yPos]);
-                    calculate(tile.xPos, tile.yPos, +1, 0, tempBoard, orientation);
+            System.out.println("---------------------------- HORIZONTALLY ORIENTED");
+            if (nullTile != null) {
+                if (!nul(nullTile.xPos + 1, nullTile.yPos)) {
+                    System.out.println("!nul(nullTile.xPos + 1, nullTile.yPos)");
+                    calculate(nullTile.xPos, nullTile.yPos, +1, 0, tempBoard, orientation);
                 }
-                else
-                    calculate(tile.xPos, tile.yPos, - 1, 0, tempBoard, orientation);
+                else {
+                    System.out.println("!nul(nullTile.xPos - 1, nullTile.yPos)");
+                    calculate(nullTile.xPos, nullTile.yPos, -1, 0, tempBoard, orientation);
+                }
             }
         }
         else if (orientation[1] == 1) {
-            if (tile != null) {
-                if (!nul(tile.xPos, tile.yPos + 1)) {
-                    calculate(tile.xPos, tile.yPos, 0, + 1, tempBoard, orientation);
+            System.out.println("---------------------------- VERTICALLY ORIENTED");
+            if (nullTile != null) {
+                if (!nul(nullTile.xPos, nullTile.yPos + 1)) {
+                    System.out.println("!nul(nullTile.xPos, nullTile.yPos + 1)");
+                    calculate(nullTile.xPos, nullTile.yPos, 0, + 1, tempBoard, orientation);
                 }
                 else {
-                    calculate(tile.xPos, tile.yPos, 0, - 1, tempBoard, orientation);
+                    System.out.println("!nul(nullTile.xPos, nullTile.yPos - 1)");
+                    calculate(nullTile.xPos, nullTile.yPos, 0, - 1, tempBoard, orientation);
                 }
             }
         }
@@ -627,10 +639,8 @@ public class GameModel implements Serializable {
 
     private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
-            /*System.out.println("CENTER = " + board[xpos][ypos]);
-            if (!nul(xpos+1, ypos))
-                System.out.println("RIGHT = " + board[xpos + 1][ypos]);*/
-            getWithPaths(board[xpos][ypos], orientation(places));
+            System.out.println("CURRENT TILE = " + board[xpos][ypos]);
+            getWithPaths(board[xpos][ypos], orientation);
             if (!qwirkleMonitor.contains(board[xpos][ypos]))
                 qwirkleMonitor.add(board[xpos][ypos]);
             points++;
@@ -671,30 +681,34 @@ public class GameModel implements Serializable {
     }
 
     private static void getWithPaths(Tile tile, int[] orientation) {
-        if (places.contains(tile) && !paths2.contains(tile)) {
-            // Check y
+        if (contains(places, tile) && !contains(paths2, tile)) {
+            // vertically oriented
             if (orientation[1] == 1) {
-                int x = 0;
+                boolean checkedOnOneSide = false;
                 if (!nul(tile.xPos + 1, tile.yPos)) {
+                    System.out.println("HAS PATH ON RIGHT SIDE = " + tempBoard[tile.xPos + 1][tile.yPos]);
                     paths2.add(tile);
-                    x++;
+                    checkedOnOneSide = true;
                 }
 
                 if (!nul(tile.xPos - 1, tile.yPos)) {
-                    if (!(x > 0))
+                    System.out.println("HAS PATH ON LEFT SIDE = " + tempBoard[tile.xPos - 1][tile.yPos]);
+                    if (!checkedOnOneSide)
                         paths2.add(tile);
                 }
             }
-            // Check x
+            // horizontally oriented
             else if (orientation[0] == 1) {
-                int y = 0;
+                boolean checkedOnOneSide = false;
                 if (!nul(tile.xPos, tile.yPos + 1)) {
+                    System.out.println("HAS PATH ON BOTTOM SIDE = " + tempBoard[tile.xPos][tile.yPos + 1]);
                     paths2.add(tile);
-                    y++;
+                    checkedOnOneSide = true;
                 }
 
                 if (!nul(tile.xPos, tile.yPos - 1)) {
-                    if (!(y > 0))
+                    System.out.println("HAS PATH ON TOP SIDE = " + tempBoard[tile.xPos][tile.yPos - 1]);
+                    if (!checkedOnOneSide)
                         paths2.add(tile);
                 }
             }
@@ -725,6 +739,10 @@ public class GameModel implements Serializable {
             }
         }
         return new int[] {0, 0};
+    }
+
+    private static boolean contains(List<Tile> tiles, Tile tile) {
+        return tiles.stream().anyMatch(t -> t.index == tile.index);
     }
 
     private static Tile nullTile(List<Tile> places, Tile[][] board) {

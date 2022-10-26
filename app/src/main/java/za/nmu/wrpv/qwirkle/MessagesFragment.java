@@ -47,6 +47,7 @@ public class MessagesFragment extends Fragment implements Serializable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Notification.cancel(getContext(), Notification.NOTIFICATION_ID);
 
         adapter = new MessagesAdapter(new ArrayList<>(), getContext());
 

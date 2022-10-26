@@ -102,7 +102,7 @@ public class GameFragment extends Fragment implements Serializable {
         enableIfTurn(btnPlay, btnDraw, btnUndo);
 
         TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
-        tvQwirkle.setTextSize(50);
+        tvQwirkle.setTextSize(30);
         tvQwirkle.setText(R.string.app_name);
 
         thread = new Thread(() -> {
@@ -112,10 +112,17 @@ public class GameFragment extends Fragment implements Serializable {
                 data.put("playerTilesAdapter",playerTilesAdapter);
                 data.put("context", getContext());
                 data.put("fragment", this);
+                Run run = null;
                 try {
-                    Run run = runs.take();
-                    getActivity().runOnUiThread(() -> run.run(data));
-                } catch (InterruptedException e) {
+                    run = runs.take();
+                    Run finalRun = run;
+                    getActivity().runOnUiThread(() -> finalRun.run(data));
+                }catch (NullPointerException e) {
+                    if (run != null) {
+                        runs.add(run);
+                    }
+                }
+                catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }while (true);
@@ -312,15 +319,15 @@ public class GameFragment extends Fragment implements Serializable {
     public static void easeInTilePlacement(List<ImageView> views) {
         final int[] opacity = {PLAYER_TILE_OPACITY};
         new Thread(() -> {
-            System.out.println("----------------------- EASE IN START ----------------------------");
+            //System.out.println("----------------------- EASE IN START ----------------------------");
             try {
-                System.out.println("VIEW COUNT = " + views.size());
+                //System.out.println("VIEW COUNT = " + views.size());
                 for (ImageView view : views) {
-                    System.out.println("------------------------ VIEW EASE --------------------------");
+                  //  System.out.println("------------------------ VIEW EASE --------------------------");
                     do {
                         view.getForeground().setAlpha(opacity[0]);
                         Thread.sleep(50);
-                        System.out.println("EASING IN OPACITY = " + opacity[0]);
+                      //  System.out.println("EASING IN OPACITY = " + opacity[0]);
                         opacity[0]+= 15;
                     } while (opacity[0] < 255);
                     opacity[0] = PLAYER_TILE_OPACITY;
@@ -329,7 +336,7 @@ public class GameFragment extends Fragment implements Serializable {
                 e.printStackTrace();
             }finally {
                 placementViews.clear();
-                System.out.println("----------------------------- EASE IN END ----------------------");
+               // System.out.println("----------------------------- EASE IN END ----------------------");
             }
         }).start();
     }
@@ -435,7 +442,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void setOnPlay(View view) {
         if(GameModel.places.size() > 0) {
-            System.out.println("-------------------------- PLAY START -------------------------");
+            //System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
             GameModel.play(playerTilesAdapter);
             GameModel.updatePlayerScore(GameModel.clientPlayer, scoreAdapter);
@@ -448,10 +455,12 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("placedCount", GameModel.placedCount);
             message.put("qwirkle",GameModel.qwirkle);
 
-            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
-            if (GameModel.qwirkle)
+            if (GameModel.qwirkle) {
                 qwirkleAnimate(getActivity(), GameModel.clientPlayer);
+                Helper.vibrate(500,getActivity());
+            }
 
             GameModel.turn();
 

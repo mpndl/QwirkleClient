@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.DebugUtils;
@@ -64,5 +65,11 @@ public class Notification {
                 });
             }
         }
+    }
+
+    public static void cancel(Context context, int id) {
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager nm = (NotificationManager) context.getSystemService(ns);
+        nm.cancel(id);
     }
 }

@@ -30,9 +30,9 @@ public class Played extends Message implements Serializable {
 
     @Override
     public void apply() {
-        System.out.println("------------------------------- PLAYED START -----------------------------");
+        //System.out.println("------------------------------- PLAYED START -----------------------------");
         Player player = (Player) data.get("player");
-        System.out.println(player.name + " POINTS = " + player.points);
+        //System.out.println(player.name + " POINTS = " + player.points);
 
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
@@ -64,7 +64,10 @@ public class Played extends Message implements Serializable {
 
                 focusOnView(context, sv,hsv, view);
 
-                if (qwirkle) GameFragment.qwirkleAnimate(context, player);
+                if (qwirkle) {
+                    GameFragment.qwirkleAnimate(context, player);
+                    Helper.vibrate(500, context);
+                }
 
                 GameModel.turn();
 

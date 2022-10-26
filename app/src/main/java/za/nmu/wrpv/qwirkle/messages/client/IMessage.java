@@ -28,9 +28,11 @@ public class IMessage extends Message implements Serializable {
 
         MainActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
-            if (playerMessage.player.name != GameModel.clientPlayer.name)
+            if (playerMessage.player.name != GameModel.clientPlayer.name) {
                 Notification.displayNotification(context);
-            vibrate(500, context);
+                vibrate(50, context);
+                vibrate(50, context);
+            }
         });
     }
 }
