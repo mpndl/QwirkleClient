@@ -1,7 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
-import static android.content.Context.VIBRATOR_SERVICE;
-
+import static za.nmu.wrpv.qwirkle.Helper.easeInTilePlacement;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
 import static za.nmu.wrpv.qwirkle.Helper.getColor;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
@@ -10,17 +9,11 @@ import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
 import static za.nmu.wrpv.qwirkle.Helper.vibrate;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
-import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,7 +53,7 @@ public class GameFragment extends Fragment implements Serializable {
     private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
-    private int BOARD_TILE_SIZE;
+    public static int BOARD_TILE_SIZE;
     public static int PLAYER_TILE_SIZE_50;
     public static int PLAYER_TILE_SIZE_60;
     public static int PLAYER_TILE_OPACITY = 128;
@@ -101,9 +94,24 @@ public class GameFragment extends Fragment implements Serializable {
         Button btnUndo = getView().findViewById(R.id.btn_undo);
         enableIfTurn(btnPlay, btnDraw, btnUndo);
 
+        btnPlay.getLayoutParams().width = (BOARD_TILE_SIZE);
+        btnPlay.getLayoutParams().height = (BOARD_TILE_SIZE);
+
+        btnDraw.getLayoutParams().width = (BOARD_TILE_SIZE);
+        btnDraw.getLayoutParams().height = (BOARD_TILE_SIZE);
+
+        btnUndo.getLayoutParams().width = (BOARD_TILE_SIZE);
+        btnUndo.getLayoutParams().height = (BOARD_TILE_SIZE);
+
+        ImageView ivBag = getView().findViewById(R.id.iv_bag);
+        ivBag.getLayoutParams().width = (BOARD_TILE_SIZE);
+        ivBag.getLayoutParams().height = (BOARD_TILE_SIZE);
+
         TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
         tvQwirkle.setTextSize(30);
         tvQwirkle.setText(R.string.app_name);
+
+
 
         thread = new Thread(() -> {
             do {
@@ -185,6 +193,7 @@ public class GameFragment extends Fragment implements Serializable {
             if (imageView != curImageView) {
                 ViewGroup.LayoutParams params = curImageView.getLayoutParams();
                 params.width = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 curImageView.setLayoutParams(params);
             }
         }
@@ -230,7 +239,7 @@ public class GameFragment extends Fragment implements Serializable {
                     Thread.sleep(50);
                 }
 
-                for (int i = tvQwirkleSize; i > tvQwirkleSize - 50; i-=15) {
+                for (int i = tvQwirkleSize; i < tvQwirkleSize + (BOARD_TILE_SIZE / 3); i+=15) {
                     int finalI = i;
                     context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
                     Thread.sleep(50);
@@ -242,7 +251,7 @@ public class GameFragment extends Fragment implements Serializable {
                     Thread.sleep(50);
                 }
 
-                for (int i = tvQwirkleSize - 50; i < tvQwirkleSize ; i+=15) {
+                for (int i = tvQwirkleSize + (BOARD_TILE_SIZE / 3); i > tvQwirkleSize; i-=15) {
                     int finalI = i;
                     context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
                     Thread.sleep(50);
@@ -267,15 +276,17 @@ public class GameFragment extends Fragment implements Serializable {
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             TextView textView = cardView.findViewById(R.id.tv_player_name);
+            textView.setTextSize(GameFragment.BOARD_TILE_SIZE /9f);
+
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String[] data = imageView.getTag().toString().split(",");
             String playerName = data[1];
             String you = data[0];
             if (playerName.equals(GameModel.currentPlayer.name.toString())) {
                 if (playerName.equals(GameModel.clientPlayerName))
-                    textView.setText("> " + you);
+                    textView.setText(">" + you);
                 else
-                    textView.setText("> " + playerName);
+                    textView.setText(">" + playerName);
                 textView.setTextColor(Color.BLUE);
             }
             else {
@@ -314,31 +325,6 @@ public class GameFragment extends Fragment implements Serializable {
                 index++;
             }
         }
-    }
-
-    public static void easeInTilePlacement(List<ImageView> views) {
-        final int[] opacity = {PLAYER_TILE_OPACITY};
-        new Thread(() -> {
-            //System.out.println("----------------------- EASE IN START ----------------------------");
-            try {
-                //System.out.println("VIEW COUNT = " + views.size());
-                for (ImageView view : views) {
-                  //  System.out.println("------------------------ VIEW EASE --------------------------");
-                    do {
-                        view.getForeground().setAlpha(opacity[0]);
-                        Thread.sleep(50);
-                      //  System.out.println("EASING IN OPACITY = " + opacity[0]);
-                        opacity[0]+= 15;
-                    } while (opacity[0] < 255);
-                    opacity[0] = PLAYER_TILE_OPACITY;
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }finally {
-                placementViews.clear();
-               // System.out.println("----------------------------- EASE IN END ----------------------");
-            }
-        }).start();
     }
 
     private void onTileClicked(View view) {
@@ -398,8 +384,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
+                params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -410,8 +398,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
+                params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -431,9 +421,11 @@ public class GameFragment extends Fragment implements Serializable {
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == PLAYER_TILE_SIZE_50) {
             params.width = PLAYER_TILE_SIZE_60;
+            params.height = PLAYER_TILE_SIZE_60;
         }
         else {
             params.width = PLAYER_TILE_SIZE_50;
+            params.height = PLAYER_TILE_SIZE_50;
             selectedTiles.remove(selectedTile);
         }
         imageView.setLayoutParams(params);
@@ -442,7 +434,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void setOnPlay(View view) {
         if(GameModel.places.size() > 0) {
-            //System.out.println("-------------------------- PLAY START -------------------------");
+            System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
             GameModel.play(playerTilesAdapter);
             GameModel.updatePlayerScore(GameModel.clientPlayer, scoreAdapter);
@@ -455,7 +447,8 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("placedCount", GameModel.placedCount);
             message.put("qwirkle",GameModel.qwirkle);
 
-            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
             if (GameModel.qwirkle) {
                 qwirkleAnimate(getActivity(), GameModel.clientPlayer);
@@ -472,11 +465,13 @@ public class GameFragment extends Fragment implements Serializable {
             GameModel.places = new ArrayList<>();
             GameModel.qwirkle = false;
             ServerHandler.send(message);
+            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
+            System.out.println("-------------------------- PLAY END -------------------------");
         }
     }
 

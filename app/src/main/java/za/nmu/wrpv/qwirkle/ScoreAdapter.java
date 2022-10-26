@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 
 import java.io.Serializable;
 import java.util.List;
@@ -42,10 +43,15 @@ public class ScoreAdapter extends ArrayAdapter<Player> implements Serializable {
         View listItemView = convertView;
         if (listItemView == null)
             listItemView = LayoutInflater.from(getContext()).inflate(R.layout.game_status, parent, false);
+        listItemView.getLayoutParams().height =  GameFragment.BOARD_TILE_SIZE;
 
         ImageView imageView = listItemView.findViewById(R.id.iv_player_avatar);
+
         Player player = getItem(position);
         TextView tvScore = listItemView.findViewById(R.id.tv_player_score);
+
+        tvScore.setTextSize(GameFragment.BOARD_TILE_SIZE / 7f);
+
         imageView.setTag(context.getString(R.string.you) + "," + player.name.toString());
 
         listItemView.setBackgroundColor(getColor(player, context));

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -28,6 +29,25 @@ public class GameModel implements Serializable {
     public static boolean placing = false;
     public static boolean ended = false;
     public static boolean qwirkle = false;
+
+    public static void renamePlayers(Map<String, String> newNames) {
+        for (Player player: players) {
+            player.name = getName(newNames.get(player.name.toString()));
+        }
+    }
+
+    private static Player.Name getName(String name) {
+        List<Player.Name> names = new ArrayList<>();
+        names.add(Player.Name.PLAYER1);
+        names.add(Player.Name.PLAYER2);
+        names.add(Player.Name.PLAYER3);
+        names.add(Player.Name.PLAYER4);
+        for (Player.Name n: names) {
+            if (n.toString().equals(name))
+                return n;
+        }
+        return null;
+    }
 
     public enum Legality {
         LEGAL, ILLEGAL;
@@ -181,6 +201,10 @@ public class GameModel implements Serializable {
             placing = false;
             playerTilesAdapter.notifyDataSetChanged();
         }
+    }
+
+    public static void setNewCurrentPlayer() {
+        currentPlayer = players.get(0);
     }
 
     public static void turn() {
@@ -598,7 +622,8 @@ public class GameModel implements Serializable {
         System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
         int[] orientation = orientation(places);
         Tile nullTile = nullTile(places, tempBoard);
-        System.out.println("NULL TILE = " + nullTile + " -> xpos, ypos = " + nullTile.xPos + ", " + nullTile.yPos);
+        if (nullTile != null)
+            System.out.println("NULL TILE = " + nullTile + " -> xpos, ypos = " + nullTile.xPos + ", " + nullTile.yPos);
         if (orientation[0] == 1) {
             System.out.println("---------------------------- HORIZONTALLY ORIENTED");
             if (nullTile != null) {
@@ -645,22 +670,29 @@ public class GameModel implements Serializable {
                 qwirkleMonitor.add(board[xpos][ypos]);
             points++;
             calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, orientation);
-            if (paths2.contains(board[xpos][ypos])) {
-                if (places.size() > 1)
+            if (contains(paths2, board[xpos][ypos])) {
+                // HAS PATH ON BOTH SIDES
+                //if (paths2.size() > 1)
                     points++;
                 if (orientation[1] == 1) {
+                    System.out.println("ALTERNATIVE PATH -------- VERTICALLY ORIENTED");
                     if (!nul(xpos - 1, ypos)) {
+                        System.out.println("!nul(xpos - 1, ypos)");
                         calculate(xpos - 1, ypos, -1, 0, board, new int[]{1, 0});
                     }
                     else if (!nul(xpos + 1, ypos)) {
+                        System.out.println("!nul(xpos + 1, ypos)");
                         calculate(xpos + 1, ypos, +1, 0, board, new int[]{1, 0});
                     }
                 }
                 else if (orientation[0] == 1) {
+                    System.out.println("ALTERNATIVE PATH -------- HORIZONTALLY ORIENTED");
                     if (!nul(xpos, ypos - 1)) {
+                        System.out.println("!nul(xpos, ypos - 1)");
                         calculate(xpos, ypos - 1, 0, -1, board, new int[]{0, 1});
                     }
                     else if (!nul(xpos, ypos + 1)) {
+                        System.out.println("!nul(xpos, ypos + 1)");
                         calculate(xpos, ypos + 1, 0, +1, board, new int[]{0, 1});
                     }
                 }

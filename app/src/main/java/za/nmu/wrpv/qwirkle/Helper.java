@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 
+import java.util.List;
+
 public class Helper {
     public static int getColor(Player player, Context context) {
         switch (player.color) {
@@ -55,7 +57,7 @@ public class Helper {
 
     public static void setTurnBackgroundBorder(View view) {
         if (GameModel.isTurn()) {
-            setBackgroundBorder(view, GameModel.clientPlayer, 15);
+            setBackgroundBorder(view, GameModel.clientPlayer, GameFragment.BOARD_TILE_SIZE / 6);
         }else view.setBackground(null);
     }
 
@@ -83,5 +85,30 @@ public class Helper {
 
         int scrollTo = ((View)view.getParent()).getLeft() + view.getLeft() - (width/2);
         scroll.scrollTo(scrollTo,0);
+    }
+
+    public static <V extends View>  void easeInTilePlacement(List<V> views) {
+        final int[] opacity = {GameFragment.PLAYER_TILE_OPACITY};
+        new Thread(() -> {
+            //System.out.println("----------------------- EASE IN START ----------------------------");
+            try {
+                //System.out.println("VIEW COUNT = " + views.size());
+                for (View view : views) {
+                    //  System.out.println("------------------------ VIEW EASE --------------------------");
+                    do {
+                        view.getForeground().setAlpha(opacity[0]);
+                        Thread.sleep(50);
+                        //  System.out.println("EASING IN OPACITY = " + opacity[0]);
+                        opacity[0]+= 15;
+                    } while (opacity[0] < 255);
+                    opacity[0] = GameFragment.PLAYER_TILE_OPACITY;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }finally {
+                views.clear();
+                // System.out.println("----------------------------- EASE IN END ----------------------");
+            }
+        }).start();
     }
 }

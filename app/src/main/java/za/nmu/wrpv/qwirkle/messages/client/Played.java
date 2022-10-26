@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
+import static za.nmu.wrpv.qwirkle.Helper.easeInTilePlacement;
 import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 
@@ -7,6 +8,7 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 
 import androidx.gridlayout.widget.GridLayout;
@@ -55,14 +57,17 @@ public class Played extends Message implements Serializable {
                 GameModel.bag = bag;
 
                 GridLayout glBoard = context.findViewById(R.id.board);
-                View view = null;
+                List<View> views = new ArrayList<>();
                 for (int i = 0; i < places.size(); i++) {
                     Tile tile = places.get(i);
-                    view = glBoard.getChildAt(tile.index);
+                    View view = glBoard.getChildAt(tile.index);
                     view.setForeground(getDrawable(tile.toString(), context));
+                    view.getForeground().setAlpha(128);
+                    views.add(view);
                 }
+                easeInTilePlacement(views);
 
-                focusOnView(context, sv,hsv, view);
+                focusOnView(context, sv,hsv, views.get(0));
 
                 if (qwirkle) {
                     GameFragment.qwirkleAnimate(context, player);
