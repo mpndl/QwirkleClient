@@ -1,11 +1,9 @@
 package za.nmu.wrpv.qwirkle;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,15 +11,12 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import za.nmu.wrpv.qwirkle.messages.client.Countdown;
-import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 public class BeginActivity extends AppCompatActivity {
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
@@ -53,15 +48,6 @@ public class BeginActivity extends AppCompatActivity {
         etPlayerCount.setHint("X.X.X.X");
         etPlayerCount.setText(serverAddress);
 
-        if (etPlayerCount.getText().toString().isEmpty()) {
-            try {
-                String address = InetAddress.getLocalHost().getHostAddress();
-                etPlayerCount.setText(address);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-        }
-
         etPlayerCount.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -92,6 +78,7 @@ public class BeginActivity extends AppCompatActivity {
         Button btnStartGame = (Button)view;
         if (startGame) {
             EditText etServerAddress = findViewById(R.id.et_server_address);
+
             getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
             ServerHandler.serverAddress = etServerAddress.getText().toString();
             ServerHandler.start();

@@ -73,11 +73,14 @@ public class GameFragment extends Fragment implements Serializable {
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
+        Button btnUndo = getView().findViewById(R.id.btn_undo);
         btnDraw.setEnabled(false);
         btnPlay.setEnabled(false);
+        btnUndo.setEnabled(false);
         if (GameModel.isTurn()) {
             btnDraw.setEnabled(true);
             btnPlay.setEnabled(true);
+            btnUndo.setEnabled(true);
         }
 
         thread = new Thread(() -> {
@@ -147,8 +150,10 @@ public class GameFragment extends Fragment implements Serializable {
     private void setButtonListeners() {
         Button btnDraw = getView().findViewById(R.id.btn_draw);
         Button btnPlay = getView().findViewById(R.id.btn_play);
+        Button btnUndo = getView().findViewById(R.id.btn_undo);
         btnDraw.setOnClickListener(this::setOnDraw);
         btnPlay.setOnClickListener(this:: setOnPlay);
+        btnUndo.setOnClickListener(this::setOnUndo);
     }
 
     private void setupGridLayout() {
@@ -388,8 +393,10 @@ public class GameFragment extends Fragment implements Serializable {
 
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
+            Button btnUndo = getView().findViewById(R.id.btn_undo);
             btnDraw.setEnabled(false);
             btnPlay.setEnabled(false);
+            btnUndo.setEnabled(false);
         }
     }
 
@@ -397,6 +404,13 @@ public class GameFragment extends Fragment implements Serializable {
         GameEnded message = new GameEnded();
         message.put("players", GameModel.players);
         ServerHandler.send(message);
+    }
+
+    public void setOnUndo(View view) {
+        GameModel.undo(GameModel.places, playerTilesAdapter);
+        resetWidthExcept(null);
+        resetMultiSelect();
+        undoPlacedTiles(GameModel.places);
     }
 
     public void setOnDraw(View view) {
@@ -422,8 +436,10 @@ public class GameFragment extends Fragment implements Serializable {
             undoPlacedTiles(GameModel.places);
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
+            Button btnUndo = getView().findViewById(R.id.btn_undo);
             btnDraw.setEnabled(false);
             btnPlay.setEnabled(false);
+            btnUndo.setEnabled(false);
         }
     }
 

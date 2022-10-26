@@ -135,6 +135,13 @@ public class GameModel implements Serializable {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
+    public static void undo(List<Tile> playerTiles, PlayerTilesAdapter playerTilesAdapter) {
+        clientPlayer.tiles.addAll(playerTiles);
+        playerTilesAdapter.notifyDataSetChanged();
+        tempBoard = null;
+        placing = false;
+    }
+
     public static void draw(boolean played, List<Tile> playerTiles, PlayerTilesAdapter playerTilesAdapter) {
         int HCOUNT = 6;
         int hcount = HCOUNT;

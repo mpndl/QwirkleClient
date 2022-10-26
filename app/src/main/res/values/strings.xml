@@ -23,4 +23,7 @@
     <string name="score_column_title">Score</string>
     <string name="notification_title">New Message</string>
     <string name="notification_description">You have a new message</string>
+    <string name="btn_undo">Undo</string>
+    <string name="lan">LAN</string>
+    <string name="use_lan">Using LAN address: %s</string>
 </resources>

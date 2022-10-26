@@ -39,11 +39,14 @@ public class Drawn extends Message implements Serializable {
 
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
+            Button btnUndo = context.findViewById(R.id.btn_undo);
             btnDraw.setEnabled(false);
             btnPlay.setEnabled(false);
+            btnUndo.setEnabled(false);
             if (GameModel.isTurn()) {
                 btnDraw.setEnabled(true);
                 btnPlay.setEnabled(true);
+                btnUndo.setEnabled(true);
             }
         });
     }

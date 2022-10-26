@@ -23,4 +23,7 @@
     <string name="score_column_title">Umphumela</string>
     <string name="notification_title">Umyalezo omusha</string>
     <string name="notification_description">Unomyalezo omusha</string>
+    <string name="btn_undo">Hlehlisa</string>
+    <string name="lan">LAN</string>
+    <string name="use_lan">Isebenzisa ikheli le-LAN: %s</string>
 </resources>
