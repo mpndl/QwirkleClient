@@ -1,11 +1,11 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
+import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
+import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
+
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 
@@ -17,12 +17,11 @@ import java.util.List;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
-import za.nmu.wrpv.qwirkle.MainActivity;
+import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.PlayerTilesAdapter;
 import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.ScoreAdapter;
-import za.nmu.wrpv.qwirkle.ServerHandler;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
@@ -40,11 +39,11 @@ public class Played extends Message implements Serializable {
         List<Tile> places = (ArrayList<Tile>)data.get("places");
         boolean qwirkle = (boolean) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
-        GameFragment.runLater(data -> {
-            Activity context = (Activity) data.get("context");
-            ScoreAdapter adapter = (ScoreAdapter) data.get("adapter");
-            PlayerTilesAdapter playerTileAdapter = (PlayerTilesAdapter) data.get("playerTilesAdapter");
-            GameFragment fragment = (GameFragment) data.get("fragment");
+        GameFragment.runLater(d -> {
+            Activity context = (Activity) d.get("context");
+            ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
+            PlayerTilesAdapter playerTileAdapter = (PlayerTilesAdapter) d.get("playerTilesAdapter");
+            GameFragment fragment = (GameFragment) d.get("fragment");
 
             HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);
             ScrollView sv = context.findViewById(R.id.scrollView2);
@@ -61,10 +60,9 @@ public class Played extends Message implements Serializable {
                     Tile tile = places.get(i);
                     view = glBoard.getChildAt(tile.index);
                     view.setForeground(getDrawable(tile.toString(), context));
-                    view.setEnabled(false);
                 }
 
-                fragment.focusOnView(sv,hsv, view);
+                focusOnView(context, sv,hsv, view);
 
                 if (qwirkle) GameFragment.qwirkleAnimate(context, player);
 
@@ -82,18 +80,7 @@ public class Played extends Message implements Serializable {
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
             Button btnUndo = context.findViewById(R.id.btn_undo);
-            btnDraw.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnUndo.setEnabled(false);
-            if (GameModel.isTurn()) {
-                btnDraw.setEnabled(true);
-                btnPlay.setEnabled(true);
-                btnUndo.setEnabled(true);
-            }
+            Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
         });
-    }
-
-    private Drawable getDrawable(String name, Activity activity) {
-        return activity.getResources().getDrawable(activity.getResources().getIdentifier(name, "drawable", activity.getPackageName()));
     }
 }

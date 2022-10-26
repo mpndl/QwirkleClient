@@ -8,6 +8,7 @@ import java.util.List;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
+import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.PlayerTilesAdapter;
 import za.nmu.wrpv.qwirkle.R;
@@ -40,14 +41,7 @@ public class Drawn extends Message implements Serializable {
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
             Button btnUndo = context.findViewById(R.id.btn_undo);
-            btnDraw.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnUndo.setEnabled(false);
-            if (GameModel.isTurn()) {
-                btnDraw.setEnabled(true);
-                btnPlay.setEnabled(true);
-                btnUndo.setEnabled(true);
-            }
+            Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
         });
     }
 }

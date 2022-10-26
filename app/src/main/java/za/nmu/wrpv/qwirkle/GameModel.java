@@ -283,6 +283,9 @@ public class GameModel implements Serializable {
         if(places.size() == 0 && placedCount == 0) {
             return Legality.LEGAL;
         }
+        else if (tempBoard[xpos][ypos] != null) {
+            return Legality.ILLEGAL;
+        }
         else if (allSidesNull(xpos, ypos)) {
             //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
@@ -584,13 +587,18 @@ public class GameModel implements Serializable {
     }
 
     private static void assignPoints() {
+        System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
         int[] orientation = orientation(places);
         Tile tile = nullTile(places, tempBoard);
-        //Log.i(TAG, "nullTile: " + tile);
+        System.out.println("NULL TILE = " + tile + " -> xpos, ypos = " + tile.xPos + ", " + tile.yPos);
+        if (!nul(tile.xPos+1, tile.yPos+1)) System.out.println("NULL TILE RIGHT = " + board[tile.xPos +1][tile.yPos]);
         if (orientation[0] == 1) {
+            System.out.println("---------------------------- HORIZONTAL ORIENTATION");
             if (tile != null) {
-                if (!nul(tile.xPos + 1, tile.yPos))
-                    calculate(tile.xPos, tile.yPos, + 1, 0, tempBoard, orientation);
+                if (!nul(tile.xPos + 1, tile.yPos)) {
+                    System.out.println("NULL TILE RIGHT = " + board[tile.xPos + 1][tile.yPos]);
+                    calculate(tile.xPos, tile.yPos, +1, 0, tempBoard, orientation);
+                }
                 else
                     calculate(tile.xPos, tile.yPos, - 1, 0, tempBoard, orientation);
             }
@@ -607,14 +615,21 @@ public class GameModel implements Serializable {
         }
         if (isQwirkle())
             currentPlayer.points = currentPlayer.points + 6;
+
         currentPlayer.points = currentPlayer.points + points;
+        System.out.println("EARNED POINTS = " + points);
+        System.out.println("TOTAL POINTS = " + currentPlayer.points);
         // reinitialize
         qwirkleMonitor = new ArrayList<>();
         points = 0;
+        System.out.println("    -------------------------- ASSIGN POINTS END ---------------------");
     }
 
     private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         if (!nul(xpos, ypos)) {
+            /*System.out.println("CENTER = " + board[xpos][ypos]);
+            if (!nul(xpos+1, ypos))
+                System.out.println("RIGHT = " + board[xpos + 1][ypos]);*/
             getWithPaths(board[xpos][ypos], orientation(places));
             if (!qwirkleMonitor.contains(board[xpos][ypos]))
                 qwirkleMonitor.add(board[xpos][ypos]);
@@ -687,14 +702,26 @@ public class GameModel implements Serializable {
     }
 
     private static int[] orientation(List<Tile> places) {
-        if (places.size() >= 1) {
-            if (places.size() == 1)
-                return new int[]{0, 1};
-            if (places.get(0).yPos == places.get(1).yPos) {
-                return new int[]{1, 0};
+        List<Tile> placesCopy = cloneTiles(places);
+        if (placesCopy.size() >= 1) {
+            if (placesCopy.size() == 1) {
+                //return new int[]{0, 1};
+                Tile tile = placesCopy.get(0);
+                if (!nul(tile.xPos + 1, tile.yPos))
+                    placesCopy.add(tempBoard[tile.xPos + 1][tile.yPos]);
+                else if (!nul(tile.xPos - 1, tile.yPos))
+                    placesCopy.add(tempBoard[tile.xPos - 1][tile.yPos]);
+                else if (!nul(tile.xPos, tile.yPos + 1))
+                    placesCopy.add(tempBoard[tile.xPos][tile.yPos + 1]);
+                else if (!nul(tile.xPos, tile.yPos - 1))
+                    placesCopy.add(tempBoard[tile.xPos][tile.yPos - 1]);
             }
-            else {
-                return new int[]{0, 1};
+            if (placesCopy.size() >= 2) {
+                if (placesCopy.get(0).yPos == placesCopy.get(1).yPos) {
+                    return new int[]{1, 0};
+                } else {
+                    return new int[]{0, 1};
+                }
             }
         }
         return new int[] {0, 0};

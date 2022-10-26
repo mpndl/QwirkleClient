@@ -2,6 +2,13 @@ package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
+import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
+import static za.nmu.wrpv.qwirkle.Helper.getColor;
+import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
+import static za.nmu.wrpv.qwirkle.Helper.setBackgroundBorder;
+import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
+import static za.nmu.wrpv.qwirkle.Helper.vibrate;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -92,14 +99,7 @@ public class GameFragment extends Fragment implements Serializable {
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
         Button btnUndo = getView().findViewById(R.id.btn_undo);
-        btnDraw.setEnabled(false);
-        btnPlay.setEnabled(false);
-        btnUndo.setEnabled(false);
-        if (GameModel.isTurn()) {
-            btnDraw.setEnabled(true);
-            btnPlay.setEnabled(true);
-            btnUndo.setEnabled(true);
-        }
+        enableIfTurn(btnPlay, btnDraw, btnUndo);
 
         TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
         tvQwirkle.setTextSize(50);
@@ -147,26 +147,6 @@ public class GameFragment extends Fragment implements Serializable {
             sv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
             hsv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
         });
-    }
-
-    public void focusOnView(final ScrollView scroll, final  HorizontalScrollView hScroll, final View view) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-
-        int scrollTo = ((View) view.getParent().getParent()).getTop() + view.getTop() - (height/2);
-        scroll.smoothScrollTo(0, scrollTo);
-
-        hsvFocusOnView(hScroll, view);
-    }
-
-    private void hsvFocusOnView(final HorizontalScrollView scroll, final View view) {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int width = displayMetrics.widthPixels;
-
-        int scrollTo = ((View)view.getParent()).getLeft() + view.getLeft() - (width/2);
-        scroll.scrollTo(scrollTo,0);
     }
 
     private void setButtonListeners() {
@@ -225,18 +205,21 @@ public class GameFragment extends Fragment implements Serializable {
     public static void qwirkleAnimate(Activity context, Player player) {
         ConstraintLayout clFragmentGame = context.findViewById(R.id.cl_fragment_game);
         Drawable gameBackground = clFragmentGame.getBackground();
-        int playerBackgroundColor = ScoreAdapter.getColor(player, context);
+        int playerBackgroundColor = getColor(player, context);
         ColorDrawable colorDrawable = new ColorDrawable(playerBackgroundColor);
 
         TextView tvQwirkle = context.findViewById(R.id.tv_qwirkle);
         int tvQwirkleSize = (int) tvQwirkle.getTextSize();
         new Thread(() -> {
             try {
-                tvQwirkle.setVisibility(View.VISIBLE);
-                tvQwirkle.setTextColor(playerBackgroundColor);
-                context.runOnUiThread(() -> clFragmentGame.setBackground(colorDrawable));
+                context.runOnUiThread(() -> {
+                    clFragmentGame.setBackground(colorDrawable);
+                    tvQwirkle.setVisibility(View.VISIBLE);
+                    tvQwirkle.setTextColor(playerBackgroundColor);
+                });
                 for (int i = 255; i > 128; i-= 15) {
-                    colorDrawable.setAlpha(i);
+                    int finalI = i;
+                    context.runOnUiThread(() -> colorDrawable.setAlpha(finalI));
                     Thread.sleep(50);
                 }
 
@@ -247,7 +230,8 @@ public class GameFragment extends Fragment implements Serializable {
                 }
 
                 for (int i = 128; i < 255; i+= 15) {
-                    colorDrawable.setAlpha(i);
+                    int finalI = i;
+                    context.runOnUiThread(() -> colorDrawable.setAlpha(finalI));
                     Thread.sleep(50);
                 }
 
@@ -262,6 +246,9 @@ public class GameFragment extends Fragment implements Serializable {
                 context.runOnUiThread(() -> {
                     clFragmentGame.setBackground(gameBackground);
                     tvQwirkle.setVisibility(View.GONE);
+                    if (GameModel.isTurn()) {
+                        setBackgroundBorder(clFragmentGame, GameModel.clientPlayer, 15);
+                    }else clFragmentGame.setBackground(null);
                 });
             }
         }).start();
@@ -294,12 +281,7 @@ public class GameFragment extends Fragment implements Serializable {
         }
 
         ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
-        if (GameModel.isTurn()) {
-            GradientDrawable gradientDrawable = new GradientDrawable();
-            gradientDrawable.setStroke(15, ScoreAdapter.getColor(GameModel.currentPlayer, getContext()));
-            constraintLayout.setBackground(gradientDrawable);
-        }
-        else constraintLayout.setBackground(null);
+        setTurnBackgroundBorder(constraintLayout);
     }
 
     public void setupBagCount() {
@@ -365,12 +347,9 @@ public class GameFragment extends Fragment implements Serializable {
                 playerTilesAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
-                button.setForeground(getDrawable(selectedTiles.get(0).toString(), getContext()));
+                button.setForeground(getDrawable(selectedTiles.get(0).toString(), getActivity()));
                 button.getForeground().setAlpha(PLAYER_TILE_OPACITY);
                 placementViews.add(button);
-
-                // no further interaction allowed
-                button.setEnabled(false);
             }
         }else {
             if (!GameModel.isTurn())
@@ -392,12 +371,6 @@ public class GameFragment extends Fragment implements Serializable {
             curImageView.setTag(i);
         }
     }
-
-    public static Drawable getDrawable(String name, Context context) {
-        return context.getDrawable(context.getResources().getIdentifier(name, "drawable", context.getPackageName()));
-    }
-
-
 
     public void iaOnclickListener(View view) {
         ImageView imageView = view.findViewById(R.id.iv_tile);
@@ -441,7 +414,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     public boolean iaLongClickListener(View view) {
         multiSelect = !multiSelect;
-        vibrate(50);
+        vibrate(50, getActivity());
         resetWidthExcept(null);
         if (selectedTiles == null)
             selectedTiles = new ArrayList<>();
@@ -494,9 +467,7 @@ public class GameFragment extends Fragment implements Serializable {
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
-            btnDraw.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnUndo.setEnabled(false);
+            enableIfTurn(btnPlay, btnDraw, btnUndo);
         }
     }
 
@@ -508,9 +479,7 @@ public class GameFragment extends Fragment implements Serializable {
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
         Button btnUndo = getView().findViewById(R.id.btn_undo);
-        btnDraw.setEnabled(false);
-        btnPlay.setEnabled(false);
-        btnUndo.setEnabled(false);
+        enableIfTurn(btnPlay, btnDraw, btnUndo);
     }
 
     public void setOnUndo(View view) {
@@ -546,9 +515,7 @@ public class GameFragment extends Fragment implements Serializable {
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
-            btnDraw.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnUndo.setEnabled(false);
+            enableIfTurn(btnPlay, btnDraw, btnUndo);
         }
     }
 
@@ -573,15 +540,5 @@ public class GameFragment extends Fragment implements Serializable {
     private void resetMultiSelect() {
         multiSelect = false;
         selectedTiles = new ArrayList<>();
-    }
-
-    public void vibrate(int milliseconds) {
-        Vibrator v = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE));
-        } else {
-            //deprecated in API 26
-            v.vibrate(milliseconds);
-        }
     }
 }

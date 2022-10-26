@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import static za.nmu.wrpv.qwirkle.Helper.getColor;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.text.SpannableString;
@@ -78,7 +80,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
-                clLeft.setBackgroundColor(ScoreAdapter.getColor(playerMessage.player, clLeft.getContext()));
+                clLeft.setBackgroundColor(getColor(playerMessage.player, clLeft.getContext()));
                 playerNameLeft.setText(R.string.you);
                 messageLeft.setText(playerMessage.message);
                 timeLeft.setText(playerMessage.time);
@@ -88,7 +90,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
-                clRight.setBackgroundColor(ScoreAdapter.getColor(playerMessage.player, clRight.getContext()));
+                clRight.setBackgroundColor(getColor(playerMessage.player, clRight.getContext()));
                 playerNameRight.setText(content);
                 messageRight.setText(playerMessage.message);
                 timeRight.setText(playerMessage.time);

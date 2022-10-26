@@ -1,17 +1,15 @@
 package za.nmu.wrpv.qwirkle;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import static za.nmu.wrpv.qwirkle.Helper.getColor;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.Comparator;
 import java.util.List;
 
 public class EndActivity extends AppCompatActivity {
@@ -35,7 +33,7 @@ public class EndActivity extends AppCompatActivity {
                     player.setText(players.get(i).name + "");
                     score.setText(players.get(i).points + "");
 
-                    row.setBackgroundColor(ScoreAdapter.getColor(players.get(i), this));
+                    row.setBackgroundColor(Helper.getColor(players.get(i), this));
                 }
             }
         }

@@ -13,6 +13,7 @@ public class Forfeit extends Message implements Serializable {
 
     @Override
     public void apply() {
+        System.out.println("------------------------------ FORFEIT START");
         Player player = (Player) get("player");
         GameFragment.runLater((data1 -> {
             ScoreAdapter adapter = (ScoreAdapter) data1.get("adapter");

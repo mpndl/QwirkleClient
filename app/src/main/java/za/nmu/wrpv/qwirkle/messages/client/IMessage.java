@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
+import static za.nmu.wrpv.qwirkle.Helper.vibrate;
+
 import android.app.Activity;
 
 import java.io.Serializable;
@@ -28,6 +30,7 @@ public class IMessage extends Message implements Serializable {
             Activity context = (Activity) d.get("context");
             if (playerMessage.player.name != GameModel.clientPlayer.name)
                 Notification.displayNotification(context);
+            vibrate(500, context);
         });
     }
 }

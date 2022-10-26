@@ -38,20 +38,6 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
-    public void updateTiles(List<Tile> playerTiles) {
-        this.tiles = playerTiles;
-        notifyDataSetChanged();
-    }
-
-    public void add(Tile tile) {
-        tiles.add(tile);
-        notifyItemInserted(getItemCount() - 1);
-    }
-
-    public void addAll(List<Tile> tiles) {
-        this.tiles.addAll(tiles);
-        notifyDataSetChanged();
-    }
 
     public Tile get(int index) {
         return tiles.get(index);
@@ -61,11 +47,6 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
         int index = tiles.indexOf(tile);
         tiles.remove(index);
         notifyItemRemoved(index);
-    }
-
-    public void removeAll(List<Tile> tiles){
-        this.tiles.removeAll(tiles);
-        notifyDataSetChanged();
     }
 
     @NonNull
