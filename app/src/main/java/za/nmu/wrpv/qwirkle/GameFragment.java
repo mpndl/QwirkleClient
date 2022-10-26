@@ -3,8 +3,8 @@ package za.nmu.wrpv.qwirkle;
 import static android.content.Context.VIBRATOR_SERVICE;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +51,9 @@ public class GameFragment extends Fragment implements Serializable {
     private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
+    private int BOARD_TILE_SIZE;
+    public static int PLAYER_TILE_SIZE_50;
+    public static int PLAYER_TILE_SIZE_60;
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -70,6 +74,16 @@ public class GameFragment extends Fragment implements Serializable {
 
         scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
         playerTilesAdapter = new PlayerTilesAdapter(getActivity(), GameModel.clientPlayer.tiles);
+
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int screenWidth = size.x; // int screenWidth = display.getWidth(); on API < 13
+        int screenHeight = size.y; // int screenHeight = display.getHeight(); on API <13
+
+        BOARD_TILE_SIZE = screenWidth/6;
+        PLAYER_TILE_SIZE_60 = screenWidth/8;
+        PLAYER_TILE_SIZE_50 = screenWidth/9;
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
@@ -175,7 +189,7 @@ public class GameFragment extends Fragment implements Serializable {
             ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
             if (imageView != curImageView) {
                 ViewGroup.LayoutParams params = curImageView.getLayoutParams();
-                params.width = 50;
+                params.width = PLAYER_TILE_SIZE_50;
                 curImageView.setLayoutParams(params);
             }
         }
@@ -248,8 +262,8 @@ public class GameFragment extends Fragment implements Serializable {
             for (int j = 0; j < GameModel.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
 
-                button.setMinimumWidth(100);
-                button.setMinimumHeight(100);
+                button.setMinimumWidth(BOARD_TILE_SIZE);
+                button.setMinimumHeight(BOARD_TILE_SIZE);
                 button.setTag(i + "_" + j + "_" + index);
                 button.setPadding(0, 0, 0, 0);
                 button.setOnClickListener(this::onTileClicked);
@@ -322,10 +336,10 @@ public class GameFragment extends Fragment implements Serializable {
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
-            if (params.width == 50) {
-                params.width = 60;
+            if (params.width == PLAYER_TILE_SIZE_50) {
+                params.width = PLAYER_TILE_SIZE_60;
             } else {
-                params.width = 50;
+                params.width = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -334,10 +348,10 @@ public class GameFragment extends Fragment implements Serializable {
             selectedTiles = new ArrayList<>();
             selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
-            if (params.width == 50) {
-                params.width = 60;
+            if (params.width == PLAYER_TILE_SIZE_50) {
+                params.width = PLAYER_TILE_SIZE_60;
             } else {
-                params.width = 50;
+                params.width = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -355,11 +369,11 @@ public class GameFragment extends Fragment implements Serializable {
         Tile selectedTile = GameModel.clientPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         selectedTiles.add(selectedTile);
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
-        if (params.width == 50) {
-            params.width = 60;
+        if (params.width == PLAYER_TILE_SIZE_50) {
+            params.width = PLAYER_TILE_SIZE_60;
         }
         else {
-            params.width = 50;
+            params.width = PLAYER_TILE_SIZE_50;
             selectedTiles.remove(selectedTile);
         }
         imageView.setLayoutParams(params);

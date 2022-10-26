@@ -94,7 +94,7 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
             super(itemView);
             imageView = itemView.findViewById(R.id.iv_tile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
-            params.width = 50;
+            params.width = GameFragment.PLAYER_TILE_SIZE_50;
             imageView.setLayoutParams(params);
         }
 
