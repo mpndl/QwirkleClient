@@ -10,7 +10,9 @@ import java.util.List;
 import za.nmu.wrpv.qwirkle.EndActivity;
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
+import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.Player;
+import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.ScoreAdapter;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
@@ -19,14 +21,16 @@ public class GameEnded extends Message implements Serializable {
 
     @Override
     public void apply() {
-        List<Player> players = (List<Player>) get("players");
+        //List<Player> players = (List<Player>) get("players");
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
+
+            Helper.sound(context, R.raw.end);
 
             Intent intent = new Intent(context, EndActivity.class);
 
             Bundle bundle = new Bundle();
-            bundle.putSerializable("players", (Serializable) players);
+            bundle.putSerializable("players", (Serializable) GameModel.players);
 
             intent.putExtras(bundle);
             context.startActivity(intent);

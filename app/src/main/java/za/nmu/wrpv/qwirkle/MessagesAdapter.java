@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import static za.nmu.wrpv.qwirkle.Helper.BOARD_TILE_SIZE;
 import static za.nmu.wrpv.qwirkle.Helper.getColor;
 
 import android.content.Context;
@@ -81,19 +82,34 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
                 clLeft.setBackgroundColor(getColor(playerMessage.player, clLeft.getContext()));
+                clLeft.getBackground().setAlpha(128);
+                clLeft.setMinimumWidth(BOARD_TILE_SIZE * 3);
                 playerNameLeft.setText(R.string.you);
+                playerNameLeft.setTextSize(BOARD_TILE_SIZE / 7f);
+
                 messageLeft.setText(playerMessage.message);
+                messageLeft.setTextSize(BOARD_TILE_SIZE / 7f);
+
                 timeLeft.setText(playerMessage.time);
                 timeLeft.setTextColor(Color.GREEN);
+                timeLeft.setTextSize(BOARD_TILE_SIZE / 7f);
+
                 clRight.setVisibility(View.GONE);
             } else {
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 
                 clRight.setBackgroundColor(getColor(playerMessage.player, clRight.getContext()));
+                clRight.getBackground().setAlpha(128);
+                clRight.setMinimumHeight(BOARD_TILE_SIZE * 3);
                 playerNameRight.setText(content);
+                playerNameRight.setTextSize(BOARD_TILE_SIZE / 7f);
+
                 messageRight.setText(playerMessage.message);
+                messageRight.setTextSize(BOARD_TILE_SIZE / 7f);
+
                 timeRight.setText(playerMessage.time);
+                timeRight.setTextSize(BOARD_TILE_SIZE / 7f);
                 timeRight.setTextColor(Color.GREEN);
 
                 clLeft.setVisibility(View.GONE);

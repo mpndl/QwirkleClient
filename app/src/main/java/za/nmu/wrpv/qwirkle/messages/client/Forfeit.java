@@ -22,20 +22,22 @@ public class Forfeit extends Message implements Serializable {
     public void apply() {
         System.out.println("------------------------------ FORFEIT START");
         Player player = (Player) get("player");
-        GameFragment.runLater((data1 -> {
-            ScoreAdapter adapter = (ScoreAdapter) data1.get("adapter");
-            Activity context = (Activity) data1.get("context");
-            GameFragment fragment= (GameFragment) data1.get("fragment");
+        if (player != null) {
+            GameFragment.runLater((data1 -> {
+                ScoreAdapter adapter = (ScoreAdapter) data1.get("adapter");
+                Activity context = (Activity) data1.get("context");
+                GameFragment fragment = (GameFragment) data1.get("fragment");
 
-            GameModel.removePlayer(player, adapter);
-            if (player.name == GameModel.currentPlayer.name) {
-                GameModel.setNewCurrentPlayer();
-                fragment.setupCurrentPlayer();
-            }
-            Button btnPlay = context.findViewById(R.id.btn_play);
-            Button btnDraw = context.findViewById(R.id.btn_draw);
-            Button btnUndo = context.findViewById(R.id.btn_undo);
-            Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
-        }));
+                GameModel.removePlayer(player, adapter);
+                if (player.name == GameModel.currentPlayer.name) {
+                    GameModel.setNewCurrentPlayer();
+                    fragment.setupCurrentPlayer();
+                }
+                Button btnPlay = context.findViewById(R.id.btn_play);
+                Button btnDraw = context.findViewById(R.id.btn_draw);
+                Button btnUndo = context.findViewById(R.id.btn_undo);
+                Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
+            }));
+        }
     }
 }

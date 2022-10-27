@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -75,8 +77,8 @@ public class PlayerTilesAdapter extends RecyclerView.Adapter<PlayerTilesAdapter.
             super(itemView);
             imageView = itemView.findViewById(R.id.iv_tile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
-            params.width = GameFragment.PLAYER_TILE_SIZE_50;
-            params.height = GameFragment.PLAYER_TILE_SIZE_50;
+            params.width = PLAYER_TILE_SIZE_50;
+            //params.height = GameFragment.PLAYER_TILE_SIZE_50;
             imageView.setLayoutParams(params);
         }
 

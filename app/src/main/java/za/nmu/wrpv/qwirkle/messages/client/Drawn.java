@@ -28,6 +28,7 @@ public class Drawn extends Message implements Serializable {
             GameFragment fragment = (GameFragment) data1.get("fragment");
             PlayerTilesAdapter adapter = (PlayerTilesAdapter) data1.get("playerTilesAdapter");
 
+            Helper.sound(context, R.raw.draw);
             if (player.name != GameModel.clientPlayer.name) {
                 GameModel.updatePlayerTiles(player, adapter);
                 GameModel.bag = bag;

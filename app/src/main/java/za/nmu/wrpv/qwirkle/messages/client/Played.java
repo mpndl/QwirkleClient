@@ -1,16 +1,17 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
-import static za.nmu.wrpv.qwirkle.Helper.easeInTilePlacement;
+import static za.nmu.wrpv.qwirkle.Helper.AnimateTilePlacement.easeInTilePlacement;
 import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
+import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
 
 import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.gridlayout.widget.GridLayout;
 
 import java.io.Serializable;
@@ -50,6 +51,7 @@ public class Played extends Message implements Serializable {
             HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);
             ScrollView sv = context.findViewById(R.id.scrollView2);
 
+            Helper.sound(context, R.raw.play);
             if (player.name != GameModel.clientPlayer.name) {
                 GameModel.updatePlayerTiles(player, playerTileAdapter);
                 GameModel.updatePlayerScore(player, adapter);
@@ -57,20 +59,20 @@ public class Played extends Message implements Serializable {
                 GameModel.bag = bag;
 
                 GridLayout glBoard = context.findViewById(R.id.board);
-                List<View> views = new ArrayList<>();
+                View v = null;
                 for (int i = 0; i < places.size(); i++) {
                     Tile tile = places.get(i);
                     View view = glBoard.getChildAt(tile.index);
                     view.setForeground(getDrawable(tile.toString(), context));
                     view.getForeground().setAlpha(128);
-                    views.add(view);
+                    Helper.AnimateTilePlacement.add(view);
+                    v = view;
                 }
-                easeInTilePlacement(views);
-
-                focusOnView(context, sv,hsv, views.get(0));
+                focusOnView(context, sv,hsv, v);
+                easeInTilePlacement();
 
                 if (qwirkle) {
-                    GameFragment.qwirkleAnimate(context, player);
+                    qwirkleAnimate(context, player, glBoard);
                     Helper.vibrate(500, context);
                 }
 

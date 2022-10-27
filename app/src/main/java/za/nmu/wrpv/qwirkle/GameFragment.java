@@ -1,11 +1,18 @@
 package za.nmu.wrpv.qwirkle;
 
-import static za.nmu.wrpv.qwirkle.Helper.easeInTilePlacement;
+import static za.nmu.wrpv.qwirkle.Helper.AnimateTilePlacement.easeInTilePlacement;
+import static za.nmu.wrpv.qwirkle.Helper.BOARD_TILE_SIZE;
+import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_OPACITY;
+import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
+import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
 import static za.nmu.wrpv.qwirkle.Helper.getColor;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
+import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundBorder;
+import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
+import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.vibrate;
 
 import android.app.Activity;
@@ -53,11 +60,6 @@ public class GameFragment extends Fragment implements Serializable {
     private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
-    public static int BOARD_TILE_SIZE;
-    public static int PLAYER_TILE_SIZE_50;
-    public static int PLAYER_TILE_SIZE_60;
-    public static int PLAYER_TILE_OPACITY = 128;
-    private static final List<ImageView> placementViews = new ArrayList<>();
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -110,7 +112,6 @@ public class GameFragment extends Fragment implements Serializable {
         TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
         tvQwirkle.setTextSize(30);
         tvQwirkle.setText(R.string.app_name);
-
 
 
         thread = new Thread(() -> {
@@ -193,7 +194,7 @@ public class GameFragment extends Fragment implements Serializable {
             if (imageView != curImageView) {
                 ViewGroup.LayoutParams params = curImageView.getLayoutParams();
                 params.width = PLAYER_TILE_SIZE_50;
-                params.height = PLAYER_TILE_SIZE_50;
+                //params.height = PLAYER_TILE_SIZE_50;
                 curImageView.setLayoutParams(params);
             }
         }
@@ -208,6 +209,7 @@ public class GameFragment extends Fragment implements Serializable {
             public void onGlobalLayout() {
                 rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 setupCurrentPlayer();
+                Helper.sound(getActivity(), R.raw.begin);
             }
         });
 
@@ -218,57 +220,6 @@ public class GameFragment extends Fragment implements Serializable {
         rvPlayerTilesView.setAdapter(playerTilesAdapter);
     }
 
-    public static void qwirkleAnimate(Activity context, Player player) {
-        ConstraintLayout clFragmentGame = context.findViewById(R.id.cl_fragment_game);
-        Drawable gameBackground = clFragmentGame.getBackground();
-        int playerBackgroundColor = getColor(player, context);
-        ColorDrawable colorDrawable = new ColorDrawable(playerBackgroundColor);
-
-        TextView tvQwirkle = context.findViewById(R.id.tv_qwirkle);
-        int tvQwirkleSize = (int) tvQwirkle.getTextSize();
-        new Thread(() -> {
-            try {
-                context.runOnUiThread(() -> {
-                    clFragmentGame.setBackground(colorDrawable);
-                    tvQwirkle.setVisibility(View.VISIBLE);
-                    tvQwirkle.setTextColor(playerBackgroundColor);
-                });
-                for (int i = 255; i > 128; i-= 15) {
-                    int finalI = i;
-                    context.runOnUiThread(() -> colorDrawable.setAlpha(finalI));
-                    Thread.sleep(50);
-                }
-
-                for (int i = tvQwirkleSize; i < tvQwirkleSize + (BOARD_TILE_SIZE / 3); i+=15) {
-                    int finalI = i;
-                    context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
-                    Thread.sleep(50);
-                }
-
-                for (int i = 128; i < 255; i+= 15) {
-                    int finalI = i;
-                    context.runOnUiThread(() -> colorDrawable.setAlpha(finalI));
-                    Thread.sleep(50);
-                }
-
-                for (int i = tvQwirkleSize + (BOARD_TILE_SIZE / 3); i > tvQwirkleSize; i-=15) {
-                    int finalI = i;
-                    context.runOnUiThread(() -> tvQwirkle.setTextSize(finalI));
-                    Thread.sleep(50);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }finally {
-                context.runOnUiThread(() -> {
-                    clFragmentGame.setBackground(gameBackground);
-                    tvQwirkle.setVisibility(View.GONE);
-                    if (GameModel.isTurn()) {
-                        setBackgroundBorder(clFragmentGame, GameModel.clientPlayer, 15);
-                    }else clFragmentGame.setBackground(null);
-                });
-            }
-        }).start();
-    }
 
     public void setupCurrentPlayer() {
         GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
@@ -276,7 +227,7 @@ public class GameFragment extends Fragment implements Serializable {
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             TextView textView = cardView.findViewById(R.id.tv_player_name);
-            textView.setTextSize(GameFragment.BOARD_TILE_SIZE /9f);
+            textView.setTextSize(BOARD_TILE_SIZE /9f);
 
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String[] data = imageView.getTag().toString().split(",");
@@ -298,8 +249,10 @@ public class GameFragment extends Fragment implements Serializable {
             }
         }
 
-        ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
-        setTurnBackgroundBorder(constraintLayout);
+        RecyclerView recyclerView = getView().findViewById(R.id.player_tiles);
+
+        setTurnBackgroundColor(gvPlayersStatus, GameModel.clientPlayer);
+        setBackgroundColor(recyclerView, GameModel.clientPlayer);
     }
 
     public void setupBagCount() {
@@ -315,6 +268,7 @@ public class GameFragment extends Fragment implements Serializable {
             for (int j = 0; j < GameModel.YLENGTH; j++) {
                 ImageButton button = new ImageButton(getActivity());
 
+                button.setBackground(Helper.getDrawable("shadow", getActivity()));
                 button.setMinimumWidth(BOARD_TILE_SIZE);
                 button.setMinimumHeight(BOARD_TILE_SIZE);
                 button.setTag(i + "_" + j + "_" + index);
@@ -336,13 +290,16 @@ public class GameFragment extends Fragment implements Serializable {
             selectedTiles.get(0).index = Integer.parseInt(rowColIndex[2]);
             GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0), playerTilesAdapter);
             if (legality == GameModel.Legality.LEGAL) {
+                Helper.sound(getActivity(), R.raw.placed);
                 updateTags();
                 playerTilesAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
                 button.setForeground(getDrawable(selectedTiles.get(0).toString(), getActivity()));
                 button.getForeground().setAlpha(PLAYER_TILE_OPACITY);
-                placementViews.add(button);
+                Helper.AnimateTilePlacement.add(button);
+            }else {
+                Helper.sound(getActivity(), R.raw.invalid);
             }
         }else {
             if (!GameModel.isTurn())
@@ -350,6 +307,7 @@ public class GameFragment extends Fragment implements Serializable {
             else {
                 System.out.println("SELECT TILES TO PLACE " + GameModel.clientPlayer.name);
             }
+            Helper.sound(getActivity(), R.raw.invalid);
         }
 
         resetWidthExcept(null);
@@ -384,10 +342,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
-                params.height = PLAYER_TILE_SIZE_60;
+                //params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
-                params.height = PLAYER_TILE_SIZE_50;
+                //params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -398,10 +356,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
-                params.height = PLAYER_TILE_SIZE_60;
+                //params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
-                params.height = PLAYER_TILE_SIZE_50;
+                //params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -421,11 +379,11 @@ public class GameFragment extends Fragment implements Serializable {
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == PLAYER_TILE_SIZE_50) {
             params.width = PLAYER_TILE_SIZE_60;
-            params.height = PLAYER_TILE_SIZE_60;
+            //params.height = PLAYER_TILE_SIZE_60;
         }
         else {
             params.width = PLAYER_TILE_SIZE_50;
-            params.height = PLAYER_TILE_SIZE_50;
+            //params.height = PLAYER_TILE_SIZE_50;
             selectedTiles.remove(selectedTile);
         }
         imageView.setLayoutParams(params);
@@ -451,7 +409,8 @@ public class GameFragment extends Fragment implements Serializable {
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
             if (GameModel.qwirkle) {
-                qwirkleAnimate(getActivity(), GameModel.clientPlayer);
+                GridLayout gridLayout = getView().findViewById(R.id.board);
+                qwirkleAnimate(getActivity(), GameModel.clientPlayer, gridLayout);
                 Helper.vibrate(500,getActivity());
             }
 
@@ -460,7 +419,7 @@ public class GameFragment extends Fragment implements Serializable {
             setupBagCount();
             setupCurrentPlayer();
             resetMultiSelect();
-            easeInTilePlacement(placementViews);
+            easeInTilePlacement();
 
             GameModel.places = new ArrayList<>();
             GameModel.qwirkle = false;
@@ -472,12 +431,12 @@ public class GameFragment extends Fragment implements Serializable {
             Button btnUndo = getView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
             System.out.println("-------------------------- PLAY END -------------------------");
-        }
+        }else Helper.sound(getActivity(), R.raw.invalid);
     }
 
     public void gameEnded() {
         GameEnded message = new GameEnded();
-        message.put("players", GameModel.players);
+        //message.put("players", GameModel.players);
         ServerHandler.send(message);
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
@@ -487,11 +446,15 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setOnUndo(View view) {
-        GameModel.undo(GameModel.places, playerTilesAdapter);
-        resetWidthExcept(null);
-        resetMultiSelect();
-        undoPlacedTiles(GameModel.places);
-        easeInTilePlacement(placementViews);
+        if (GameModel.places.size() > 0) {
+            Helper.sound(getActivity(), R.raw.undo);
+            GameModel.undo(GameModel.places, playerTilesAdapter);
+            resetWidthExcept(null);
+            resetMultiSelect();
+            undoPlacedTiles(GameModel.places);
+            easeInTilePlacement();
+            GameModel.places = new ArrayList<>();
+        }else Helper.sound(getActivity(), R.raw.invalid);
     }
 
     public void setOnDraw(View view) {
@@ -520,7 +483,7 @@ public class GameFragment extends Fragment implements Serializable {
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
-        }
+        }else Helper.sound(getActivity(), R.raw.invalid);
     }
 
     private void undoPlacedTiles(List<Tile> selectedTiles) {
@@ -530,6 +493,7 @@ public class GameFragment extends Fragment implements Serializable {
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
             ImageButton button = new ImageButton(getActivity());
+            button.setBackground(Helper.getDrawable("shadow", getActivity()));
             button.setMinimumWidth(imageButton2.getMinimumWidth());
             button.setMinimumHeight(imageButton2.getMinimumHeight());
             button.setTag(imageButton2.getTag());

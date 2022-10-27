@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import static za.nmu.wrpv.qwirkle.Helper.BOARD_TILE_SIZE;
 import static za.nmu.wrpv.qwirkle.Helper.getColor;
 
 import android.content.Context;
@@ -43,14 +44,14 @@ public class ScoreAdapter extends ArrayAdapter<Player> implements Serializable {
         View listItemView = convertView;
         if (listItemView == null)
             listItemView = LayoutInflater.from(getContext()).inflate(R.layout.game_status, parent, false);
-        listItemView.getLayoutParams().height =  GameFragment.BOARD_TILE_SIZE;
+        listItemView.getLayoutParams().height =  BOARD_TILE_SIZE;
 
         ImageView imageView = listItemView.findViewById(R.id.iv_player_avatar);
 
         Player player = getItem(position);
         TextView tvScore = listItemView.findViewById(R.id.tv_player_score);
 
-        tvScore.setTextSize(GameFragment.BOARD_TILE_SIZE / 7f);
+        tvScore.setTextSize(BOARD_TILE_SIZE / 7f);
 
         imageView.setTag(context.getString(R.string.you) + "," + player.name.toString());
 
