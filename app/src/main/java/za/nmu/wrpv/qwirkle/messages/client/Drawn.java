@@ -30,19 +30,20 @@ public class Drawn extends Message implements Serializable {
 
             Helper.sound(context, R.raw.draw);
             if (player.name != GameModel.clientPlayer.name) {
-                GameModel.updatePlayerTiles(player, adapter);
+                GameModel.updatePlayerTiles(player);
+                context.runOnUiThread(() -> adapter.notifyDataSetChanged());
                 GameModel.bag = bag;
 
                 GameModel.turn();
                 GameModel.placing = false;
 
-                fragment.setupCurrentPlayer();
+                context.runOnUiThread(() -> fragment.setupCurrentPlayer());
             }
 
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
             Button btnUndo = context.findViewById(R.id.btn_undo);
-            Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
+            context.runOnUiThread(() -> Helper.enableIfTurn(btnPlay, btnDraw, btnUndo));
         });
     }
 }

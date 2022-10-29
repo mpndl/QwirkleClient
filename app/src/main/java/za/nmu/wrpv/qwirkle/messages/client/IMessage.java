@@ -8,11 +8,13 @@ import java.io.Serializable;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
+import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.MainActivity;
 import za.nmu.wrpv.qwirkle.MessagesAdapter;
 import za.nmu.wrpv.qwirkle.MessagesFragment;
 import za.nmu.wrpv.qwirkle.Notification;
 import za.nmu.wrpv.qwirkle.PlayerMessage;
+import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
 public class IMessage extends Message implements Serializable {
@@ -23,15 +25,17 @@ public class IMessage extends Message implements Serializable {
         PlayerMessage playerMessage = (PlayerMessage) data.get("message");
         MessagesFragment.runLater(data -> {
             MessagesAdapter adapter = (MessagesAdapter) data.get("adapter");
-            adapter.add(playerMessage);
+            Activity context = (Activity) data.get("context");
+            context.runOnUiThread(() -> adapter.add(playerMessage));
         });
 
         MainActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
             if (playerMessage.player.name != GameModel.clientPlayer.name) {
-                Notification.displayNotification(context);
+                Notification.displayNotification(context, playerMessage.message);
                 vibrate(50, context);
                 vibrate(50, context);
+                Helper.sound(context, R.raw.imessage);
             }
         });
     }

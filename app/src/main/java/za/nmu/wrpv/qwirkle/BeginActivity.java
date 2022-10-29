@@ -33,7 +33,7 @@ public class BeginActivity extends AppCompatActivity {
                 data.put("context", this);
                 try {
                      Run run = runs.take();
-                     runOnUiThread(() -> run.run(data));
+                     run.run(data);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -85,7 +85,7 @@ public class BeginActivity extends AppCompatActivity {
             startGame = false;
         }
         else {
-            ServerHandler.stop();
+            ServerHandler.interrupt();
             Countdown.interrupt();
             btnStartGame.setText(R.string.btn_start_game);
             startGame = true;

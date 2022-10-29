@@ -11,12 +11,12 @@ import java.util.Set;
 import java.util.Stack;
 
 public class GameModel implements Serializable {
+    public static int gameID = -1;
     public static Player currentPlayer;
     public static Player clientPlayer;
-    public static String clientPlayerName;
+    public static String clientPlayerName = "";
     public static List<Tile> bag = new ArrayList<>();
     public static List<Player> players;
-    private static final Stack<Tile> paths2 = new Stack<>();
     private static List<Tile> qwirkleMonitor = new ArrayList<>();
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
@@ -30,53 +30,32 @@ public class GameModel implements Serializable {
     public static boolean ended = false;
     public static boolean qwirkle = false;
 
-    public static void renamePlayers(Map<String, String> newNames) {
-        for (Player player: players) {
-            player.name = getName(newNames.get(player.name.toString()));
-        }
-    }
-
-    private static Player.Name getName(String name) {
-        List<Player.Name> names = new ArrayList<>();
-        names.add(Player.Name.PLAYER1);
-        names.add(Player.Name.PLAYER2);
-        names.add(Player.Name.PLAYER3);
-        names.add(Player.Name.PLAYER4);
-        for (Player.Name n: names) {
-            if (n.toString().equals(name))
-                return n;
-        }
-        return null;
-    }
-
     public enum Legality {
         LEGAL, ILLEGAL;
     }
 
-    public static void updatePlayerTiles(Player player, PlayerTilesAdapter adapter) {
+    public static void updatePlayerTiles(Player player) {
         for (Player p: players) {
             if (p.name == player.name) {
                 p.tiles = player.tiles;
-                adapter.notifyDataSetChanged();
                 return;
             }
         }
     }
 
-    public static void removePlayer(Player player, ScoreAdapter adapter) {
+    public static void removePlayer(Player player) {
         for (int i = 0; i < players.size(); i++) {
             Player p = players.get(i);
             if (player.name == p.name) {
                 players.remove(i);
-                adapter.notifyDataSetChanged();
                 return;
             }
         }
     }
 
-    public static boolean gameEnded(PlayerTilesAdapter adapter) {
+    public static boolean gameEnded() {
         if (clientPlayer.name == currentPlayer.name) {
-            if (adapter.getItemCount() == 0) {
+            if (clientPlayer.tiles.size() == 0) {
                 ended = true;
                 return true;
             }
@@ -156,14 +135,13 @@ public class GameModel implements Serializable {
         return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
-    public static void undo(List<Tile> playerTiles, PlayerTilesAdapter playerTilesAdapter) {
+    public static void undo(List<Tile> playerTiles) {
         clientPlayer.tiles.addAll(playerTiles);
-        playerTilesAdapter.notifyDataSetChanged();
         tempBoard = null;
         placing = false;
     }
 
-    public static void draw(boolean played, List<Tile> playerTiles, PlayerTilesAdapter playerTilesAdapter) {
+    public static void draw(boolean played, List<Tile> playerTiles) {
         int HCOUNT = 6;
         int hcount = HCOUNT;
         if(bag.size() > 0) {
@@ -199,7 +177,6 @@ public class GameModel implements Serializable {
                 }
             }
             placing = false;
-            playerTilesAdapter.notifyDataSetChanged();
         }
     }
 
@@ -237,17 +214,16 @@ public class GameModel implements Serializable {
         return playersCopy;
     }
 
-    public static void updatePlayerScore(Player player, ScoreAdapter adapter) {
+    public static void updatePlayerScore(Player player) {
         for (Player p: players) {
             if (p.name.toString().equals(player.name.toString())) {
                 p.points = player.points;
-                adapter.notifyDataSetChanged();
                 return;
             }
         }
     }
 
-    public static Legality place(int xpos, int ypos, Tile tile, PlayerTilesAdapter playerTilesAdapter) {
+    public static Legality place(int xpos, int ypos, Tile tile) {
         if(!placing) {
             places = new ArrayList<>();
         }
@@ -256,7 +232,7 @@ public class GameModel implements Serializable {
                 placing = true;
             }
 
-            playerTilesAdapter.remove(tile);
+            clientPlayer.tiles.remove(tile);
 
             tile.xPos = xpos;
             tile.yPos = ypos;
@@ -291,14 +267,13 @@ public class GameModel implements Serializable {
         tempBoard = copy(board);
     }
 
-    public static void play(PlayerTilesAdapter playerTilesAdapter) {
+    public static void play() {
         if(places.size() > 0) {
             placing = false;
             placedCount = placedCount + places.size();
             assignPoints();
-            playerTilesAdapter.notifyDataSetChanged();
             if (getBagCount() > 0)
-                draw(true, places, playerTilesAdapter);
+                draw(true, places);
         }
     }
 
@@ -319,7 +294,7 @@ public class GameModel implements Serializable {
             return Legality.ILLEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
-            //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
+            //System.out.p rintln("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
@@ -620,6 +595,7 @@ public class GameModel implements Serializable {
 
     private static void assignPoints() {
         System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
+        System.out.println("BEFORE POINTS = " + currentPlayer.points);
         int[] orientation = orientation(places);
         Tile nullTile = nullTile(places, tempBoard);
         if (nullTile != null)
@@ -628,11 +604,9 @@ public class GameModel implements Serializable {
             System.out.println("---------------------------- HORIZONTALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos + 1, nullTile.yPos)) {
-                    System.out.println("!nul(nullTile.xPos + 1, nullTile.yPos)");
                     calculate(nullTile.xPos, nullTile.yPos, +1, 0, tempBoard, orientation);
                 }
                 else {
-                    System.out.println("!nul(nullTile.xPos - 1, nullTile.yPos)");
                     calculate(nullTile.xPos, nullTile.yPos, -1, 0, tempBoard, orientation);
                 }
             }
@@ -641,11 +615,9 @@ public class GameModel implements Serializable {
             System.out.println("---------------------------- VERTICALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos, nullTile.yPos + 1)) {
-                    System.out.println("!nul(nullTile.xPos, nullTile.yPos + 1)");
                     calculate(nullTile.xPos, nullTile.yPos, 0, + 1, tempBoard, orientation);
                 }
                 else {
-                    System.out.println("!nul(nullTile.xPos, nullTile.yPos - 1)");
                     calculate(nullTile.xPos, nullTile.yPos, 0, - 1, tempBoard, orientation);
                 }
             }
@@ -659,44 +631,59 @@ public class GameModel implements Serializable {
         // reinitialize
         qwirkleMonitor = new ArrayList<>();
         points = 0;
-        System.out.println("    -------------------------- ASSIGN POINTS END ---------------------");
+        System.out.println("-------------------------- ASSIGN POINTS END ---------------------");
     }
 
     private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
-        if (!nul(xpos, ypos)) {
-            System.out.println("CURRENT TILE = " + board[xpos][ypos]);
-            getWithPaths(board[xpos][ypos], orientation);
-            if (!qwirkleMonitor.contains(board[xpos][ypos]))
-                qwirkleMonitor.add(board[xpos][ypos]);
+        if (!qwirkleMonitor.contains(board[xpos][ypos]))
+            qwirkleMonitor.add(board[xpos][ypos]);
+        int gxpos = xpos;
+        int gypos = ypos;
+        Tile genTile = board[gxpos][gypos];
+        while (genTile != null) {
             points++;
-            calculate(xpos + xdir, ypos + ydir, xdir, ydir, board, orientation);
-            if (contains(paths2, board[xpos][ypos])) {
-                // HAS PATH ON BOTH SIDES
-                //if (paths2.size() > 1)
+            System.out.println("GENTILE = " + genTile + " -> points = " + points);
+
+            if (contains(places, genTile)) {
+                boolean hasPath = false;
+                System.out.println("\tGENTILE IN PLACES");
+                int uxpos = gxpos + ydir;
+                int uypos = gypos + xdir;
+                Tile uTile = board[uxpos][uypos];
+                while (uTile != null) {
+                    if (!qwirkleMonitor.contains(board[xpos][ypos]))
+                        qwirkleMonitor.add(board[xpos][ypos]);
+                    hasPath = true;
                     points++;
-                if (orientation[1] == 1) {
-                    System.out.println("ALTERNATIVE PATH -------- VERTICALLY ORIENTED");
-                    if (!nul(xpos - 1, ypos)) {
-                        System.out.println("!nul(xpos - 1, ypos)");
-                        calculate(xpos - 1, ypos, -1, 0, board, new int[]{1, 0});
-                    }
-                    else if (!nul(xpos + 1, ypos)) {
-                        System.out.println("!nul(xpos + 1, ypos)");
-                        calculate(xpos + 1, ypos, +1, 0, board, new int[]{1, 0});
-                    }
+                    System.out.println("\t\tUTILE = " + uTile + " -> points = " + points);
+
+                    uxpos += ydir;
+                    uypos += xdir;
+                    if (!nul(uxpos, uypos)) uTile = board[uxpos][uypos];
+                    else uTile = null;
                 }
-                else if (orientation[0] == 1) {
-                    System.out.println("ALTERNATIVE PATH -------- HORIZONTALLY ORIENTED");
-                    if (!nul(xpos, ypos - 1)) {
-                        System.out.println("!nul(xpos, ypos - 1)");
-                        calculate(xpos, ypos - 1, 0, -1, board, new int[]{0, 1});
-                    }
-                    else if (!nul(xpos, ypos + 1)) {
-                        System.out.println("!nul(xpos, ypos + 1)");
-                        calculate(xpos, ypos + 1, 0, +1, board, new int[]{0, 1});
-                    }
+
+                int dxpos = gxpos - ydir;
+                int dypos = gypos - xdir;
+                Tile dTile = board[dxpos][dypos];
+                while (dTile != null) {
+                    if (!qwirkleMonitor.contains(board[xpos][ypos]))
+                        qwirkleMonitor.add(board[xpos][ypos]);
+                    hasPath = true;
+                    points++;
+                    System.out.println("\t\tDTILE = " + dTile + " -> points = " + points);
+
+                    dxpos -= ydir;
+                    dypos -= xdir;
+                    if (!nul(dxpos, dypos)) dTile = board[dxpos][dypos];
+                    else dTile = null;
                 }
+                if (hasPath) points++;
             }
+            gxpos+=xdir;
+            gypos+=ydir;
+            if (!nul(gxpos, gypos)) genTile = board[gxpos][gypos];
+            else genTile = null;
         }
     }
 
@@ -712,46 +699,10 @@ public class GameModel implements Serializable {
         return bag.size() == 0;
     }
 
-    private static void getWithPaths(Tile tile, int[] orientation) {
-        if (contains(places, tile) && !contains(paths2, tile)) {
-            // vertically oriented
-            if (orientation[1] == 1) {
-                boolean checkedOnOneSide = false;
-                if (!nul(tile.xPos + 1, tile.yPos)) {
-                    System.out.println("HAS PATH ON RIGHT SIDE = " + tempBoard[tile.xPos + 1][tile.yPos]);
-                    paths2.add(tile);
-                    checkedOnOneSide = true;
-                }
-
-                if (!nul(tile.xPos - 1, tile.yPos)) {
-                    System.out.println("HAS PATH ON LEFT SIDE = " + tempBoard[tile.xPos - 1][tile.yPos]);
-                    if (!checkedOnOneSide)
-                        paths2.add(tile);
-                }
-            }
-            // horizontally oriented
-            else if (orientation[0] == 1) {
-                boolean checkedOnOneSide = false;
-                if (!nul(tile.xPos, tile.yPos + 1)) {
-                    System.out.println("HAS PATH ON BOTTOM SIDE = " + tempBoard[tile.xPos][tile.yPos + 1]);
-                    paths2.add(tile);
-                    checkedOnOneSide = true;
-                }
-
-                if (!nul(tile.xPos, tile.yPos - 1)) {
-                    System.out.println("HAS PATH ON TOP SIDE = " + tempBoard[tile.xPos][tile.yPos - 1]);
-                    if (!checkedOnOneSide)
-                        paths2.add(tile);
-                }
-            }
-        }
-    }
-
     private static int[] orientation(List<Tile> places) {
         List<Tile> placesCopy = cloneTiles(places);
         if (placesCopy.size() >= 1) {
             if (placesCopy.size() == 1) {
-                //return new int[]{0, 1};
                 Tile tile = placesCopy.get(0);
                 if (!nul(tile.xPos + 1, tile.yPos))
                     placesCopy.add(tempBoard[tile.xPos + 1][tile.yPos]);

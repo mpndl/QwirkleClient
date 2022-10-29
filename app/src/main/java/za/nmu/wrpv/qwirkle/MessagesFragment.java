@@ -55,11 +55,17 @@ public class MessagesFragment extends Fragment implements Serializable {
             do {
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", adapter);
-                data.put("context", this);
+                data.put("context", getActivity());
+                Run run = null;
                 try {
-                    Run run = runs.take();
-                    getActivity().runOnUiThread(() -> run.run(data));
-                } catch (InterruptedException e) {
+                    run = runs.take();
+                    run.run(data);
+                }catch (NullPointerException e) {
+                    if (run != null) {
+                        runs.add(run);
+                    }
+                }
+                catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }while (true);

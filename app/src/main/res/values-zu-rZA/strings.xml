@@ -4,7 +4,7 @@
     <string name="btn_play">Dlala</string>
     <string name="btn_draw">Yikha</string>
     <string name="score">Umphumela: %s</string>
-    <string name="btn_start_game">Qala Umdlalo</string>
+    <string name="btn_start_game">Joyina Umdlalo</string>
     <string name="tv_number_of_players">Inani labadlali</string>
     <string name="et_message">Umyalezo</string>
     <string name="conf_forfeit">Uqinisekile ukuthi ufuna ukuyeka lo mdlalo?</string>

@@ -10,6 +10,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
+import za.nmu.wrpv.qwirkle.messages.client.Forfeit;
 import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 public class ServerHandler implements Serializable {
@@ -89,7 +90,7 @@ public class ServerHandler implements Serializable {
 
     public static void stop() {
         if (serverWriter != null && serverWriter.isAlive()) {
-            Message message = new Stop();
+            Forfeit message = new Forfeit();
             message.put("player", GameModel.clientPlayer);
             System.out.println("SENDING CLIENT PLAYER = " + message.get("player"));
             send(message);

@@ -4,7 +4,7 @@
     <string name="btn_draw">Draw</string>
     <string name="score">Score: %s</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="btn_start_game">Start Game</string>
+    <string name="btn_start_game">Join Game</string>
     <string name="tv_number_of_players">Number of players</string>
     <string name="et_message">Message</string>
     <string name="conf_forfeit">Are you sure you want to forfeit this game?</string>

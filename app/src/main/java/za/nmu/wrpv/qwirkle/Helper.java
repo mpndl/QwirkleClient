@@ -83,10 +83,7 @@ public class Helper {
 
     public static void enableIfTurn(Button... buttons) {
         for (Button button: buttons) {
-            if (GameModel.isTurn())
-                button.setEnabled(true);
-            else button.setEnabled(false);
-
+            button.setEnabled(GameModel.isTurn());
         }
     }
 
@@ -173,7 +170,7 @@ public class Helper {
 
     public static void setTurnBackgroundBorder(View view) {
         if (GameModel.isTurn()) {
-            setBackgroundBorder(view, GameModel.clientPlayer, BOARD_TILE_SIZE);
+            setBackgroundBorder(view, GameModel.clientPlayer, 8);
         }else view.setBackground(null);
     }
 
@@ -181,6 +178,7 @@ public class Helper {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setStroke(width, getColor(player, view.getContext()));
         view.setBackground(gradientDrawable);
+        view.getBackground().setAlpha(255);
     }
 
     public static void focusOnView(Activity context, final ScrollView scroll, final HorizontalScrollView hScroll, final View view) {

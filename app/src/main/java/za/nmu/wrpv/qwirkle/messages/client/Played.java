@@ -33,9 +33,9 @@ public class Played extends Message implements Serializable {
 
     @Override
     public void apply() {
-        //System.out.println("------------------------------- PLAYED START -----------------------------");
+        System.out.println("------------------------------- PLAYED START -----------------------------");
         Player player = (Player) data.get("player");
-        //System.out.println(player.name + " POINTS = " + player.points);
+        System.out.println(player.name + " POINTS = " + player.points);
 
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
@@ -53,8 +53,9 @@ public class Played extends Message implements Serializable {
 
             Helper.sound(context, R.raw.play);
             if (player.name != GameModel.clientPlayer.name) {
-                GameModel.updatePlayerTiles(player, playerTileAdapter);
-                GameModel.updatePlayerScore(player, adapter);
+                GameModel.updatePlayerTiles(player);
+                GameModel.updatePlayerScore(player);
+                context.runOnUiThread(() -> adapter.notifyDataSetChanged());
                 GameModel.board = board;
                 GameModel.bag = bag;
 
@@ -63,34 +64,36 @@ public class Played extends Message implements Serializable {
                 for (int i = 0; i < places.size(); i++) {
                     Tile tile = places.get(i);
                     View view = glBoard.getChildAt(tile.index);
-                    view.setForeground(getDrawable(tile.toString(), context));
-                    view.getForeground().setAlpha(128);
-                    Helper.AnimateTilePlacement.add(view);
+                    context.runOnUiThread(() -> view.setForeground(getDrawable(tile.toString(), context)));
+                    context.runOnUiThread(() -> view.getForeground().setAlpha(128));
+                    context.runOnUiThread(() -> Helper.AnimateTilePlacement.add(view));
                     v = view;
                 }
-                focusOnView(context, sv,hsv, v);
-                easeInTilePlacement();
+                View finalV = v;
+                context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
+                context.runOnUiThread(Helper.AnimateTilePlacement::easeInTilePlacement);
 
                 if (qwirkle) {
-                    qwirkleAnimate(context, player, glBoard);
+                    ConstraintLayout constraintLayout = context.findViewById(R.id.cl_fragment_game);
+                    context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout));
                     Helper.vibrate(500, context);
                 }
 
                 GameModel.turn();
 
-                if (GameModel.gameEnded(playerTileAdapter))
-                    fragment.gameEnded();
+                if (GameModel.gameEnded())
+                    context.runOnUiThread(() -> fragment.gameEnded());
 
                 GameModel.placedCount = placedCount;
                 GameModel.placing = false;
-                fragment.setupCurrentPlayer();
-                fragment.setupBagCount();
+                context.runOnUiThread(() -> fragment.setupCurrentPlayer());
+                context.runOnUiThread(() -> fragment.setupBagCount());
             }
 
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
             Button btnUndo = context.findViewById(R.id.btn_undo);
-            Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
+            context.runOnUiThread(() -> Helper.enableIfTurn(btnPlay, btnDraw, btnUndo));
         });
     }
 }

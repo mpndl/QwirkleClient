@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 data.put("context", this);
                 try {
                     Run run = runs.take();
-                    runOnUiThread(() -> run.run(data));
+                    run.run(data);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

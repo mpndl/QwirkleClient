@@ -10,5 +10,6 @@ public class Name extends IMessage implements Serializable {
     @Override
     public void apply() {
         GameModel.clientPlayerName = (String) data.get("name");
+        GameModel.gameID = (int) get("gameID");
     }
 }

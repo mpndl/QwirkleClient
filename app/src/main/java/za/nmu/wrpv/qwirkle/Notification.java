@@ -17,7 +17,8 @@ public class Notification {
     public static final int NOTIFICATION_ID = 1;
 
     public static final String ACTION_1 = "action_1";
-    public static void displayNotification(Activity context) {
+    public static final String ACTION_2 = "action_2";
+    public static void displayNotification(Activity context, String description) {
         String channelID = "newMessage";
         String channelName = context.getString(R.string.notification_title);
         String channelDescription = context.getResources().getString(R.string.notification_description);
@@ -25,23 +26,30 @@ public class Notification {
         Intent action1Intent = new Intent(context, NotificationActionService.class)
                 .setAction(ACTION_1);
 
+        Intent action2Intent = new Intent(context, Notification.class)
+                .setAction(ACTION_2);
+
         PendingIntent action1PendingIntent = PendingIntent.getService(context, 0,
                 action1Intent, PendingIntent.FLAG_ONE_SHOT);
+
+        PendingIntent action2PendingIntent = PendingIntent.getService(context, 0, action1Intent, PendingIntent.FLAG_ONE_SHOT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelID)
                 .setSmallIcon(R.drawable.blue_circle)
                 .setContentTitle(context.getResources().getString(R.string.notification_title))
-                .setContentText(context.getResources().getString(R.string.notification_description))
+                .setContentText(description)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .addAction(new NotificationCompat.Action(R.drawable.blue_circle,
-                        "View", action1PendingIntent));
+                        "View", action1PendingIntent))
+                .addAction(new NotificationCompat.Action(R.drawable.blue_circle ,
+                        "Mark as Read", action2PendingIntent));
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         manager.notify(NOTIFICATION_ID, builder.build());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(channelDescription);
+            channel.setDescription(description);
             NotificationManager manager1 = context.getSystemService(NotificationManager.class);
             manager1.createNotificationChannel(channel);
         }
@@ -62,6 +70,11 @@ public class Notification {
                     MainActivity context = (MainActivity) d.get("context");
                     context.switchFragment(MessagesFragment.class);
                     NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
+                });
+            } else if (ACTION_2.equals(action)) {
+                MainActivity.runLater(d -> {
+                    MainActivity context = (MainActivity) d.get("context");
+                    cancel(context, NOTIFICATION_ID);
                 });
             }
         }

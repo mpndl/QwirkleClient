@@ -6,20 +6,15 @@ import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_OPACITY;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
-import static za.nmu.wrpv.qwirkle.Helper.getColor;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
-import static za.nmu.wrpv.qwirkle.Helper.setBackgroundBorder;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.vibrate;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -124,8 +119,7 @@ public class GameFragment extends Fragment implements Serializable {
                 Run run = null;
                 try {
                     run = runs.take();
-                    Run finalRun = run;
-                    getActivity().runOnUiThread(() -> finalRun.run(data));
+                    run.run(data);
                 }catch (NullPointerException e) {
                     if (run != null) {
                         runs.add(run);
@@ -194,7 +188,7 @@ public class GameFragment extends Fragment implements Serializable {
             if (imageView != curImageView) {
                 ViewGroup.LayoutParams params = curImageView.getLayoutParams();
                 params.width = PLAYER_TILE_SIZE_50;
-                //params.height = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 curImageView.setLayoutParams(params);
             }
         }
@@ -253,6 +247,7 @@ public class GameFragment extends Fragment implements Serializable {
 
         setTurnBackgroundColor(gvPlayersStatus, GameModel.clientPlayer);
         setBackgroundColor(recyclerView, GameModel.clientPlayer);
+        setTurnBackgroundBorder(gvPlayersStatus);
     }
 
     public void setupBagCount() {
@@ -288,7 +283,7 @@ public class GameFragment extends Fragment implements Serializable {
             int row_no = Integer.parseInt(rowColIndex[1]);
             int col_no = Integer.parseInt(rowColIndex[0]);
             selectedTiles.get(0).index = Integer.parseInt(rowColIndex[2]);
-            GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0), playerTilesAdapter);
+            GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
                 Helper.sound(getActivity(), R.raw.placed);
                 updateTags();
@@ -298,18 +293,17 @@ public class GameFragment extends Fragment implements Serializable {
                 button.setForeground(getDrawable(selectedTiles.get(0).toString(), getActivity()));
                 button.getForeground().setAlpha(PLAYER_TILE_OPACITY);
                 Helper.AnimateTilePlacement.add(button);
-            }else {
+            } else {
                 Helper.sound(getActivity(), R.raw.invalid);
             }
-        }else {
+        } else {
             if (!GameModel.isTurn())
-                System.out.println("NOT YOUR TURN "+ GameModel.clientPlayer.name +" BUT " + GameModel.currentPlayer.name + "'s");
+                System.out.println("NOT YOUR TURN " + GameModel.clientPlayer.name + " BUT " + GameModel.currentPlayer.name + "'s");
             else {
                 System.out.println("SELECT TILES TO PLACE " + GameModel.clientPlayer.name);
             }
             Helper.sound(getActivity(), R.raw.invalid);
         }
-
         resetWidthExcept(null);
         resetMultiSelect();
     }
@@ -324,6 +318,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void iaOnclickListener(View view) {
+        Helper.sound(getActivity(), R.raw.click);
         ImageView imageView = view.findViewById(R.id.iv_tile);
         updateTags();
 
@@ -342,10 +337,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
-                //params.height = PLAYER_TILE_SIZE_60;
+                params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
-                //params.height = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -356,10 +351,10 @@ public class GameFragment extends Fragment implements Serializable {
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
-                //params.height = PLAYER_TILE_SIZE_60;
+                params.height = PLAYER_TILE_SIZE_60;
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
-                //params.height = PLAYER_TILE_SIZE_50;
+                params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
             }
             imageView.setLayoutParams(params);
@@ -368,6 +363,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public boolean iaLongClickListener(View view) {
+        Helper.sound(getActivity(), R.raw.double_click);
         multiSelect = !multiSelect;
         vibrate(50, getActivity());
         resetWidthExcept(null);
@@ -379,11 +375,11 @@ public class GameFragment extends Fragment implements Serializable {
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == PLAYER_TILE_SIZE_50) {
             params.width = PLAYER_TILE_SIZE_60;
-            //params.height = PLAYER_TILE_SIZE_60;
+            params.height = PLAYER_TILE_SIZE_60;
         }
         else {
             params.width = PLAYER_TILE_SIZE_50;
-            //params.height = PLAYER_TILE_SIZE_50;
+            params.height = PLAYER_TILE_SIZE_50;
             selectedTiles.remove(selectedTile);
         }
         imageView.setLayoutParams(params);
@@ -394,8 +390,9 @@ public class GameFragment extends Fragment implements Serializable {
         if(GameModel.places.size() > 0) {
             System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
-            GameModel.play(playerTilesAdapter);
-            GameModel.updatePlayerScore(GameModel.clientPlayer, scoreAdapter);
+            GameModel.play();
+            playerTilesAdapter.notifyDataSetChanged();
+            scoreAdapter.notifyDataSetChanged();
 
             Played message = new Played();
             message.put("bag", GameModel.bag);
@@ -409,8 +406,8 @@ public class GameFragment extends Fragment implements Serializable {
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
             if (GameModel.qwirkle) {
-                GridLayout gridLayout = getView().findViewById(R.id.board);
-                qwirkleAnimate(getActivity(), GameModel.clientPlayer, gridLayout);
+                ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
+                qwirkleAnimate(getActivity(), GameModel.clientPlayer, constraintLayout);
                 Helper.vibrate(500,getActivity());
             }
 
@@ -436,7 +433,6 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void gameEnded() {
         GameEnded message = new GameEnded();
-        //message.put("players", GameModel.players);
         ServerHandler.send(message);
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
@@ -448,7 +444,8 @@ public class GameFragment extends Fragment implements Serializable {
     public void setOnUndo(View view) {
         if (GameModel.places.size() > 0) {
             Helper.sound(getActivity(), R.raw.undo);
-            GameModel.undo(GameModel.places, playerTilesAdapter);
+            GameModel.undo(GameModel.places);
+            playerTilesAdapter.notifyDataSetChanged();
             resetWidthExcept(null);
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
@@ -460,16 +457,17 @@ public class GameFragment extends Fragment implements Serializable {
     public void setOnDraw(View view) {
         if (GameModel.getBagCount() > 0) {
             if (selectedTiles.size() > 0)
-                GameModel.draw(false, selectedTiles, playerTilesAdapter);
+                GameModel.draw(false, selectedTiles);
             else
-                GameModel.draw(false, null, playerTilesAdapter);
+                GameModel.draw(false, null);
+            playerTilesAdapter.notifyDataSetChanged();
 
             Drawn message = new Drawn();
             message.put("bag", GameModel.bag);
             message.put("player", GameModel.clientPlayer);
 
             GameModel.turn();
-            GameModel.updatePlayerTiles(GameModel.clientPlayer, playerTilesAdapter);
+            GameModel.updatePlayerTiles(GameModel.clientPlayer);
 
             ServerHandler.send(message);
 
