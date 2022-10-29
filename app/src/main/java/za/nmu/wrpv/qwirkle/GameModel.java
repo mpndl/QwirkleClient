@@ -294,27 +294,27 @@ public class GameModel implements Serializable {
             return Legality.ILLEGAL;
         }
         else if (allSidesNull(xpos, ypos)) {
-            //System.out.p rintln("--------------------------------------- allSidesNull(xpos, ypos)");
+            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (illegalOrientation(xpos, ypos)) {
-            //System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
+            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ILLEGAL;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
-            //System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
+            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.ILLEGAL;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
-            //System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
+            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.ILLEGAL;
         }
 
         if (!next(xpos, ypos, tile)) {
-            //System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
+            System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
             return Legality.ILLEGAL;
         }
         return Legality.LEGAL;
@@ -395,31 +395,32 @@ public class GameModel implements Serializable {
                 !identical(xpos, ypos, 0, -1, tile) && !identical(xpos, ypos, 0, 1, tile)) {
             if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
                     && equivalent(xpos, ypos - 1, tile) && equivalent(xpos, ypos + 1, tile)) {
-                //System.out.println("----------------------------------------------- NEXT START ------------------------------------");
+                System.out.println("----------------------------------------------- NEXT START ------------------------------------");
+                ts = new ArrayList<>();
                 List<Tile> tsLeft = getAdjTiles(xpos, ypos, -1, 0);
-                //System.out.println("---------------------------------- LEFT");
-                //tsLeft.forEach(System.out::println);
+                System.out.println("---------------------------------- LEFT");
+                tsLeft.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsRight = getAdjTiles(xpos, ypos, 1, 0);
-                //System.out.println("---------------------------------- RIGHT");
-                //tsRight.forEach(System.out::println);
+                System.out.println("---------------------------------- RIGHT");
+                tsRight.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsTop = getAdjTiles(xpos, ypos, 0, -1);
-                //System.out.println("----------------------------------- TOP");
-                //tsTop.forEach(System.out::println);
+                System.out.println("----------------------------------- TOP");
+                tsTop.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsBottom = getAdjTiles(xpos, ypos, 0, 1);
-                //System.out.println("------------------------------------ BOTTOM");
-                //tsBottom.forEach(System.out::println);
+                System.out.println("------------------------------------ BOTTOM");
+                tsBottom.forEach(System.out::println);
 
                 boolean retLeft = adjEquivalent(xpos, ypos, tile, tsLeft);
-                //System.out.println("--------------------------- RET LEFT = " + retLeft);
+                System.out.println("--------------------------- RET LEFT = " + retLeft);
                 boolean retRight = adjEquivalent(xpos, ypos, tile, tsRight);
-                //System.out.println("--------------------------- RET RIGHT = " + retRight);
+                System.out.println("--------------------------- RET RIGHT = " + retRight);
                 boolean retTop = adjEquivalent(xpos, ypos, tile, tsTop);
-                //System.out.println("--------------------------- RET TOP = " + retTop);
+                System.out.println("--------------------------- RET TOP = " + retTop);
                 boolean retBottom = adjEquivalent(xpos, ypos, tile, tsBottom);
-                //System.out.println("--------------------------- RET BOTTOM = " + retBottom);
+                System.out.println("--------------------------- RET BOTTOM = " + retBottom);
 
                 return retRight && retLeft && retTop && retBottom;
             }
@@ -594,14 +595,14 @@ public class GameModel implements Serializable {
     }
 
     private static void assignPoints() {
-        System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
-        System.out.println("BEFORE POINTS = " + currentPlayer.points);
+        //System.out.println("-------------------------- ASSIGN POINTS START ---------------------");
+        //System.out.println("BEFORE POINTS = " + currentPlayer.points);
         int[] orientation = orientation(places);
         Tile nullTile = nullTile(places, tempBoard);
-        if (nullTile != null)
-            System.out.println("NULL TILE = " + nullTile + " -> xpos, ypos = " + nullTile.xPos + ", " + nullTile.yPos);
+        //if (nullTile != null)
+            //System.out.println("NULL TILE = " + nullTile + " -> xpos, ypos = " + nullTile.xPos + ", " + nullTile.yPos);
         if (orientation[0] == 1) {
-            System.out.println("---------------------------- HORIZONTALLY ORIENTED");
+            //System.out.println("---------------------------- HORIZONTALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos + 1, nullTile.yPos)) {
                     calculate(nullTile.xPos, nullTile.yPos, +1, 0, tempBoard, orientation);
@@ -612,7 +613,7 @@ public class GameModel implements Serializable {
             }
         }
         else if (orientation[1] == 1) {
-            System.out.println("---------------------------- VERTICALLY ORIENTED");
+            //System.out.println("---------------------------- VERTICALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos, nullTile.yPos + 1)) {
                     calculate(nullTile.xPos, nullTile.yPos, 0, + 1, tempBoard, orientation);
@@ -626,8 +627,8 @@ public class GameModel implements Serializable {
             currentPlayer.points = currentPlayer.points + 6;
 
         currentPlayer.points = currentPlayer.points + points;
-        System.out.println("EARNED POINTS = " + points);
-        System.out.println("TOTAL POINTS = " + currentPlayer.points);
+        //System.out.println("EARNED POINTS = " + points);
+        //System.out.println("TOTAL POINTS = " + currentPlayer.points);
         // reinitialize
         qwirkleMonitor = new ArrayList<>();
         points = 0;
@@ -635,27 +636,29 @@ public class GameModel implements Serializable {
     }
 
     private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
-        if (!qwirkleMonitor.contains(board[xpos][ypos]))
-            qwirkleMonitor.add(board[xpos][ypos]);
         int gxpos = xpos;
         int gypos = ypos;
+
+        if (!qwirkleMonitor.contains(board[gxpos][gypos]))
+            qwirkleMonitor.add(board[gxpos][gypos]);
+
         Tile genTile = board[gxpos][gypos];
         while (genTile != null) {
             points++;
-            System.out.println("GENTILE = " + genTile + " -> points = " + points);
+            //System.out.println("GENTILE = " + genTile + " -> points = " + points);
 
             if (contains(places, genTile)) {
                 boolean hasPath = false;
-                System.out.println("\tGENTILE IN PLACES");
+                //System.out.println("\tGENTILE IN PLACES");
                 int uxpos = gxpos + ydir;
                 int uypos = gypos + xdir;
                 Tile uTile = board[uxpos][uypos];
                 while (uTile != null) {
-                    if (!qwirkleMonitor.contains(board[xpos][ypos]))
-                        qwirkleMonitor.add(board[xpos][ypos]);
+                    if (!qwirkleMonitor.contains(board[uxpos][uypos]))
+                        qwirkleMonitor.add(board[uxpos][uypos]);
                     hasPath = true;
                     points++;
-                    System.out.println("\t\tUTILE = " + uTile + " -> points = " + points);
+                    //System.out.println("\t\tUTILE = " + uTile + " -> points = " + points);
 
                     uxpos += ydir;
                     uypos += xdir;
@@ -667,11 +670,11 @@ public class GameModel implements Serializable {
                 int dypos = gypos - xdir;
                 Tile dTile = board[dxpos][dypos];
                 while (dTile != null) {
-                    if (!qwirkleMonitor.contains(board[xpos][ypos]))
-                        qwirkleMonitor.add(board[xpos][ypos]);
+                    if (!qwirkleMonitor.contains(board[dxpos][dypos]))
+                        qwirkleMonitor.add(board[dxpos][dypos]);
                     hasPath = true;
                     points++;
-                    System.out.println("\t\tDTILE = " + dTile + " -> points = " + points);
+                    //System.out.println("\t\tDTILE = " + dTile + " -> points = " + points);
 
                     dxpos -= ydir;
                     dypos -= xdir;
