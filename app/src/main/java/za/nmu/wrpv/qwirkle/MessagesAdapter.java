@@ -21,11 +21,11 @@ import java.util.List;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder> implements Serializable {
     public List<PlayerMessage> playerMessages;
-    private Context context;
+    private final Player player;
 
-    public MessagesAdapter(List<PlayerMessage> playerMessages, Context context) {
+    public MessagesAdapter(List<PlayerMessage> playerMessages, Player player) {
         this.playerMessages = playerMessages;
-        this.context = context;
+        this.player = player;
     }
 
     public void add(PlayerMessage playerMessage) {
@@ -51,7 +51,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         return playerMessages.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         private ConstraintLayout clLeft;
         public TextView playerNameLeft;
         public TextView messageLeft;
@@ -76,8 +76,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         }
 
         public void set(PlayerMessage playerMessage) {
-
-            if (GameModel.clientPlayer.name.equals(playerMessage.player.name)) {
+            if (player.name.equals(playerMessage.player.name)) {
                 SpannableString content = new SpannableString(playerMessage.player.name.toString());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
 

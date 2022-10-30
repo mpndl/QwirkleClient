@@ -8,6 +8,7 @@ import java.util.List;
 
 import za.nmu.wrpv.qwirkle.BeginActivity;
 import za.nmu.wrpv.qwirkle.MainActivity;
+import za.nmu.wrpv.qwirkle.BeginFragment;
 import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
@@ -24,7 +25,7 @@ public class Begin extends Message {
         BeginActivity.runLater(data -> {
             BeginActivity context = (BeginActivity) data.get("context");
 
-            context.startGame = true;
+            BeginFragment.startGame = true;
             Countdown.interrupt();
 
             Intent intent = new Intent(context, MainActivity.class);

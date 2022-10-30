@@ -49,7 +49,7 @@ public class MessagesFragment extends Fragment implements Serializable {
         super.onViewCreated(view, savedInstanceState);
         Notification.cancel(getContext(), Notification.NOTIFICATION_ID);
 
-        adapter = new MessagesAdapter(new ArrayList<>(), getContext());
+        adapter = new MessagesAdapter(GameModel.messages, GameModel.clientPlayer);
 
         thread = new Thread(() -> {
             do {

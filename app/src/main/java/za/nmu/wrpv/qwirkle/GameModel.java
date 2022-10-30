@@ -12,6 +12,7 @@ import java.util.Stack;
 
 public class GameModel implements Serializable {
     public static int gameID = -1;
+    public static List<PlayerMessage> messages = new ArrayList<>();
     public static Player currentPlayer;
     public static Player clientPlayer;
     public static String clientPlayerName = "";
@@ -677,7 +678,7 @@ public class GameModel implements Serializable {
                 int dypos = gypos - xdir;
                 Tile dTile = board[dxpos][dypos];
                 while (dTile != null) {
-                    placedTileIndexes.add(uTile.index);
+                    placedTileIndexes.add(dTile.index);
                     if (!qwirkleMonitor.contains(board[dxpos][dypos]))
                         qwirkleMonitor.add(board[dxpos][dypos]);
                     hasPath = true;

@@ -41,12 +41,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 import za.nmu.wrpv.qwirkle.messages.client.Drawn;
 import za.nmu.wrpv.qwirkle.messages.client.GameEnded;
@@ -79,15 +83,7 @@ public class GameFragment extends Fragment implements Serializable {
         scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
         playerTilesAdapter = new PlayerTilesAdapter(getActivity(), GameModel.clientPlayer.tiles);
 
-        Display display = getActivity().getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int screenWidth = size.x; // int screenWidth = display.getWidth(); on API < 13
-        int screenHeight = size.y; // int screenHeight = display.getHeight(); on API <13
-
-        BOARD_TILE_SIZE = screenWidth/6;
-        PLAYER_TILE_SIZE_60 = screenWidth/8;
-        PLAYER_TILE_SIZE_50 = screenWidth/9;
+        Helper.initializeTileSizes(getActivity());
 
         TextView tv_calculate = getView().findViewById(R.id.tv_points);
         tv_calculate.setTextSize(BOARD_TILE_SIZE);
@@ -413,6 +409,7 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
             message.put("qwirkle",GameModel.qwirkle);
+            message.put("placedTileIndexes", ((ArrayList<Integer>)GameModel.placedTileIndexes).clone());
 
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);

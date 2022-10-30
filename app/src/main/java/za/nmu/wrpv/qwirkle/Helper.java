@@ -5,6 +5,7 @@ import static android.content.Context.VIBRATOR_SERVICE;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -13,6 +14,7 @@ import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
@@ -32,6 +34,18 @@ public class Helper {
     public static int PLAYER_TILE_SIZE_50;
     public static int PLAYER_TILE_SIZE_60;
     public static int PLAYER_TILE_OPACITY = 128;
+
+    public static void initializeTileSizes(Activity context) {
+        Display display = context.getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int screenWidth = size.x; // int screenWidth = display.getWidth(); on API < 13
+        int screenHeight = size.y; // int screenHeight = display.getHeight(); on API <13
+
+        BOARD_TILE_SIZE = screenWidth/6;
+        PLAYER_TILE_SIZE_60 = screenWidth/8;
+        PLAYER_TILE_SIZE_50 = screenWidth/9;
+    }
 
     static public class AnimateTilePlacement {
         private static final List<View> placementViews = new CopyOnWriteArrayList<>();
@@ -112,6 +126,7 @@ public class Helper {
 
     public static void calculatePoints(Activity context, List<Integer> indexes, Player player, boolean qwirkle, GameFragment fragment) {
         System.out.println("------------------------- CALCULATING POINTS -> indexes size = " + indexes.size());
+        System.out.println(player.name + " -> points = " + player.points);
         GridLayout glBoard = context.findViewById(R.id.board);
         TextView tvPoints = context.findViewById(R.id.tv_points);
         context.runOnUiThread(() -> tvPoints.setVisibility(View.VISIBLE));

@@ -39,13 +39,12 @@ public class Played extends Message implements Serializable {
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
         List<Tile> places = (ArrayList<Tile>)data.get("places");
-        List<Integer> placedTileIndexes = places.stream().map(tile -> tile.index).collect(Collectors.toList());
+        List<Integer> placedTileIndexes = (ArrayList<Integer>) data.get("placedTileIndexes");
         boolean qwirkle = (boolean) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
             ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
-            PlayerTilesAdapter playerTileAdapter = (PlayerTilesAdapter) d.get("playerTilesAdapter");
             GameFragment fragment = (GameFragment) d.get("fragment");
 
             HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);
