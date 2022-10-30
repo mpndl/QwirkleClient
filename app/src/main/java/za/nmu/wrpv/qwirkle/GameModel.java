@@ -29,10 +29,7 @@ public class GameModel implements Serializable {
     public static boolean placing = false;
     public static boolean ended = false;
     public static boolean qwirkle = false;
-
-    public enum Legality {
-        LEGAL, ILLEGAL;
-    }
+    public static final List<Integer> placedTileIndexes = new ArrayList<>();
 
     public static void updatePlayerTiles(Player player) {
         for (Player p: players) {
@@ -226,8 +223,10 @@ public class GameModel implements Serializable {
     public static Legality place(int xpos, int ypos, Tile tile) {
         if(!placing) {
             places = new ArrayList<>();
+            placedTileIndexes.clear();
         }
-        if(legal(xpos, ypos, tile) == Legality.LEGAL) {
+        Legality legality = legal(xpos, ypos, tile);
+        if(legality == Legality.LEGAL) {
             if(!placing) {
                 placing = true;
             }
@@ -245,7 +244,7 @@ public class GameModel implements Serializable {
             return Legality.LEGAL;
         }
         else {
-            return Legality.ILLEGAL;
+            return legality;
         }
     }
 
@@ -291,33 +290,39 @@ public class GameModel implements Serializable {
             return Legality.LEGAL;
         }
         else if (tempBoard[xpos][ypos] != null) {
-            return Legality.ILLEGAL;
+            return Legality.TILE_EXISTS;
         }
         else if (allSidesNull(xpos, ypos)) {
             System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
-            return Legality.ILLEGAL;
+            return Legality.LONER_TILE;
         }
 
         if (illegalOrientation(xpos, ypos)) {
             System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
-            return Legality.ILLEGAL;
+            return Legality.ORIENTATION;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
             System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
-            return Legality.ILLEGAL;
+            return Legality.PLACED_TILES_NOT_EQUIVALENT;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
             System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
-            return Legality.ILLEGAL;
+            return Legality.NULL_IN_BETWEEN;
         }
 
-        if (!next(xpos, ypos, tile)) {
+        Legality legality = next(xpos, ypos, tile);
+        if (legality != Legality.LEGAL) {
             System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
-            return Legality.ILLEGAL;
+            return legality;
         }
         return Legality.LEGAL;
+    }
+
+    public enum Legality {
+        LEGAL, ORIENTATION, TILE_EXISTS, LONER_TILE, NULL_IN_BETWEEN, PLACED_TILES_NOT_EQUIVALENT,
+        PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES, PLACED_TILE_EXISTS_ON_ADJACENT_LINE;
     }
 
     private static boolean allSidesNull(int xpos, int ypos) {
@@ -390,7 +395,7 @@ public class GameModel implements Serializable {
         return false;
     }
 
-    private static boolean next(int xpos, int ypos,Tile tile) {
+    private static Legality next(int xpos, int ypos,Tile tile) {
         if(!identical(xpos, ypos, -1, 0, tile) && !identical(xpos, ypos, 1, 0, tile) &&
                 !identical(xpos, ypos, 0, -1, tile) && !identical(xpos, ypos, 0, 1, tile)) {
             if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
@@ -422,10 +427,10 @@ public class GameModel implements Serializable {
                 boolean retBottom = adjEquivalent(xpos, ypos, tile, tsBottom);
                 System.out.println("--------------------------- RET BOTTOM = " + retBottom);
 
-                return retRight && retLeft && retTop && retBottom;
-            }
-        }
-        return false;
+                if (retRight && retLeft && retTop && retBottom) return Legality.LEGAL;
+                else return Legality.PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES;
+            } else return Legality.PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES;
+        }else return Legality.PLACED_TILE_EXISTS_ON_ADJACENT_LINE;
     }
 
     public static List<Tile> cloneTiles(List<Tile> tiles) {
@@ -644,6 +649,7 @@ public class GameModel implements Serializable {
 
         Tile genTile = board[gxpos][gypos];
         while (genTile != null) {
+            placedTileIndexes.add(genTile.index);
             points++;
             //System.out.println("GENTILE = " + genTile + " -> points = " + points);
 
@@ -654,6 +660,7 @@ public class GameModel implements Serializable {
                 int uypos = gypos + xdir;
                 Tile uTile = board[uxpos][uypos];
                 while (uTile != null) {
+                    placedTileIndexes.add(uTile.index);
                     if (!qwirkleMonitor.contains(board[uxpos][uypos]))
                         qwirkleMonitor.add(board[uxpos][uypos]);
                     hasPath = true;
@@ -670,6 +677,7 @@ public class GameModel implements Serializable {
                 int dypos = gypos - xdir;
                 Tile dTile = board[dxpos][dypos];
                 while (dTile != null) {
+                    placedTileIndexes.add(uTile.index);
                     if (!qwirkleMonitor.contains(board[dxpos][dypos]))
                         qwirkleMonitor.add(board[dxpos][dypos]);
                     hasPath = true;

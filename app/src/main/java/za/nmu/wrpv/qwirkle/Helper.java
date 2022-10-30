@@ -4,6 +4,7 @@ import static android.content.Context.VIBRATOR_SERVICE;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -15,17 +16,16 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.gridlayout.widget.GridLayout;
 
-import java.util.ArrayList;
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Helper {
     public static int BOARD_TILE_SIZE;
@@ -110,6 +110,62 @@ public class Helper {
         }
     }
 
+    public static void calculatePoints(Activity context, List<Integer> indexes, Player player, boolean qwirkle, GameFragment fragment) {
+        System.out.println("------------------------- CALCULATING POINTS -> indexes size = " + indexes.size());
+        GridLayout glBoard = context.findViewById(R.id.board);
+        TextView tvPoints = context.findViewById(R.id.tv_points);
+        context.runOnUiThread(() -> tvPoints.setVisibility(View.VISIBLE));
+        ScrollView sv = context.findViewById(R.id.scrollView2);
+        HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);
+        setPlayerTextColor(tvPoints, player);
+        new Thread(() -> {
+            try {
+                int points = 1;
+
+                for (int i : indexes) {
+                    System.out.println(i);
+                    View view = glBoard.getChildAt(i);
+                    int finalPoints = points;
+                    context.runOnUiThread(() -> tvPoints.setText(finalPoints + ""));
+                    context.runOnUiThread(() -> {
+                                focusOnView(context, sv, hsv, view);
+                            });
+
+                    points++;
+                    Thread.sleep(500);
+                }
+                if (qwirkle) {
+                    ConstraintLayout constraintLayout = context.findViewById(R.id.cl_fragment_game);
+                    context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout));
+                    Helper.vibrate(500, context);
+                }
+
+                if (GameModel.gameEnded())
+                    context.runOnUiThread(() -> fragment.gameEnded());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            finally {
+                context.runOnUiThread(() -> tvPoints.setVisibility(View.GONE));
+            }
+        }).start();
+    }
+
+    public static void displayMessage(View view, int strID) {
+        Snackbar snackbar = Snackbar.make(view, view.getResources().getString(strID), Snackbar.LENGTH_INDEFINITE);
+        snackbar.setTextColor(view.getContext().getColor(R.color.green));
+        snackbar.setAction(view.getResources().getString(R.string.ok), view1 -> {
+            snackbar.dismiss();
+        });
+        snackbar.setBackgroundTint(Color.BLACK);
+
+        View snackbarView = snackbar.getView();
+        TextView snackbarTextView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text);
+        snackbarTextView.setMaxLines(3);
+
+        snackbar.show();
+    }
+
     public static void qwirkleAnimate(Activity context, Player player, View view) {
         Drawable gameBackground = view.getBackground();
         int playerBackgroundColor = getColor(player, context);
@@ -166,6 +222,10 @@ public class Helper {
         MediaPlayer player = MediaPlayer.create(context, resid);
         player.setOnCompletionListener(MediaPlayer::release);
         player.start();
+    }
+
+    public static void setPlayerTextColor(TextView view, Player player) {
+        view.setTextColor(getColor(player, view.getContext()));
     }
 
     public static void setTurnBackgroundBorder(View view) {

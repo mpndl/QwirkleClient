@@ -1,9 +1,8 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
-import static za.nmu.wrpv.qwirkle.Helper.AnimateTilePlacement.easeInTilePlacement;
+import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
 import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
-import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
 
 import android.app.Activity;
 import android.view.View;
@@ -11,12 +10,12 @@ import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.gridlayout.widget.GridLayout;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
@@ -40,6 +39,7 @@ public class Played extends Message implements Serializable {
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
         List<Tile> places = (ArrayList<Tile>)data.get("places");
+        List<Integer> placedTileIndexes = places.stream().map(tile -> tile.index).collect(Collectors.toList());
         boolean qwirkle = (boolean) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(d -> {
@@ -73,16 +73,9 @@ public class Played extends Message implements Serializable {
                 context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
                 context.runOnUiThread(Helper.AnimateTilePlacement::easeInTilePlacement);
 
-                if (qwirkle) {
-                    ConstraintLayout constraintLayout = context.findViewById(R.id.cl_fragment_game);
-                    context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout));
-                    Helper.vibrate(500, context);
-                }
+                calculatePoints(context,placedTileIndexes, player, qwirkle, fragment);
 
                 GameModel.turn();
-
-                if (GameModel.gameEnded())
-                    context.runOnUiThread(() -> fragment.gameEnded());
 
                 GameModel.placedCount = placedCount;
                 GameModel.placing = false;

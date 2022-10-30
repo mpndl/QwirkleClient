@@ -5,6 +5,8 @@ import static za.nmu.wrpv.qwirkle.Helper.BOARD_TILE_SIZE;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_OPACITY;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
+import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
+import static za.nmu.wrpv.qwirkle.Helper.displayMessage;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
@@ -41,6 +43,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -85,6 +88,9 @@ public class GameFragment extends Fragment implements Serializable {
         BOARD_TILE_SIZE = screenWidth/6;
         PLAYER_TILE_SIZE_60 = screenWidth/8;
         PLAYER_TILE_SIZE_50 = screenWidth/9;
+
+        TextView tv_calculate = getView().findViewById(R.id.tv_points);
+        tv_calculate.setTextSize(BOARD_TILE_SIZE);
 
         Button btnPlay = getView().findViewById(R.id.btn_play);
         Button btnDraw = getView().findViewById(R.id.btn_draw);
@@ -295,6 +301,7 @@ public class GameFragment extends Fragment implements Serializable {
                 Helper.AnimateTilePlacement.add(button);
             } else {
                 Helper.sound(getActivity(), R.raw.invalid);
+                legalityMessage(view, legality);
             }
         } else {
             if (!GameModel.isTurn())
@@ -306,6 +313,11 @@ public class GameFragment extends Fragment implements Serializable {
         }
         resetWidthExcept(null);
         resetMultiSelect();
+    }
+
+    private void legalityMessage(View view ,GameModel.Legality legality) {
+        displayMessage(view, getContext().getResources().getIdentifier("illegal_" + legality.toString().toLowerCase(Locale.ROOT),
+                "string", getContext().getPackageName()));
     }
 
     private void updateTags() {
@@ -405,11 +417,7 @@ public class GameFragment extends Fragment implements Serializable {
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
             System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
-            if (GameModel.qwirkle) {
-                ConstraintLayout constraintLayout = getView().findViewById(R.id.cl_fragment_game);
-                qwirkleAnimate(getActivity(), GameModel.clientPlayer, constraintLayout);
-                Helper.vibrate(500,getActivity());
-            }
+            calculatePoints(getActivity(), GameModel.placedTileIndexes, GameModel.clientPlayer, GameModel.qwirkle, this);
 
             GameModel.turn();
 
