@@ -35,4 +35,7 @@
     <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Amathayela kufanele abe nesibaluli esivamile (Umbala/Umumo) onamathayela ancikene</string>
     <string name="illegal_placed_tile_exists_on_adjacent_line">Amathayela omumo nombala awakwazi ukubekwa eduze kwamathayili anomumo nombala ofanayo</string>
     <string name="imessages">Imiyalezo</string>
+    <string name="long_click_to_focus">Chofoza isikhathi eside ebhodini ukuze ubuyisele ukugxila kumathayela asebhodini</string>
+    <string name="long_click_to_multi_select">Chofoza isikhathi eside kumathayela akho ukuze wenze kusebenze ukukhetha okuningi bese ukhetha noma iyiphi inombolo yamathayela ozowashintsha ngenombolo efanayo yamathayela kodwa anezibaluli ezingahleliwe.</string>
+    <string name="special_instructions">Iziyalezo Ezikhethekile</string>
 </resources>
