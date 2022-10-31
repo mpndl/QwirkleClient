@@ -34,5 +34,6 @@
     <string name="illegal_placed_tiles_not_equivalent">Tiles of a particular attribute (Color/Shape) must share the same attribute with adjacent tiles</string>
     <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Tiles must have a common attribute (Color/Shape) with adjacent tiles</string>
     <string name="illegal_placed_tile_exists_on_adjacent_line">Tiles of a shape and color can\'t be placed next to tiles with the same shape and color</string>
+    <string name="imessages">Messages</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

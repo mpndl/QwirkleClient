@@ -15,6 +15,8 @@ import androidx.gridlayout.widget.GridLayout;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
@@ -39,8 +41,8 @@ public class Played extends Message implements Serializable {
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
         List<Tile> places = (ArrayList<Tile>)data.get("places");
-        List<Integer> placedTileIndexes = (ArrayList<Integer>) data.get("placedTileIndexes");
-        boolean qwirkle = (boolean) get("qwirkle");
+        List<Tile> visitedTiles = (List<Tile>) data.get("visitedTiles");
+        int qwirkle = (int) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
@@ -72,7 +74,7 @@ public class Played extends Message implements Serializable {
                 context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
                 context.runOnUiThread(Helper.AnimateTilePlacement::easeInTilePlacement);
 
-                calculatePoints(context,placedTileIndexes, player, qwirkle, fragment);
+                calculatePoints(context,visitedTiles, player, qwirkle, fragment);
 
                 GameModel.turn();
 

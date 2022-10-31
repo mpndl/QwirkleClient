@@ -9,16 +9,13 @@ import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
 import static za.nmu.wrpv.qwirkle.Helper.displayMessage;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
-import static za.nmu.wrpv.qwirkle.Helper.qwirkleAnimate;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.vibrate;
 
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,16 +38,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import za.nmu.wrpv.qwirkle.messages.client.Drawn;
 import za.nmu.wrpv.qwirkle.messages.client.GameEnded;
@@ -396,11 +390,13 @@ public class GameFragment extends Fragment implements Serializable {
 
     public void setOnPlay(View view) {
         if(GameModel.places.size() > 0) {
-            System.out.println("-------------------------- PLAY START -------------------------");
+            //System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
             GameModel.play();
             playerTilesAdapter.notifyDataSetChanged();
             scoreAdapter.notifyDataSetChanged();
+
+            List<Tile> vClone = GameModel.cloneTiles(GameModel.visitedTiles);
 
             Played message = new Played();
             message.put("bag", GameModel.bag);
@@ -408,13 +404,13 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
-            message.put("qwirkle",GameModel.qwirkle);
-            message.put("placedTileIndexes", ((ArrayList<Integer>)GameModel.placedTileIndexes).clone());
+            message.put("qwirkle",GameModel.qwirkleCount());
+            message.put("visitedTiles", vClone);
 
-            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
-            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
+            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
-            calculatePoints(getActivity(), GameModel.placedTileIndexes, GameModel.clientPlayer, GameModel.qwirkle, this);
+            calculatePoints(getActivity(), vClone, GameModel.clientPlayer, GameModel.qwirkleCount(), this);
 
             GameModel.turn();
 
@@ -424,15 +420,14 @@ public class GameFragment extends Fragment implements Serializable {
             easeInTilePlacement();
 
             GameModel.places = new ArrayList<>();
-            GameModel.qwirkle = false;
             ServerHandler.send(message);
-            System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
+            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
             Button btnPlay = getView().findViewById(R.id.btn_play);
             Button btnDraw = getView().findViewById(R.id.btn_draw);
             Button btnUndo = getView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
-            System.out.println("-------------------------- PLAY END -------------------------");
+            //System.out.println("-------------------------- PLAY END -------------------------");
         }else Helper.sound(getActivity(), R.raw.invalid);
     }
 

@@ -34,4 +34,5 @@
     <string name="illegal_placed_tiles_not_equivalent">Amathayela esibaluli esithile (Umbala/Umumo) kufanele abelane ngesibaluli esifanayo namathayili ancikene</string>
     <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Amathayela kufanele abe nesibaluli esivamile (Umbala/Umumo) onamathayela ancikene</string>
     <string name="illegal_placed_tile_exists_on_adjacent_line">Amathayela omumo nombala awakwazi ukubekwa eduze kwamathayili anomumo nombala ofanayo</string>
+    <string name="imessages">Imiyalezo</string>
 </resources>

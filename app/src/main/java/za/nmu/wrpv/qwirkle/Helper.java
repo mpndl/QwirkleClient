@@ -27,6 +27,7 @@ import androidx.gridlayout.widget.GridLayout;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Helper {
@@ -34,13 +35,15 @@ public class Helper {
     public static int PLAYER_TILE_SIZE_50;
     public static int PLAYER_TILE_SIZE_60;
     public static int PLAYER_TILE_OPACITY = 128;
+    public static int screenWidth;
+    public  static int screenHeight;
 
     public static void initializeTileSizes(Activity context) {
         Display display = context.getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        int screenWidth = size.x; // int screenWidth = display.getWidth(); on API < 13
-        int screenHeight = size.y; // int screenHeight = display.getHeight(); on API <13
+        screenWidth = size.x; // int screenWidth = display.getWidth(); on API < 13
+        screenHeight = size.y; // int screenHeight = display.getHeight(); on API <13
 
         BOARD_TILE_SIZE = screenWidth/6;
         PLAYER_TILE_SIZE_60 = screenWidth/8;
@@ -124,8 +127,8 @@ public class Helper {
         }
     }
 
-    public static void calculatePoints(Activity context, List<Integer> indexes, Player player, boolean qwirkle, GameFragment fragment) {
-        System.out.println("------------------------- CALCULATING POINTS -> indexes size = " + indexes.size());
+    public static void calculatePoints(Activity context, List<Tile> visitedTiles, Player player, int qwirkleCount, GameFragment fragment) {
+        System.out.println("------------------------- CALCULATING POINTS -> size = " + visitedTiles.size());
         System.out.println(player.name + " -> points = " + player.points);
         GridLayout glBoard = context.findViewById(R.id.board);
         TextView tvPoints = context.findViewById(R.id.tv_points);
@@ -137,9 +140,9 @@ public class Helper {
             try {
                 int points = 1;
 
-                for (int i : indexes) {
-                    System.out.println(i);
-                    View view = glBoard.getChildAt(i);
+                for (Tile tile : visitedTiles) {
+                    System.out.println(tile.index);
+                    View view = glBoard.getChildAt(tile.index);
                     int finalPoints = points;
                     context.runOnUiThread(() -> tvPoints.setText(finalPoints + ""));
                     context.runOnUiThread(() -> {
@@ -149,9 +152,9 @@ public class Helper {
                     points++;
                     Thread.sleep(500);
                 }
-                if (qwirkle) {
+                if (qwirkleCount > 0) {
                     ConstraintLayout constraintLayout = context.findViewById(R.id.cl_fragment_game);
-                    context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout));
+                    context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout, qwirkleCount));
                     Helper.vibrate(500, context);
                 }
 
@@ -181,13 +184,16 @@ public class Helper {
         snackbar.show();
     }
 
-    public static void qwirkleAnimate(Activity context, Player player, View view) {
+    public static void qwirkleAnimate(Activity context, Player player, View view, int qwirkleCount) {
         Drawable gameBackground = view.getBackground();
         int playerBackgroundColor = getColor(player, context);
         ColorDrawable colorDrawable = new ColorDrawable(playerBackgroundColor);
 
         TextView tvQwirkle = context.findViewById(R.id.tv_qwirkle);
         int tvQwirkleSize = (int) tvQwirkle.getTextSize();
+        if (qwirkleCount > 1) {
+            tvQwirkle.setText(tvQwirkle.getText() + " X" + qwirkleCount);
+        }
         new Thread(() -> {
             sound(context, R.raw.qwirkle);
             try {

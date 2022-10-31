@@ -2,13 +2,13 @@ package za.nmu.wrpv.qwirkle;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 public class GameModel implements Serializable {
     public static int gameID = -1;
@@ -18,7 +18,6 @@ public class GameModel implements Serializable {
     public static String clientPlayerName = "";
     public static List<Tile> bag = new ArrayList<>();
     public static List<Player> players;
-    private static List<Tile> qwirkleMonitor = new ArrayList<>();
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
     public static List<Tile> places = new ArrayList<>();
@@ -29,8 +28,7 @@ public class GameModel implements Serializable {
     private static List<Tile> ts = new ArrayList<>();
     public static boolean placing = false;
     public static boolean ended = false;
-    public static boolean qwirkle = false;
-    public static final List<Integer> placedTileIndexes = new ArrayList<>();
+    public static List<Tile> visitedTiles = new ArrayList<>();
 
     public static void updatePlayerTiles(Player player) {
         for (Player p: players) {
@@ -67,70 +65,6 @@ public class GameModel implements Serializable {
 
     public static boolean isTurn() {
         return clientPlayer.name == currentPlayer.name;
-    }
-
-    private static int getPlayerHighestCCount(List<Tile> playerTiles) {
-        int red = 0;
-        int orange = 0;
-        int yellow = 0;
-        int green = 0;
-        int blue = 0;
-        int purple = 0;
-        for (Tile tile: playerTiles) {
-            switch (tile.color) {
-                case RED:
-                    red++;
-                    break;
-                case ORANGE:
-                    orange++;
-                    break;
-                case YELLOW:
-                    yellow++;
-                    break;
-                case GREEN:
-                    green++;
-                    break;
-                case BLUE:
-                    blue++;
-                    break;
-                case PURPLE:
-                    purple++;
-            }
-        }
-
-        return Collections.max(Arrays.asList(red, orange, yellow, green, blue, purple));
-    }
-
-    private static int getPlayerHighestSCount(List<Tile> playerTiles) {
-        int clover = 0;
-        int fpstar = 0;
-        int epstar = 0;
-        int square = 0;
-        int circle = 0;
-        int diamond = 0;
-        for (Tile tile: playerTiles) {
-            switch (tile.shape) {
-                case CLOVER:
-                    clover++;
-                    break;
-                case FPSTAR:
-                    fpstar++;
-                    break;
-                case EPSTAR:
-                    epstar++;
-                    break;
-                case SQUARE:
-                    square++;
-                    break;
-                case CIRCLE:
-                    circle++;
-                    break;
-                case DIAMOND:
-                    diamond++;
-            }
-        }
-
-        return Collections.max(Arrays.asList(clover, fpstar, epstar, square, circle, diamond));
     }
 
     public static void undo(List<Tile> playerTiles) {
@@ -224,7 +158,7 @@ public class GameModel implements Serializable {
     public static Legality place(int xpos, int ypos, Tile tile) {
         if(!placing) {
             places = new ArrayList<>();
-            placedTileIndexes.clear();
+            visitedTiles.clear();
         }
         Legality legality = legal(xpos, ypos, tile);
         if(legality == Legality.LEGAL) {
@@ -294,28 +228,28 @@ public class GameModel implements Serializable {
             return Legality.TILE_EXISTS;
         }
         else if (allSidesNull(xpos, ypos)) {
-            System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
+            //System.out.println("--------------------------------------- allSidesNull(xpos, ypos)");
             return Legality.LONER_TILE;
         }
 
         if (illegalOrientation(xpos, ypos)) {
-            System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
+            //System.out.println("--------------------------------------- (illegalOrientation(xpos, ypos)");
             return Legality.ORIENTATION;
         }
 
         if (!adjEquivalent(xpos, ypos, tile, places)) {
-            System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
+            //System.out.println("--------------------------------------- !adjEquivalent(xpos, ypos, tile, places)");
             return Legality.PLACED_TILES_NOT_EQUIVALENT;
         }
 
         if (nullInBetween(xpos, ypos, places)) {
-            System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
+            //System.out.println("--------------------------------------- nullInBetween(xpos, ypos, places)");
             return Legality.NULL_IN_BETWEEN;
         }
 
         Legality legality = next(xpos, ypos, tile);
         if (legality != Legality.LEGAL) {
-            System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
+            //System.out.println("--------------------------------------- !next(xpos, ypos, tile)");
             return legality;
         }
         return Legality.LEGAL;
@@ -401,32 +335,32 @@ public class GameModel implements Serializable {
                 !identical(xpos, ypos, 0, -1, tile) && !identical(xpos, ypos, 0, 1, tile)) {
             if(equivalent(xpos - 1, ypos, tile) && equivalent(xpos + 1, ypos, tile)
                     && equivalent(xpos, ypos - 1, tile) && equivalent(xpos, ypos + 1, tile)) {
-                System.out.println("----------------------------------------------- NEXT START ------------------------------------");
+                //System.out.println("----------------------------------------------- NEXT START ------------------------------------");
                 ts = new ArrayList<>();
                 List<Tile> tsLeft = getAdjTiles(xpos, ypos, -1, 0);
-                System.out.println("---------------------------------- LEFT");
-                tsLeft.forEach(System.out::println);
+                //System.out.println("---------------------------------- LEFT");
+                //tsLeft.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsRight = getAdjTiles(xpos, ypos, 1, 0);
-                System.out.println("---------------------------------- RIGHT");
-                tsRight.forEach(System.out::println);
+                //System.out.println("---------------------------------- RIGHT");
+                //tsRight.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsTop = getAdjTiles(xpos, ypos, 0, -1);
-                System.out.println("----------------------------------- TOP");
-                tsTop.forEach(System.out::println);
+                //System.out.println("----------------------------------- TOP");
+                //tsTop.forEach(System.out::println);
                 ts = new ArrayList<>();
                 List<Tile> tsBottom = getAdjTiles(xpos, ypos, 0, 1);
-                System.out.println("------------------------------------ BOTTOM");
-                tsBottom.forEach(System.out::println);
+                //System.out.println("------------------------------------ BOTTOM");
+                //tsBottom.forEach(System.out::println);
 
                 boolean retLeft = adjEquivalent(xpos, ypos, tile, tsLeft);
-                System.out.println("--------------------------- RET LEFT = " + retLeft);
+                //System.out.println("--------------------------- RET LEFT = " + retLeft);
                 boolean retRight = adjEquivalent(xpos, ypos, tile, tsRight);
-                System.out.println("--------------------------- RET RIGHT = " + retRight);
+                //System.out.println("--------------------------- RET RIGHT = " + retRight);
                 boolean retTop = adjEquivalent(xpos, ypos, tile, tsTop);
-                System.out.println("--------------------------- RET TOP = " + retTop);
+                //System.out.println("--------------------------- RET TOP = " + retTop);
                 boolean retBottom = adjEquivalent(xpos, ypos, tile, tsBottom);
-                System.out.println("--------------------------- RET BOTTOM = " + retBottom);
+                //System.out.println("--------------------------- RET BOTTOM = " + retBottom);
 
                 if (retRight && retLeft && retTop && retBottom) return Legality.LEGAL;
                 else return Legality.PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES;
@@ -436,7 +370,7 @@ public class GameModel implements Serializable {
 
     public static List<Tile> cloneTiles(List<Tile> tiles) {
         List<Tile> temp = new ArrayList<>();
-        for (Tile tile: tiles) {
+        for (Tile tile : tiles) {
             temp.add(cloneTile(tile));
         }
         return temp;
@@ -629,28 +563,25 @@ public class GameModel implements Serializable {
                 }
             }
         }
-        if (isQwirkle())
-            currentPlayer.points = currentPlayer.points + 6;
+        if (qwirkleCount() > 0)
+            currentPlayer.points = currentPlayer.points + (6 * qwirkleCount());
 
         currentPlayer.points = currentPlayer.points + points;
         //System.out.println("EARNED POINTS = " + points);
         //System.out.println("TOTAL POINTS = " + currentPlayer.points);
         // reinitialize
-        qwirkleMonitor = new ArrayList<>();
         points = 0;
-        System.out.println("-------------------------- ASSIGN POINTS END ---------------------");
+        //System.out.println("-------------------------- ASSIGN POINTS END ---------------------");
     }
+
 
     private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
         int gxpos = xpos;
         int gypos = ypos;
 
-        if (!qwirkleMonitor.contains(board[gxpos][gypos]))
-            qwirkleMonitor.add(board[gxpos][gypos]);
-
         Tile genTile = board[gxpos][gypos];
         while (genTile != null) {
-            placedTileIndexes.add(genTile.index);
+            visitedTiles.add(genTile);
             points++;
             //System.out.println("GENTILE = " + genTile + " -> points = " + points);
 
@@ -661,9 +592,7 @@ public class GameModel implements Serializable {
                 int uypos = gypos + xdir;
                 Tile uTile = board[uxpos][uypos];
                 while (uTile != null) {
-                    placedTileIndexes.add(uTile.index);
-                    if (!qwirkleMonitor.contains(board[uxpos][uypos]))
-                        qwirkleMonitor.add(board[uxpos][uypos]);
+                    visitedTiles.add(uTile);
                     hasPath = true;
                     points++;
                     //System.out.println("\t\tUTILE = " + uTile + " -> points = " + points);
@@ -678,9 +607,7 @@ public class GameModel implements Serializable {
                 int dypos = gypos - xdir;
                 Tile dTile = board[dxpos][dypos];
                 while (dTile != null) {
-                    placedTileIndexes.add(dTile.index);
-                    if (!qwirkleMonitor.contains(board[dxpos][dypos]))
-                        qwirkleMonitor.add(board[dxpos][dypos]);
+                    visitedTiles.add(dTile);
                     hasPath = true;
                     points++;
                     //System.out.println("\t\tDTILE = " + dTile + " -> points = " + points);
@@ -699,12 +626,35 @@ public class GameModel implements Serializable {
         }
     }
 
-    private static boolean isQwirkle() {
-        if ( getPlayerHighestCCount(qwirkleMonitor) == 6 || getPlayerHighestSCount(qwirkleMonitor) == 6) {
-            qwirkle = true;
-            return qwirkle;
+    public static int qwirkleCount() {
+        System.out.println("IS QWIRKLE COMPUTATION TILES = " + visitedTiles.size());
+        Map<String, Integer> xy = new HashMap<>();
+        for (Tile tile: visitedTiles) {
+            System.out.println("----------------------------------- START " + tile.index);
+            System.out.println("For xpos = " + tile.xPos + " AND ypos = " + tile.yPos);
+
+            Object x = xy.putIfAbsent(tile.xPos + "x", 0);
+            Object y = xy.putIfAbsent(tile.yPos + "y", 0);
+
+            System.out.println("x = " + x);
+            System.out.println("y = " + y);
+            System.out.println("------------------------------------- END " + tile.index);
         }
-        return false;
+
+        for (Tile tile: visitedTiles) {
+            xy.computeIfPresent(tile.xPos + "x", (key, value) -> ++value);
+            xy.computeIfPresent(tile.yPos + "y", (key, value) -> ++value);
+        }
+
+        Collection<Integer> values = xy.values();
+        int qCount = 0;
+        for (int v: values) {
+            System.out.println("IS QWIRKLE -> v = " + v);
+            if (v == 6) {
+                qCount++;
+            }
+        }
+        return qCount;
     }
 
     private static boolean isBonus() {

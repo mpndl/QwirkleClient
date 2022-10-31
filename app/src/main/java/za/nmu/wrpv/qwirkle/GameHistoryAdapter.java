@@ -61,19 +61,22 @@ public class GameHistoryAdapter extends RecyclerView.Adapter<GameHistoryAdapter.
         private final TextView date;
         private final RecyclerView messages;
         private final TableLayout players;
+        private final TextView imsgTitle;
         public GameItemHolder(@NonNull View itemView) {
             super(itemView);
             date = itemView.findViewById(R.id.tv_game_date);
             messages = itemView.findViewById(R.id.rv_game_history_imessages);
             players = itemView.findViewById(R.id.tl_game_history_score_board);
+            imsgTitle = itemView.findViewById(R.id.tv_imessages);
         }
         protected void set(Game game) {
             String time = new SimpleDateFormat("HH:mm").format(game.date);
             String date = new SimpleDateFormat("YYYY/MM/dd").format(game.date);
             this.date.setText(date + " " + time);
             this.date.setTextSize(Helper.PLAYER_TILE_SIZE_50/4);
+            imsgTitle.setTextSize(Helper.PLAYER_TILE_SIZE_50/4);
 
-            game.players.sort((player, t1) -> -Integer.compare(player.points, t1.points));
+                game.players.sort((player, t1) -> -Integer.compare(player.points, t1.points));
 
             for (int i = 0; i < game.players.size(); i++) {
                 TableRow row = (TableRow) players.getChildAt(i+1);
