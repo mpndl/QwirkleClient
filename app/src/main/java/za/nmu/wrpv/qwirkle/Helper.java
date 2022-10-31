@@ -26,6 +26,8 @@ import androidx.gridlayout.widget.GridLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -52,7 +54,7 @@ public class Helper {
 
     static public class AnimateTilePlacement {
         private static final List<View> placementViews = new CopyOnWriteArrayList<>();
-        public static  void easeInTilePlacement() {
+        public static  void easeInTilePlacement(int milliseconds) {
             if (placementViews.size() > 0) {
                 final int[] opacity = {PLAYER_TILE_OPACITY};
                 new Thread(() -> {
@@ -63,7 +65,7 @@ public class Helper {
                             //  System.out.println("------------------------ VIEW EASE --------------------------");
                             do {
                                 view.getForeground().setAlpha(opacity[0]);
-                                Thread.sleep(50);
+                                Thread.sleep(milliseconds);
                                 //  System.out.println("EASING IN OPACITY = " + opacity[0]);
                                 opacity[0] += 15;
                             } while (opacity[0] < 255);
@@ -140,18 +142,34 @@ public class Helper {
             try {
                 int points = 1;
 
+                List<View> views = new ArrayList<>();
                 for (Tile tile : visitedTiles) {
                     System.out.println(tile.index);
                     View view = glBoard.getChildAt(tile.index);
+                    fragment.focusView = view;
+                    views.add(view);
                     int finalPoints = points;
                     context.runOnUiThread(() -> tvPoints.setText(finalPoints + ""));
                     context.runOnUiThread(() -> {
                                 focusOnView(context, sv, hsv, view);
+                                view.getForeground().setAlpha(PLAYER_TILE_OPACITY);
                             });
 
                     points++;
                     Thread.sleep(500);
                 }
+
+                Collections.reverse(visitedTiles);
+                Collections.reverse(views);
+                AnimateTilePlacement.placementViews.addAll(views);
+
+                AnimateTilePlacement.easeInTilePlacement(20);
+                for (Tile tile: visitedTiles) {
+                    View view = glBoard.getChildAt(tile.index);
+                    context.runOnUiThread(() -> focusOnView(context, sv, hsv, view));
+                    Thread.sleep(30);
+                }
+
                 if (qwirkleCount > 0) {
                     ConstraintLayout constraintLayout = context.findViewById(R.id.cl_fragment_game);
                     context.runOnUiThread(() ->qwirkleAnimate(context, player, constraintLayout, qwirkleCount));

@@ -47,33 +47,32 @@ public class MessagesFragment extends Fragment implements Serializable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Notification.cancel(getContext(), Notification.NOTIFICATION_ID);
+            Notification.cancel(requireContext(), Notification.NOTIFICATION_ID);
 
-        adapter = new MessagesAdapter(GameModel.messages, GameModel.clientPlayer);
+            adapter = new MessagesAdapter(GameModel.messages, GameModel.clientPlayer);
 
-        thread = new Thread(() -> {
-            do {
-                Map<String, Object> data = new HashMap<>();
-                data.put("adapter", adapter);
-                data.put("context", getActivity());
-                Run run = null;
-                try {
-                    run = runs.take();
-                    run.run(data);
-                }catch (NullPointerException e) {
-                    if (run != null) {
-                        runs.add(run);
+            thread = new Thread(() -> {
+                do {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("adapter", adapter);
+                    data.put("context", getActivity());
+                    Run run = null;
+                    try {
+                        run = runs.take();
+                        run.run(data);
+                    } catch (NullPointerException e) {
+                        if (run != null) {
+                            runs.add(run);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }while (true);
-        });
-        thread.start();
-        setupRecycleView();
-        setupListeners();
-        setupScrollToBottom();
+                } while (true);
+            });
+            thread.start();
+            setupRecycleView();
+            setupListeners();
+            setupScrollToBottom();
     }
 
     @Override
@@ -83,68 +82,68 @@ public class MessagesFragment extends Fragment implements Serializable {
     }
 
     private void setupListeners() {
-        Button btnSendMessage = getView().findViewById(R.id.btn_send_message);
-        EditText etMessage = getView().findViewById(R.id.et_message);
-        etMessage.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            Button btnSendMessage = requireView().findViewById(R.id.btn_send_message);
+            EditText etMessage = requireView().findViewById(R.id.et_message);
+            etMessage.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-            }
+                }
 
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                btnSendMessage.setEnabled(!charSequence.toString().isEmpty());
-            }
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    btnSendMessage.setEnabled(!charSequence.toString().isEmpty());
+                }
 
-            @Override
-            public void afterTextChanged(Editable editable) {
+                @Override
+                public void afterTextChanged(Editable editable) {
 
-            }
-        });
+                }
+            });
 
-        btnSendMessage.setOnClickListener(view -> {
-            PlayerMessage playerMessage = new PlayerMessage();
-            playerMessage.player = GameModel.clientPlayer;
-            playerMessage.message = etMessage.getText().toString();
-            playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+            btnSendMessage.setOnClickListener(view -> {
+                PlayerMessage playerMessage = new PlayerMessage();
+                playerMessage.player = GameModel.clientPlayer;
+                playerMessage.message = etMessage.getText().toString();
+                playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
-            IMessage msg = new IMessage();
-            msg.put("message", playerMessage);
+                IMessage msg = new IMessage();
+                msg.put("message", playerMessage);
 
-            ServerHandler.send(msg);
+                ServerHandler.send(msg);
 
-            etMessage.setText("");
-        });
+                etMessage.setText("");
+            });
     }
 
     private void setupScrollToBottom() {
-        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
-        FloatingActionButton actionButton = getView().findViewById(R.id.fab_scroll_to_bottom);
-        actionButton.setOnClickListener(view -> {
-            rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
-        });
+            RecyclerView rvPlayerTilesView = requireView().findViewById(R.id.rv_messages);
+            FloatingActionButton actionButton = requireView().findViewById(R.id.fab_scroll_to_bottom);
+            actionButton.setOnClickListener(view -> {
+                rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
+            });
 
-        rvPlayerTilesView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                actionButton.setEnabled(recyclerView.canScrollVertically(1));
-            }
-        });
+            rvPlayerTilesView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                    actionButton.setEnabled(recyclerView.canScrollVertically(1));
+                }
+            });
     }
 
     private void setupRecycleView() {
-        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.rv_messages);
-        LinearLayoutManager layoutManager= new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-        rvPlayerTilesView.setLayoutManager(layoutManager);
-        rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
+            RecyclerView rvPlayerTilesView = requireView().findViewById(R.id.rv_messages);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+            rvPlayerTilesView.setLayoutManager(layoutManager);
+            rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        linearLayoutManager.setStackFromEnd(true);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+            linearLayoutManager.setStackFromEnd(true);
 
-        rvPlayerTilesView.setAdapter(adapter);
-        rvPlayerTilesView.setLayoutManager(linearLayoutManager);
-        rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
+            rvPlayerTilesView.setAdapter(adapter);
+            rvPlayerTilesView.setLayoutManager(linearLayoutManager);
+            rvPlayerTilesView.smoothScrollToPosition(adapter.getItemCount());
     }
 
     public static void runLater(Run run) {

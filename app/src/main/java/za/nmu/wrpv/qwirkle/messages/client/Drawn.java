@@ -5,6 +5,7 @@ import android.widget.Button;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
@@ -29,9 +30,9 @@ public class Drawn extends Message implements Serializable {
             PlayerTilesAdapter adapter = (PlayerTilesAdapter) data1.get("playerTilesAdapter");
 
             Helper.sound(context, R.raw.draw);
-            if (player.name != GameModel.clientPlayer.name) {
+            if ((player != null ? player.name : null) != GameModel.clientPlayer.name) {
                 GameModel.updatePlayerTiles(player);
-                context.runOnUiThread(() -> adapter.notifyDataSetChanged());
+                Objects.requireNonNull(context).runOnUiThread(() -> adapter.notifyDataSetChanged());
                 GameModel.bag = bag;
 
                 GameModel.turn();
@@ -40,7 +41,7 @@ public class Drawn extends Message implements Serializable {
                 context.runOnUiThread(() -> fragment.setupCurrentPlayer());
             }
 
-            Button btnPlay = context.findViewById(R.id.btn_play);
+            Button btnPlay = Objects.requireNonNull(context).findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);
             Button btnUndo = context.findViewById(R.id.btn_undo);
             context.runOnUiThread(() -> Helper.enableIfTurn(btnPlay, btnDraw, btnUndo));

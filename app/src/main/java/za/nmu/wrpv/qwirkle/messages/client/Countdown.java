@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.widget.Button;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import za.nmu.wrpv.qwirkle.BeginActivity;
@@ -20,7 +21,7 @@ public class Countdown extends Message implements Serializable {
         seconds = new AtomicReference<>((Integer) get("seconds"));
         BeginActivity.runLater(data1 -> {
             Activity context = (Activity) data1.get("context");
-            Button button = context.findViewById(R.id.btn_start_game);
+            Button button = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
             System.out.println("------------------------ " + get("seconds"));
             button.setText(context.getResources().getString(R.string.waiting_countdown, seconds.get()));
             thread = new Thread(() -> {

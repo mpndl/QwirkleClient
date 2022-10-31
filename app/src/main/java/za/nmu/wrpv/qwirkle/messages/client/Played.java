@@ -15,6 +15,7 @@ import androidx.gridlayout.widget.GridLayout;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -34,9 +35,7 @@ public class Played extends Message implements Serializable {
 
     @Override
     public void apply() {
-        System.out.println("------------------------------- PLAYED START -----------------------------");
         Player player = (Player) data.get("player");
-        System.out.println(player.name + " POINTS = " + player.points);
 
         List<Tile> bag = (List<Tile>) data.get("bag");
         Tile[][] board = (Tile[][]) data.get("board");
@@ -49,20 +48,21 @@ public class Played extends Message implements Serializable {
             ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
             GameFragment fragment = (GameFragment) d.get("fragment");
 
-            HorizontalScrollView hsv = context.findViewById(R.id.horizontalScrollView);
+            HorizontalScrollView hsv = Objects.requireNonNull(context).findViewById(R.id.horizontalScrollView);
             ScrollView sv = context.findViewById(R.id.scrollView2);
 
             Helper.sound(context, R.raw.play);
-            if (player.name != GameModel.clientPlayer.name) {
+            if (Objects.requireNonNull(player).name != GameModel.clientPlayer.name) {
                 GameModel.updatePlayerTiles(player);
                 GameModel.updatePlayerScore(player);
-                context.runOnUiThread(() -> adapter.notifyDataSetChanged());
+                assert adapter != null;
+                context.runOnUiThread(adapter::notifyDataSetChanged);
                 GameModel.board = board;
                 GameModel.bag = bag;
 
                 GridLayout glBoard = context.findViewById(R.id.board);
                 View v = null;
-                for (int i = 0; i < places.size(); i++) {
+                for (int i = 0; i < Objects.requireNonNull(places).size(); i++) {
                     Tile tile = places.get(i);
                     View view = glBoard.getChildAt(tile.index);
                     context.runOnUiThread(() -> view.setForeground(getDrawable(tile.toString(), context)));
@@ -72,16 +72,16 @@ public class Played extends Message implements Serializable {
                 }
                 View finalV = v;
                 context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
-                context.runOnUiThread(Helper.AnimateTilePlacement::easeInTilePlacement);
+                context.runOnUiThread(() -> Helper.AnimateTilePlacement.easeInTilePlacement(50));
 
-                calculatePoints(context,visitedTiles, player, qwirkle, fragment);
+                calculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
 
                 GameModel.turn();
 
                 GameModel.placedCount = placedCount;
                 GameModel.placing = false;
-                context.runOnUiThread(() -> fragment.setupCurrentPlayer());
-                context.runOnUiThread(() -> fragment.setupBagCount());
+                context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
+                context.runOnUiThread(fragment::setupBagCount);
             }
 
             Button btnPlay = context.findViewById(R.id.btn_play);

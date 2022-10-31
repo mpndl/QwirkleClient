@@ -5,6 +5,7 @@ import static za.nmu.wrpv.qwirkle.Helper.vibrate;
 import android.app.Activity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
@@ -26,13 +27,13 @@ public class IMessage extends Message implements Serializable {
         MessagesFragment.runLater(data -> {
             MessagesAdapter adapter = (MessagesAdapter) data.get("adapter");
             Activity context = (Activity) data.get("context");
-            context.runOnUiThread(() -> adapter.add(playerMessage));
+            Objects.requireNonNull(context).runOnUiThread(() -> adapter.add(playerMessage));
         });
 
         MainActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
-            if (playerMessage.player.name != GameModel.clientPlayer.name) {
-                Notification.displayNotification(context, playerMessage.message);
+            if (Objects.requireNonNull(playerMessage).player.name != GameModel.clientPlayer.name) {
+                Notification.displayNotification(Objects.requireNonNull(context), playerMessage.message);
                 vibrate(50, context);
                 vibrate(50, context);
                 Helper.sound(context, R.raw.imessage);

@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 import za.nmu.wrpv.qwirkle.BeginActivity;
 import za.nmu.wrpv.qwirkle.MainActivity;
@@ -36,7 +37,7 @@ public class Begin extends Message {
             bundle.putSerializable("players", (Serializable) players);
 
             intent.putExtra("bundle", bundle);
-            context.startActivity(intent);
+            Objects.requireNonNull(context).startActivity(intent);
         });
     }
 }

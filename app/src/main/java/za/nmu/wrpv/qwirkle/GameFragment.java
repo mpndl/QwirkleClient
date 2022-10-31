@@ -56,6 +56,9 @@ public class GameFragment extends Fragment implements Serializable {
     private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
+    private HorizontalScrollView hsv;
+    private ScrollView sv;
+    public View focusView = null;
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -74,17 +77,20 @@ public class GameFragment extends Fragment implements Serializable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        scoreAdapter = new ScoreAdapter(getActivity(), GameModel.players);
-        playerTilesAdapter = new PlayerTilesAdapter(getActivity(), GameModel.clientPlayer.tiles);
+        scoreAdapter = new ScoreAdapter(requireActivity(), GameModel.players);
+        playerTilesAdapter = new PlayerTilesAdapter(requireActivity(), GameModel.clientPlayer.tiles);
 
-        Helper.initializeTileSizes(getActivity());
+        hsv = requireView().findViewById(R.id.horizontalScrollView);
+        sv = requireView().findViewById(R.id.scrollView2);
 
-        TextView tv_calculate = getView().findViewById(R.id.tv_points);
+        Helper.initializeTileSizes(requireActivity());
+
+        TextView tv_calculate = requireView().findViewById(R.id.tv_points);
         tv_calculate.setTextSize(BOARD_TILE_SIZE);
 
-        Button btnPlay = getView().findViewById(R.id.btn_play);
-        Button btnDraw = getView().findViewById(R.id.btn_draw);
-        Button btnUndo = getView().findViewById(R.id.btn_undo);
+        Button btnPlay = requireView().findViewById(R.id.btn_play);
+        Button btnDraw = requireView().findViewById(R.id.btn_draw);
+        Button btnUndo = requireView().findViewById(R.id.btn_undo);
         enableIfTurn(btnPlay, btnDraw, btnUndo);
 
         btnPlay.getLayoutParams().width = (BOARD_TILE_SIZE);
@@ -96,11 +102,11 @@ public class GameFragment extends Fragment implements Serializable {
         btnUndo.getLayoutParams().width = (BOARD_TILE_SIZE);
         btnUndo.getLayoutParams().height = (BOARD_TILE_SIZE);
 
-        ImageView ivBag = getView().findViewById(R.id.iv_bag);
+        ImageView ivBag = requireView().findViewById(R.id.iv_bag);
         ivBag.getLayoutParams().width = (BOARD_TILE_SIZE);
         ivBag.getLayoutParams().height = (BOARD_TILE_SIZE);
 
-        TextView tvQwirkle = getView().findViewById(R.id.tv_qwirkle);
+        TextView tvQwirkle = requireView().findViewById(R.id.tv_qwirkle);
         tvQwirkle.setTextSize(30);
         tvQwirkle.setText(R.string.app_name);
 
@@ -109,22 +115,21 @@ public class GameFragment extends Fragment implements Serializable {
             do {
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
-                data.put("playerTilesAdapter",playerTilesAdapter);
-                data.put("context", getContext());
+                data.put("playerTilesAdapter", playerTilesAdapter);
+                data.put("context", requireContext());
                 data.put("fragment", this);
                 Run run = null;
                 try {
                     run = runs.take();
                     run.run(data);
-                }catch (NullPointerException e) {
+                } catch (NullPointerException e) {
                     if (run != null) {
                         runs.add(run);
                     }
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }while (true);
+            } while (true);
         });
         thread.start();
 
@@ -147,37 +152,38 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     private void center() {
-        HorizontalScrollView hsv = getView().findViewById(R.id.horizontalScrollView);
-        ScrollView sv = getView().findViewById(R.id.scrollView2);
+        HorizontalScrollView hsv = requireView().findViewById(R.id.horizontalScrollView);
+        ScrollView sv = requireView().findViewById(R.id.scrollView2);
         hsv.post(() -> {
-            sv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
-            hsv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) /2);
+            sv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) / 2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) / 2);
+            hsv.smoothScrollBy((GameModel.XLENGTH * (GameModel.XLENGTH * 2)) / 2, (GameModel.XLENGTH * (GameModel.XLENGTH * 2)) / 2);
         });
     }
 
     private void setButtonListeners() {
-        Button btnDraw = getView().findViewById(R.id.btn_draw);
-        Button btnPlay = getView().findViewById(R.id.btn_play);
-        Button btnUndo = getView().findViewById(R.id.btn_undo);
+        Button btnDraw = requireView().findViewById(R.id.btn_draw);
+        Button btnPlay = requireView().findViewById(R.id.btn_play);
+        Button btnUndo = requireView().findViewById(R.id.btn_undo);
         btnDraw.setOnClickListener(this::setOnDraw);
-        btnPlay.setOnClickListener(this:: setOnPlay);
+        btnPlay.setOnClickListener(this::setOnPlay);
         btnUndo.setOnClickListener(this::setOnUndo);
     }
 
     private void setupGridLayout() {
-        GridLayout glBoard = getView().findViewById(R.id.board);
+        GridLayout glBoard = requireView().findViewById(R.id.board);
         glBoard.setColumnCount(GameModel.XLENGTH);
         glBoard.setRowCount(GameModel.YLENGTH);
         populate(glBoard);
     }
 
     private void setupPlayersStatus() {
-        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
+        requireView();
+        GridView gvPlayersStatus = requireView().findViewById(R.id.gv_players_status);
         gvPlayersStatus.setAdapter(scoreAdapter);
     }
 
     private void resetWidthExcept(ImageView imageView) {
-        RecyclerView rvPlayerTiles = getActivity().findViewById(R.id.player_tiles);
+        RecyclerView rvPlayerTiles = requireActivity().findViewById(R.id.player_tiles);
         for (int i = 0; i < rvPlayerTiles.getChildCount(); i++) {
             ConstraintLayout constraintLayout = (ConstraintLayout) rvPlayerTiles.getChildAt(i);
             ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
@@ -191,7 +197,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     private void setupRecyclerView() {
-        RecyclerView rvPlayerTilesView = getView().findViewById(R.id.player_tiles);
+        RecyclerView rvPlayerTilesView = requireView().findViewById(R.id.player_tiles);
         rvPlayerTilesView.addItemDecoration(new EqualSpaceItemDecoration(5));
 
         rvPlayerTilesView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -199,7 +205,7 @@ public class GameFragment extends Fragment implements Serializable {
             public void onGlobalLayout() {
                 rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 setupCurrentPlayer();
-                Helper.sound(getActivity(), R.raw.begin);
+                Helper.sound(requireActivity(), R.raw.begin);
             }
         });
 
@@ -212,12 +218,12 @@ public class GameFragment extends Fragment implements Serializable {
 
 
     public void setupCurrentPlayer() {
-        GridView gvPlayersStatus = getView().findViewById(R.id.gv_players_status);
+        GridView gvPlayersStatus = requireView().findViewById(R.id.gv_players_status);
 
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
             CardView cardView = (CardView) gvPlayersStatus.getChildAt(i);
             TextView textView = cardView.findViewById(R.id.tv_player_name);
-            textView.setTextSize(BOARD_TILE_SIZE /9f);
+            textView.setTextSize(BOARD_TILE_SIZE / 9f);
 
             ImageView imageView = cardView.findViewById(R.id.iv_player_avatar);
             String[] data = imageView.getTag().toString().split(",");
@@ -229,17 +235,16 @@ public class GameFragment extends Fragment implements Serializable {
                 else
                     textView.setText(">" + playerName);
                 textView.setTextColor(Color.BLUE);
-            }
-            else {
+            } else {
                 if (playerName.equals(GameModel.clientPlayerName))
                     textView.setText(you);
                 else
                     textView.setText(playerName);
-                textView.setTextColor(getActivity().getColor(R.color.white));
+                textView.setTextColor(requireActivity().getColor(R.color.white));
             }
         }
 
-        RecyclerView recyclerView = getView().findViewById(R.id.player_tiles);
+        RecyclerView recyclerView = requireView().findViewById(R.id.player_tiles);
 
         setTurnBackgroundColor(gvPlayersStatus, GameModel.clientPlayer);
         setBackgroundColor(recyclerView, GameModel.clientPlayer);
@@ -247,7 +252,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setupBagCount() {
-        TextView tvTileCount = getView().findViewById(R.id.tv_tileCount);
+        TextView tvTileCount = requireView().findViewById(R.id.tv_tileCount);
         tvTileCount.setText(GameModel.getBagCount() + "");
     }
 
@@ -257,19 +262,28 @@ public class GameFragment extends Fragment implements Serializable {
         int index = 0;
         for (int i = 0; i < GameModel.XLENGTH; i++) {
             for (int j = 0; j < GameModel.YLENGTH; j++) {
-                ImageButton button = new ImageButton(getActivity());
+                ImageButton button = new ImageButton(requireActivity());
 
-                button.setBackground(Helper.getDrawable("shadow", getActivity()));
+                button.setBackground(Helper.getDrawable("shadow", requireActivity()));
                 button.setMinimumWidth(BOARD_TILE_SIZE);
                 button.setMinimumHeight(BOARD_TILE_SIZE);
                 button.setTag(i + "_" + j + "_" + index);
                 button.setPadding(0, 0, 0, 0);
                 button.setOnClickListener(this::onTileClicked);
+                button.setOnLongClickListener(this::onFocus);
                 grid.addView(button, index);
 
                 index++;
             }
         }
+    }
+
+    private boolean onFocus(View view) {
+        if (focusView != null) {
+            Helper.focusOnView(requireActivity(), sv, hsv, focusView);
+            return true;
+        }
+        return false;
     }
 
     private void onTileClicked(View view) {
@@ -281,16 +295,16 @@ public class GameFragment extends Fragment implements Serializable {
             selectedTiles.get(0).index = Integer.parseInt(rowColIndex[2]);
             GameModel.Legality legality = GameModel.place(row_no, col_no, selectedTiles.get(0));
             if (legality == GameModel.Legality.LEGAL) {
-                Helper.sound(getActivity(), R.raw.placed);
+                Helper.sound(requireActivity(), R.raw.placed);
                 updateTags();
                 playerTilesAdapter.notifyDataSetChanged();
 
                 // set image resource to the tile selected by a player
-                button.setForeground(getDrawable(selectedTiles.get(0).toString(), getActivity()));
+                button.setForeground(getDrawable(selectedTiles.get(0).toString(), requireActivity()));
                 button.getForeground().setAlpha(PLAYER_TILE_OPACITY);
                 Helper.AnimateTilePlacement.add(button);
             } else {
-                Helper.sound(getActivity(), R.raw.invalid);
+                Helper.sound(requireActivity(), R.raw.invalid);
                 legalityMessage(view, legality);
             }
         } else {
@@ -299,19 +313,19 @@ public class GameFragment extends Fragment implements Serializable {
             else {
                 System.out.println("SELECT TILES TO PLACE " + GameModel.clientPlayer.name);
             }
-            Helper.sound(getActivity(), R.raw.invalid);
+            Helper.sound(requireActivity(), R.raw.invalid);
         }
         resetWidthExcept(null);
         resetMultiSelect();
     }
 
     private void legalityMessage(View view ,GameModel.Legality legality) {
-        displayMessage(view, getContext().getResources().getIdentifier("illegal_" + legality.toString().toLowerCase(Locale.ROOT),
-                "string", getContext().getPackageName()));
+        displayMessage(view, requireContext().getResources().getIdentifier("illegal_" + legality.toString().toLowerCase(Locale.ROOT),
+                "string", requireContext().getPackageName()));
     }
 
     private void updateTags() {
-        RecyclerView rvPlayerTiles = getView().findViewById(R.id.player_tiles);
+        RecyclerView rvPlayerTiles = requireView().findViewById(R.id.player_tiles);
         for (int i = 0; i < rvPlayerTiles.getChildCount(); i++) {
             ConstraintLayout constraintLayout = (ConstraintLayout) rvPlayerTiles.getChildAt(i);
             ImageView curImageView = (ImageView) constraintLayout.getChildAt(0);
@@ -320,7 +334,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void iaOnclickListener(View view) {
-        Helper.sound(getActivity(), R.raw.click);
+        Helper.sound(requireActivity(), R.raw.click);
         ImageView imageView = view.findViewById(R.id.iv_tile);
         updateTags();
 
@@ -365,9 +379,9 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public boolean iaLongClickListener(View view) {
-        Helper.sound(getActivity(), R.raw.double_click);
+        Helper.sound(requireActivity(), R.raw.double_click);
         multiSelect = !multiSelect;
-        vibrate(50, getActivity());
+        vibrate(50, requireActivity());
         resetWidthExcept(null);
         if (selectedTiles == null)
             selectedTiles = new ArrayList<>();
@@ -378,8 +392,7 @@ public class GameFragment extends Fragment implements Serializable {
         if (params.width == PLAYER_TILE_SIZE_50) {
             params.width = PLAYER_TILE_SIZE_60;
             params.height = PLAYER_TILE_SIZE_60;
-        }
-        else {
+        } else {
             params.width = PLAYER_TILE_SIZE_50;
             params.height = PLAYER_TILE_SIZE_50;
             selectedTiles.remove(selectedTile);
@@ -389,7 +402,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setOnPlay(View view) {
-        if(GameModel.places.size() > 0) {
+        if (GameModel.places.size() > 0) {
             //System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
             GameModel.play();
@@ -404,54 +417,54 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
-            message.put("qwirkle",GameModel.qwirkleCount());
+            message.put("qwirkle", GameModel.qwirkleCount());
             message.put("visitedTiles", vClone);
 
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
-            calculatePoints(getActivity(), vClone, GameModel.clientPlayer, GameModel.qwirkleCount(), this);
+            calculatePoints(requireActivity(), vClone, GameModel.clientPlayer, GameModel.qwirkleCount(), this);
 
             GameModel.turn();
 
             setupBagCount();
             setupCurrentPlayer();
             resetMultiSelect();
-            easeInTilePlacement();
+            easeInTilePlacement(50);
 
             GameModel.places = new ArrayList<>();
             ServerHandler.send(message);
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
-            Button btnPlay = getView().findViewById(R.id.btn_play);
-            Button btnDraw = getView().findViewById(R.id.btn_draw);
-            Button btnUndo = getView().findViewById(R.id.btn_undo);
+            Button btnPlay = requireView().findViewById(R.id.btn_play);
+            Button btnDraw = requireView().findViewById(R.id.btn_draw);
+            Button btnUndo = requireView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
             //System.out.println("-------------------------- PLAY END -------------------------");
-        }else Helper.sound(getActivity(), R.raw.invalid);
+        } else Helper.sound(requireActivity(), R.raw.invalid);
     }
 
     public void gameEnded() {
         GameEnded message = new GameEnded();
         ServerHandler.send(message);
 
-        Button btnPlay = getView().findViewById(R.id.btn_play);
-        Button btnDraw = getView().findViewById(R.id.btn_draw);
-        Button btnUndo = getView().findViewById(R.id.btn_undo);
+        Button btnPlay = requireView().findViewById(R.id.btn_play);
+        Button btnDraw = requireView().findViewById(R.id.btn_draw);
+        Button btnUndo = requireView().findViewById(R.id.btn_undo);
         enableIfTurn(btnPlay, btnDraw, btnUndo);
     }
 
     public void setOnUndo(View view) {
         if (GameModel.places.size() > 0) {
-            Helper.sound(getActivity(), R.raw.undo);
+            Helper.sound(requireActivity(), R.raw.undo);
             GameModel.undo(GameModel.places);
             playerTilesAdapter.notifyDataSetChanged();
             resetWidthExcept(null);
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
-            easeInTilePlacement();
+            easeInTilePlacement(50);
             GameModel.places = new ArrayList<>();
-        }else Helper.sound(getActivity(), R.raw.invalid);
+        }else Helper.sound(requireActivity(), R.raw.invalid);
     }
 
     public void setOnDraw(View view) {
@@ -477,21 +490,21 @@ public class GameFragment extends Fragment implements Serializable {
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
 
-            Button btnPlay = getView().findViewById(R.id.btn_play);
-            Button btnDraw = getView().findViewById(R.id.btn_draw);
-            Button btnUndo = getView().findViewById(R.id.btn_undo);
+            Button btnPlay = requireView().findViewById(R.id.btn_play);
+            Button btnDraw = requireView().findViewById(R.id.btn_draw);
+            Button btnUndo = requireView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
-        }else Helper.sound(getActivity(), R.raw.invalid);
+        } else Helper.sound(requireActivity(), R.raw.invalid);
     }
 
     private void undoPlacedTiles(List<Tile> selectedTiles) {
-        GridLayout glBoard = getView().findViewById(R.id.board);
-        for (Tile tile: selectedTiles) {
+        GridLayout glBoard = requireView().findViewById(R.id.board);
+        for (Tile tile : selectedTiles) {
             int index = tile.yPos * GameModel.XLENGTH + tile.xPos;
             ImageButton imageButton2 = (ImageButton) glBoard.getChildAt(index);
 
-            ImageButton button = new ImageButton(getActivity());
-            button.setBackground(Helper.getDrawable("shadow", getActivity()));
+            ImageButton button = new ImageButton(requireActivity());
+            button.setBackground(Helper.getDrawable("shadow", requireActivity()));
             button.setMinimumWidth(imageButton2.getMinimumWidth());
             button.setMinimumHeight(imageButton2.getMinimumHeight());
             button.setTag(imageButton2.getTag());

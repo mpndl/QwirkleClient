@@ -7,6 +7,7 @@ import android.os.Bundle;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -51,7 +52,7 @@ public class GameEnded extends Message implements Serializable {
             bundle.putSerializable("players", (Serializable) GameModel.players);
 
             intent.putExtras(bundle);
-            context.startActivity(intent);
+            Objects.requireNonNull(context).startActivity(intent);
         });
     }
 }

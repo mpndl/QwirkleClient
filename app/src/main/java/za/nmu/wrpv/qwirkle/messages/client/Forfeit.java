@@ -14,6 +14,7 @@ import za.nmu.wrpv.qwirkle.messages.Message;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Forfeit extends Message implements Serializable {
     private static final long serialVersionUID = 80L;
@@ -29,10 +30,10 @@ public class Forfeit extends Message implements Serializable {
                 GameFragment fragment = (GameFragment) data1.get("fragment");
 
                 GameModel.removePlayer(player);
-                context.runOnUiThread(() -> adapter.notifyDataSetChanged());
+                Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
                 if (player.name == GameModel.currentPlayer.name) {
                     GameModel.setNewCurrentPlayer();
-                    context.runOnUiThread(() -> fragment.setupCurrentPlayer());
+                    context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
                 }
                 Button btnPlay = context.findViewById(R.id.btn_play);
                 Button btnDraw = context.findViewById(R.id.btn_draw);

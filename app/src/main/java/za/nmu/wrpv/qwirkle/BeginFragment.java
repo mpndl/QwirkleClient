@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.Objects;
+
 import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 
 public class BeginFragment extends Fragment {
@@ -36,10 +38,10 @@ public class BeginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        SharedPreferences preferences = getActivity().getPreferences(MODE_PRIVATE);
+        SharedPreferences preferences = requireActivity().getPreferences(MODE_PRIVATE);
         String serverAddress = preferences.getString("server_address", "");
 
-        EditText etPlayerCount = getView().findViewById(R.id.et_server_address);
+        EditText etPlayerCount = requireView().findViewById(R.id.et_server_address);
         etPlayerCount.setHint("X.X.X.X");
         etPlayerCount.setText(serverAddress);
 
@@ -51,7 +53,7 @@ public class BeginFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Button btnStartGame = getView().findViewById(R.id.btn_start_game);
+                Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
                 btnStartGame.setEnabled(!charSequence.toString().isEmpty());
             }
 
@@ -61,16 +63,16 @@ public class BeginFragment extends Fragment {
             }
         });
 
-        Button btnStartGame = getView().findViewById(R.id.btn_start_game);
+        Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
         btnStartGame.setOnClickListener(this::onStartGame);
     }
 
     public void onStartGame(View view) {
         Button btnStartGame = (Button)view;
         if (startGame) {
-            EditText etServerAddress = getView().findViewById(R.id.et_server_address);
+            EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
 
-            getActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
+            requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
             ServerHandler.serverAddress = etServerAddress.getText().toString();
             ServerHandler.start();
             startGame = false;
@@ -86,7 +88,7 @@ public class BeginFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Button btnStartGame = getView().findViewById(R.id.btn_start_game);
+        Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
         btnStartGame.setText(R.string.btn_start_game);
     }
 }

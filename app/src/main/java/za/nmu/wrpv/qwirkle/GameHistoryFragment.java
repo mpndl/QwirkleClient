@@ -38,20 +38,20 @@ public class GameHistoryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        adapter = new GameHistoryAdapter(new ArrayList<>(), getActivity());
+            adapter = new GameHistoryAdapter(new ArrayList<>(), getActivity());
 
-        RecyclerView rvGameHistory = getView().findViewById(R.id.rv_game_history);
-        rvGameHistory.setAdapter(adapter);
-        rvGameHistory.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.HORIZONTAL));
+            RecyclerView rvGameHistory = requireView().findViewById(R.id.rv_game_history);
+            rvGameHistory.setAdapter(adapter);
+            rvGameHistory.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.HORIZONTAL));
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true);
-        layoutManager.setStackFromEnd(true);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true);
+            layoutManager.setStackFromEnd(true);
 
-        rvGameHistory.setLayoutManager(layoutManager);
+            rvGameHistory.setLayoutManager(layoutManager);
 
-        XMLHandler.loadFromXML(data -> {
-            Game game = (Game) data.get("game");
-            adapter.add(game);
-        }, getActivity());
+            XMLHandler.loadFromXML(data -> {
+                Game game = (Game) data.get("game");
+                adapter.add(game);
+            }, getActivity());
     }
 }

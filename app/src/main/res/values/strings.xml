@@ -35,5 +35,8 @@
     <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Tiles must have a common attribute (Color/Shape) with adjacent tiles</string>
     <string name="illegal_placed_tile_exists_on_adjacent_line">Tiles of a shape and color can\'t be placed next to tiles with the same shape and color</string>
     <string name="imessages">Messages</string>
+    <string name="long_click_to_focus">Long-click anywhere on the board to bring focus back to the tiles</string>
+    <string name="long_click_to_multi_select">Long-click on your tiles to activate multi-select and select any number of tiles to replace with the same number of tiles but with random attributes</string>
+    <string name="special_instructions">Special Instructions:</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>
