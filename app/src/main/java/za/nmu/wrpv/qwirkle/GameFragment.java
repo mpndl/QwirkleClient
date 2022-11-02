@@ -429,6 +429,8 @@ public class GameFragment extends Fragment implements Serializable {
 
             GameModel.turn();
 
+            if (GameModel.gameEnded()) gameEnded();
+
             setupBagCount();
             setupCurrentPlayer();
             resetMultiSelect();

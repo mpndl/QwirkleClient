@@ -25,7 +25,13 @@ public class Joined extends Message implements Serializable {
                 Activity context = (Activity) d.get("context");
                 ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
                 GameFragment fragment = (GameFragment) d.get("fragment");
+
+                if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
+
                 GameModel.setNewCurrentPlayer(currentPlayerIndex);
+
+                if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
+
                 Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
             });
         }

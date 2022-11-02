@@ -75,6 +75,8 @@ public class Played extends Message implements Serializable {
 
                 GameModel.turn();
 
+                if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
+
                 GameModel.placedCount = placedCount;
                 GameModel.placing = false;
                 context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
