@@ -18,13 +18,14 @@ public class Joined extends Message implements Serializable {
     @Override
     public void apply() {
         Player player = (Player) get("player");
+        int currentPlayerIndex = (int) get("currentPlayerIndex");
         if (GameModel.player != null) {
             GameModel.addPlayerSorted(player);
             GameFragment.runLater(d -> {
                 Activity context = (Activity) d.get("context");
                 ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
                 GameFragment fragment = (GameFragment) d.get("fragment");
-
+                GameModel.setNewCurrentPlayer(currentPlayerIndex);
                 Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
             });
         }

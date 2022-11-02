@@ -118,8 +118,9 @@ public class GameModel implements Serializable {
         }
     }
 
-    public static void setNewCurrentPlayer() {
-        currentPlayer = players.get(0);
+    public static void setNewCurrentPlayer(int index) {
+        if (index != -1) currentPlayer = players.get(index);
+        else currentPlayer = players.get(0);
     }
 
     public static void turn() {

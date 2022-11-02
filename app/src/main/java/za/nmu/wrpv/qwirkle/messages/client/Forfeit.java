@@ -32,7 +32,7 @@ public class Forfeit extends Message implements Serializable {
                 GameModel.removePlayer(player);
                 Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
                 if (player.name == GameModel.currentPlayer.name) {
-                    GameModel.setNewCurrentPlayer();
+                    GameModel.setNewCurrentPlayer(-1);
                     context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
                 }
                 Button btnPlay = context.findViewById(R.id.btn_play);

@@ -52,12 +52,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private ConstraintLayout clLeft;
+        private final ConstraintLayout clLeft;
         public TextView playerNameLeft;
         public TextView messageLeft;
         public TextView timeLeft;
 
-        private ConstraintLayout clRight;
+        private final ConstraintLayout clRight;
         public TextView playerNameRight;
         public TextView messageRight;
         public TextView timeRight;
@@ -82,7 +82,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
                 clLeft.setBackgroundColor(getColor(playerMessage.player, clLeft.getContext()));
                 clLeft.getBackground().setAlpha(128);
-                clLeft.setMinimumWidth(BOARD_TILE_SIZE * 3);
                 playerNameLeft.setText(R.string.you);
                 playerNameLeft.setTextSize(BOARD_TILE_SIZE / 7f);
 
@@ -100,7 +99,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
 
                 clRight.setBackgroundColor(getColor(playerMessage.player, clRight.getContext()));
                 clRight.getBackground().setAlpha(128);
-                clRight.setMinimumHeight(BOARD_TILE_SIZE * 3);
                 playerNameRight.setText(content);
                 playerNameRight.setTextSize(BOARD_TILE_SIZE / 7f);
 

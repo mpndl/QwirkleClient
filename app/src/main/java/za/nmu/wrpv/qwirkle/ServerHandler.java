@@ -10,6 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Forfeit;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 public class ServerHandler implements Serializable {
     private static final BlockingQueue<Message> messages = new LinkedBlockingQueue<>();
@@ -79,6 +80,7 @@ public class ServerHandler implements Serializable {
                 e.printStackTrace();
             } finally {
                 serverReader = null;
+                new Stop().apply();
             }
         }
     }

@@ -15,6 +15,7 @@ import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.MainActivity;
 import za.nmu.wrpv.qwirkle.BeginFragment;
 import za.nmu.wrpv.qwirkle.Player;
+import za.nmu.wrpv.qwirkle.PlayerMessage;
 import za.nmu.wrpv.qwirkle.ServerHandler;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
@@ -27,6 +28,7 @@ public class Begin extends Message {
         int currentPlayerIndex = (int) data.get("currentPlayerIndex");
         List<Tile> bag = (List<Tile>) data.get("bag");
         List<Player> players = (List<Player>)  data.get("players");
+        List<PlayerMessage> messages = (List<PlayerMessage>)  data.get("messages");
         Tile[][] board = (Tile[][]) data.get("board");
 
         BeginActivity.runLater(d -> {
@@ -65,6 +67,7 @@ public class Begin extends Message {
             bundle.putSerializable("bag", (Serializable) bag);
             bundle.putSerializable("players", (Serializable) players);
             bundle.putSerializable("board", board);
+            bundle.putSerializable("messages", (Serializable) messages);
 
             if (data.containsKey("player")) {
                 Player player = (Player) data.get("player");
