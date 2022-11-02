@@ -38,5 +38,6 @@
     <string name="long_click_to_focus">Long-click anywhere on the board to bring focus back to the tiles</string>
     <string name="long_click_to_multi_select">Long-click on your tiles to activate multi-select and select any number of tiles to replace with the same number of tiles but with random attributes</string>
     <string name="special_instructions">Special Instructions:</string>
+    <string name="illegal_placed_tile_forming_identical_attribute_line_to_adjacent_tile_line">Tiles cannot form an identical line of attributes with a line of an adjacent tile</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

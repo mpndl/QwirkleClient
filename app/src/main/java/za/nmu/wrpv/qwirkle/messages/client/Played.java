@@ -16,15 +16,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.Player;
-import za.nmu.wrpv.qwirkle.PlayerTilesAdapter;
 import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.ScoreAdapter;
 import za.nmu.wrpv.qwirkle.Tile;
@@ -41,6 +37,7 @@ public class Played extends Message implements Serializable {
         Tile[][] board = (Tile[][]) data.get("board");
         List<Tile> places = (ArrayList<Tile>)data.get("places");
         List<Tile> visitedTiles = (List<Tile>) data.get("visitedTiles");
+        List<Tile> placed = (List<Tile>) data.get("placed");
         int qwirkle = (int) get("qwirkle");
         int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(d -> {
@@ -52,13 +49,13 @@ public class Played extends Message implements Serializable {
             ScrollView sv = context.findViewById(R.id.scrollView2);
 
             Helper.sound(context, R.raw.play);
-            if (Objects.requireNonNull(player).name != GameModel.clientPlayer.name) {
+            if (Objects.requireNonNull(player).name != GameModel.player.name) {
                 GameModel.updatePlayerTiles(player);
                 GameModel.updatePlayerScore(player);
-                assert adapter != null;
-                context.runOnUiThread(adapter::notifyDataSetChanged);
+                context.runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
                 GameModel.board = board;
                 GameModel.bag = bag;
+                GameModel.placed.addAll(Objects.requireNonNull(placed));
 
                 GridLayout glBoard = context.findViewById(R.id.board);
                 View v = null;

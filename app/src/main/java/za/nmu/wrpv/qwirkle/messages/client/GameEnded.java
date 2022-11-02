@@ -6,7 +6,6 @@ import android.os.Bundle;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,9 +16,7 @@ import za.nmu.wrpv.qwirkle.Game;
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.Helper;
-import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.R;
-import za.nmu.wrpv.qwirkle.ScoreAdapter;
 import za.nmu.wrpv.qwirkle.XMLHandler;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
@@ -29,8 +26,7 @@ public class GameEnded extends Message implements Serializable {
     @Override
     public void apply() {
         Game game = new Game();
-        game.gameID = GameModel.gameID;
-        game.player = GameModel.clientPlayer;
+        game.player = GameModel.player;
         game.date = new Date();
         game.players = GameModel.players;
         game.messages = GameModel.messages;

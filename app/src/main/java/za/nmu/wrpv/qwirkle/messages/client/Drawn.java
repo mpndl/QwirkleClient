@@ -13,7 +13,6 @@ import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.PlayerTilesAdapter;
 import za.nmu.wrpv.qwirkle.R;
-import za.nmu.wrpv.qwirkle.ScoreAdapter;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
@@ -30,7 +29,7 @@ public class Drawn extends Message implements Serializable {
             PlayerTilesAdapter adapter = (PlayerTilesAdapter) data1.get("playerTilesAdapter");
 
             Helper.sound(context, R.raw.draw);
-            if ((player != null ? player.name : null) != GameModel.clientPlayer.name) {
+            if ((player != null ? player.name : null) != GameModel.player.name) {
                 GameModel.updatePlayerTiles(player);
                 Objects.requireNonNull(context).runOnUiThread(() -> adapter.notifyDataSetChanged());
                 GameModel.bag = bag;

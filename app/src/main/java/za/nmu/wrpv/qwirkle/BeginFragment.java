@@ -20,6 +20,7 @@ import android.widget.EditText;
 import java.util.Objects;
 
 import za.nmu.wrpv.qwirkle.messages.client.Countdown;
+import za.nmu.wrpv.qwirkle.messages.server.Join;
 
 public class BeginFragment extends Fragment {
     public static boolean startGame = true;
@@ -75,6 +76,11 @@ public class BeginFragment extends Fragment {
             requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
             ServerHandler.serverAddress = etServerAddress.getText().toString();
             ServerHandler.start();
+
+            Join message = new Join();
+            message.put("clientID", ServerHandler.clientID);
+            ServerHandler.send(message);
+
             startGame = false;
         }
         else {

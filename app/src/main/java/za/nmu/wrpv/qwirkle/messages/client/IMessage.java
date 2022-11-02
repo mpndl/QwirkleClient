@@ -7,7 +7,6 @@ import android.app.Activity;
 import java.io.Serializable;
 import java.util.Objects;
 
-import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.Helper;
 import za.nmu.wrpv.qwirkle.MainActivity;
@@ -32,7 +31,7 @@ public class IMessage extends Message implements Serializable {
 
         MainActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
-            if (Objects.requireNonNull(playerMessage).player.name != GameModel.clientPlayer.name) {
+            if (Objects.requireNonNull(playerMessage).player.name != GameModel.player.name) {
                 Notification.displayNotification(Objects.requireNonNull(context), playerMessage.message);
                 vibrate(50, context);
                 vibrate(50, context);

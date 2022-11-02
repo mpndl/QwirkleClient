@@ -21,7 +21,9 @@ public class Waiting extends IMessage implements Serializable {
         BeginActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
             Button button = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
-            context.runOnUiThread(() -> button.setText(context.getResources().getString(R.string.waiting)));
+            if (button != null) {
+                context.runOnUiThread(() -> button.setText(context.getResources().getString(R.string.waiting)));
+            }
         });
     }
 }

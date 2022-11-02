@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -49,7 +48,7 @@ public class MessagesFragment extends Fragment implements Serializable {
         super.onViewCreated(view, savedInstanceState);
             Notification.cancel(requireContext(), Notification.NOTIFICATION_ID);
 
-            adapter = new MessagesAdapter(GameModel.messages, GameModel.clientPlayer);
+            adapter = new MessagesAdapter(GameModel.messages, GameModel.player);
 
             thread = new Thread(() -> {
                 do {
@@ -103,7 +102,7 @@ public class MessagesFragment extends Fragment implements Serializable {
 
             btnSendMessage.setOnClickListener(view -> {
                 PlayerMessage playerMessage = new PlayerMessage();
-                playerMessage.player = GameModel.clientPlayer;
+                playerMessage.player = GameModel.player;
                 playerMessage.message = etMessage.getText().toString();
                 playerMessage.time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,8 +15,8 @@ public class GameModel implements Serializable {
     public static int gameID = -1;
     public static List<PlayerMessage> messages = new ArrayList<>();
     public static Player currentPlayer;
-    public static Player clientPlayer;
-    public static String clientPlayerName = "";
+    public static Player player;
+    public static String playerName = "";
     public static List<Tile> bag = new ArrayList<>();
     public static List<Player> players;
     public static final int XLENGTH = 50;
@@ -29,6 +30,7 @@ public class GameModel implements Serializable {
     public static boolean placing = false;
     public static boolean ended = false;
     public static List<Tile> visitedTiles = new ArrayList<>();
+    public static final List<Tile> placed = new ArrayList<>();
 
     public static void updatePlayerTiles(Player player) {
         for (Player p: players) {
@@ -37,6 +39,10 @@ public class GameModel implements Serializable {
                 return;
             }
         }
+    }
+
+    public static void addPlayer(Player player) {
+        players.add(player);
     }
 
     public static void removePlayer(Player player) {
@@ -50,8 +56,8 @@ public class GameModel implements Serializable {
     }
 
     public static boolean gameEnded() {
-        if (clientPlayer.name == currentPlayer.name) {
-            if (clientPlayer.tiles.size() == 0) {
+        if (player.name == currentPlayer.name) {
+            if (player.tiles.size() == 0) {
                 ended = true;
                 return true;
             }
@@ -64,11 +70,11 @@ public class GameModel implements Serializable {
     }
 
     public static boolean isTurn() {
-        return clientPlayer.name == currentPlayer.name;
+        return player.name == currentPlayer.name;
     }
 
     public static void undo(List<Tile> playerTiles) {
-        clientPlayer.tiles.addAll(playerTiles);
+        player.tiles.addAll(playerTiles);
         tempBoard = null;
         placing = false;
     }
@@ -138,6 +144,14 @@ public class GameModel implements Serializable {
         return temp;
     }
 
+    public static void addPlayerSorted(Player player) {
+        int index = Collections.binarySearch(players, player, Comparator.comparing(p -> p.name.toString()));
+        if (index < 0) {
+            index = -index -1;
+            players.add(index, player);
+        }
+    }
+
     public static List<Player> clonePlayers(List<Player> players) {
         List<Player> playersCopy = new ArrayList<>();
         for (Player player: players) {
@@ -166,7 +180,7 @@ public class GameModel implements Serializable {
                 placing = true;
             }
 
-            clientPlayer.tiles.remove(tile);
+            player.tiles.remove(tile);
 
             tile.xPos = xpos;
             tile.yPos = ypos;
@@ -205,6 +219,7 @@ public class GameModel implements Serializable {
         if(places.size() > 0) {
             placing = false;
             placedCount = placedCount + places.size();
+            placed.addAll(places);
             assignPoints();
             if (getBagCount() > 0)
                 draw(true, places);
@@ -257,7 +272,8 @@ public class GameModel implements Serializable {
 
     public enum Legality {
         LEGAL, ORIENTATION, TILE_EXISTS, LONER_TILE, NULL_IN_BETWEEN, PLACED_TILES_NOT_EQUIVALENT,
-        PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES, PLACED_TILE_EXISTS_ON_ADJACENT_LINE;
+        PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES, PLACED_TILE_EXISTS_ON_ADJACENT_LINE,
+        PLACED_TILE_FORMING_IDENTICAL_ATTRIBUTE_LINE_TO_ADJACENT_TILE_LINE
     }
 
     private static boolean allSidesNull(int xpos, int ypos) {
@@ -364,7 +380,7 @@ public class GameModel implements Serializable {
 
                 if (retRight && retLeft && retTop && retBottom) return Legality.LEGAL;
                 else return Legality.PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES;
-            } else return Legality.PLACED_TILES_NOT_EQUIVALENT_WITH_ADJACENT_TILES;
+            } else return Legality.PLACED_TILE_FORMING_IDENTICAL_ATTRIBUTE_LINE_TO_ADJACENT_TILE_LINE;
         }else return Legality.PLACED_TILE_EXISTS_ON_ADJACENT_LINE;
     }
 
@@ -545,10 +561,10 @@ public class GameModel implements Serializable {
             //System.out.println("---------------------------- HORIZONTALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos + 1, nullTile.yPos)) {
-                    calculate(nullTile.xPos, nullTile.yPos, +1, 0, tempBoard, orientation);
+                    calculate(nullTile.xPos, nullTile.yPos, +1, 0, tempBoard);
                 }
                 else {
-                    calculate(nullTile.xPos, nullTile.yPos, -1, 0, tempBoard, orientation);
+                    calculate(nullTile.xPos, nullTile.yPos, -1, 0, tempBoard);
                 }
             }
         }
@@ -556,16 +572,17 @@ public class GameModel implements Serializable {
             //System.out.println("---------------------------- VERTICALLY ORIENTED");
             if (nullTile != null) {
                 if (!nul(nullTile.xPos, nullTile.yPos + 1)) {
-                    calculate(nullTile.xPos, nullTile.yPos, 0, + 1, tempBoard, orientation);
+                    calculate(nullTile.xPos, nullTile.yPos, 0, + 1, tempBoard);
                 }
                 else {
-                    calculate(nullTile.xPos, nullTile.yPos, 0, - 1, tempBoard, orientation);
+                    calculate(nullTile.xPos, nullTile.yPos, 0, - 1, tempBoard);
                 }
             }
         }
         if (qwirkleCount() > 0)
             currentPlayer.points = currentPlayer.points + (6 * qwirkleCount());
 
+        if (points == 0) currentPlayer.points++;
         currentPlayer.points = currentPlayer.points + points;
         //System.out.println("EARNED POINTS = " + points);
         //System.out.println("TOTAL POINTS = " + currentPlayer.points);
@@ -575,7 +592,7 @@ public class GameModel implements Serializable {
     }
 
 
-    private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board, int[] orientation) {
+    private static void calculate(int xpos, int ypos, int xdir, int ydir, Tile[][] board) {
         int gxpos = xpos;
         int gypos = ypos;
 

@@ -22,21 +22,23 @@ public class Countdown extends Message implements Serializable {
         BeginActivity.runLater(data1 -> {
             Activity context = (Activity) data1.get("context");
             Button button = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
-            System.out.println("------------------------ " + get("seconds"));
-            button.setText(context.getResources().getString(R.string.waiting_countdown, seconds.get()));
-            thread = new Thread(() -> {
-                try {
-                    do {
-                        System.out.println("COUNTDOWN = " + seconds);
-                        Thread.sleep(1000);
-                        seconds.set(seconds.get() - 1);
-                        context.runOnUiThread(() -> button.setText(context.getResources().getString(R.string.waiting_countdown, seconds.get())));
-                    } while (seconds.get() > 0);
-                }catch (InterruptedException ignored) {
-                    System.out.println("-------------------------------- COUNTDOWN INTERRUPTED");
-                }
-            });
-            thread.start();
+            if (button != null) {
+                System.out.println("------------------------ " + get("seconds"));
+                context.runOnUiThread(() -> button.setText(context.getResources().getString(R.string.waiting_countdown, seconds.get())));
+                thread = new Thread(() -> {
+                    try {
+                        do {
+                            System.out.println("COUNTDOWN = " + seconds);
+                            Thread.sleep(1000);
+                            seconds.set(seconds.get() - 1);
+                            context.runOnUiThread(() -> button.setText(context.getResources().getString(R.string.waiting_countdown, seconds.get())));
+                        } while (seconds.get() > 0);
+                    } catch (InterruptedException ignored) {
+                        System.out.println("-------------------------------- COUNTDOWN INTERRUPTED");
+                    }
+                });
+                thread.start();
+            }
         });
     }
 

@@ -1,8 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import za.nmu.wrpv.qwirkle.messages.server.Join;
+import za.nmu.wrpv.qwirkle.messages.server.Rejoin;
+
 public class BeginActivity extends AppCompatActivity {
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -25,7 +28,22 @@ public class BeginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        //deleteFile("games.xml");
+        System.out.println("------------------------- RETRIEVING PREVIOUS GAME INFORMATION");
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        int clientID = preferences.getInt("clientID", -1);
+        int gameID = preferences.getInt("gameID", -1);
+        System.out.println("clientID = "+ clientID + ", gameID = " + gameID);
+        System.out.println("----------------------------------------------------------------------------");
+
+        ServerHandler.serverAddress = getPreferences(MODE_PRIVATE).getString("server_address", null);
+
+        ServerHandler.start();
+        if (clientID != -1 && gameID != -1) {
+            Rejoin message = new Rejoin();
+            message.put("clientID", clientID);
+            message.put("gameID", gameID);
+            ServerHandler.send(message);
+        }
 
         thread = new Thread(() -> {
             do {
@@ -50,7 +68,16 @@ public class BeginActivity extends AppCompatActivity {
         if (intent != null) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-                viewPager2.setCurrentItem(1);
+                if (bundle.containsKey("clear")) {
+                    System.out.println("------------------------- CLEARING PREVIOUS GAME INFORMATION");
+                    System.out.println("clientID = "+ preferences.getInt("clientID", -1) + ", gameID = " + preferences.getInt("gameID", -1));
+                    System.out.println("----------------------------------------------------------------------------");
+
+                    preferences.edit().remove("clientID").apply();
+                    preferences.edit().remove("gameID").apply();
+                }
+
+                if (bundle.containsKey("history")) viewPager2.setCurrentItem(1);
             }
         }
     }

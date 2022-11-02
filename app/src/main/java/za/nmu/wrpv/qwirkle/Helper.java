@@ -29,7 +29,6 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Helper {
@@ -250,7 +249,7 @@ public class Helper {
                     view.setBackground(gameBackground);
                     tvQwirkle.setVisibility(View.GONE);
                     if (GameModel.isTurn()) {
-                        setBackgroundBorder(view, GameModel.clientPlayer, 15);
+                        setBackgroundBorder(view, GameModel.player, 15);
                     }else view.setBackground(gameBackground);
                 });
             }
@@ -269,7 +268,7 @@ public class Helper {
 
     public static void setTurnBackgroundBorder(View view) {
         if (GameModel.isTurn()) {
-            setBackgroundBorder(view, GameModel.clientPlayer, 8);
+            setBackgroundBorder(view, GameModel.player, 8);
         }else view.setBackground(null);
     }
 

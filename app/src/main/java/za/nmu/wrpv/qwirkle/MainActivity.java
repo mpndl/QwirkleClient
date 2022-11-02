@@ -2,6 +2,7 @@ package za.nmu.wrpv.qwirkle;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -51,13 +52,15 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                     List<Player> players = (List<Player>)  bundle.get("players");
                     int currentPlayerIndex = (int) bundle.get("currentPlayerIndex");
                     List<Tile> bag = (List<Tile>) bundle.get("bag");
+                    Tile[][] board = (Tile[][]) bundle.get("board");
+                    String name = GameModel.playerName;
 
-                    System.out.println("------------------------------ MAIN ACTIVITY ----------------------");
-                    System.out.println("player count = " + players.size());
                     GameModel.currentPlayer = players.get(currentPlayerIndex);
                     GameModel.bag = bag;
                     GameModel.players = players;
-                    GameModel.clientPlayer = getPlayer(GameModel.clientPlayerName, players);
+
+                    GameModel.player = getPlayer(name, players);
+                    GameModel.board = board;
 
                     setupViewPager();
                 }
@@ -87,8 +90,10 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 .setTitle(titleForfeit)
                 .setMessage(confForfeit)
                 .setPositiveButton(yes, (dialog, which) -> {
+                    Intent intent = new Intent(getApplicationContext(), BeginActivity.class);
+                    intent.putExtra("clear", true);
                     ServerHandler.stop();
-                    finish();
+                    startActivity(intent);
                 })
                 .setNegativeButton(no, null)
                 .show();

@@ -8,6 +8,7 @@ import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
 import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
 import static za.nmu.wrpv.qwirkle.Helper.displayMessage;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
+import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
@@ -42,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -56,8 +56,8 @@ public class GameFragment extends Fragment implements Serializable {
     private List<Tile> selectedTiles = new ArrayList<>();
     private boolean multiSelect = false;
     private boolean multiSelected = false;
-    private HorizontalScrollView hsv;
-    private ScrollView sv;
+    public HorizontalScrollView hsv;
+    public ScrollView sv;
     public View focusView = null;
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
@@ -78,7 +78,7 @@ public class GameFragment extends Fragment implements Serializable {
         super.onViewCreated(view, savedInstanceState);
 
         scoreAdapter = new ScoreAdapter(requireActivity(), GameModel.players);
-        playerTilesAdapter = new PlayerTilesAdapter(requireActivity(), GameModel.clientPlayer.tiles);
+        playerTilesAdapter = new PlayerTilesAdapter(requireActivity(), GameModel.player.tiles);
 
         hsv = requireView().findViewById(R.id.horizontalScrollView);
         sv = requireView().findViewById(R.id.scrollView2);
@@ -230,13 +230,13 @@ public class GameFragment extends Fragment implements Serializable {
             String playerName = data[1];
             String you = data[0];
             if (playerName.equals(GameModel.currentPlayer.name.toString())) {
-                if (playerName.equals(GameModel.clientPlayerName))
+                if (playerName.equals(GameModel.playerName))
                     textView.setText(">" + you);
                 else
                     textView.setText(">" + playerName);
                 textView.setTextColor(Color.BLUE);
             } else {
-                if (playerName.equals(GameModel.clientPlayerName))
+                if (playerName.equals(GameModel.playerName))
                     textView.setText(you);
                 else
                     textView.setText(playerName);
@@ -246,8 +246,8 @@ public class GameFragment extends Fragment implements Serializable {
 
         RecyclerView recyclerView = requireView().findViewById(R.id.player_tiles);
 
-        setTurnBackgroundColor(gvPlayersStatus, GameModel.clientPlayer);
-        setBackgroundColor(recyclerView, GameModel.clientPlayer);
+        setTurnBackgroundColor(gvPlayersStatus, GameModel.player);
+        setBackgroundColor(recyclerView, GameModel.player);
         setTurnBackgroundBorder(gvPlayersStatus);
     }
 
@@ -276,6 +276,7 @@ public class GameFragment extends Fragment implements Serializable {
                 index++;
             }
         }
+        rsync();
     }
 
     private boolean onFocus(View view) {
@@ -309,9 +310,9 @@ public class GameFragment extends Fragment implements Serializable {
             }
         } else {
             if (!GameModel.isTurn())
-                System.out.println("NOT YOUR TURN " + GameModel.clientPlayer.name + " BUT " + GameModel.currentPlayer.name + "'s");
+                System.out.println("NOT YOUR TURN " + GameModel.player.name + " BUT " + GameModel.currentPlayer.name + "'s");
             else {
-                System.out.println("SELECT TILES TO PLACE " + GameModel.clientPlayer.name);
+                System.out.println("SELECT TILES TO PLACE " + GameModel.player.name);
             }
             Helper.sound(requireActivity(), R.raw.invalid);
         }
@@ -386,7 +387,7 @@ public class GameFragment extends Fragment implements Serializable {
         if (selectedTiles == null)
             selectedTiles = new ArrayList<>();
         ImageView imageView = view.findViewById(R.id.iv_tile);
-        Tile selectedTile = GameModel.clientPlayer.tiles.get(Integer.parseInt(imageView.getTag().toString()));
+        Tile selectedTile = GameModel.player.tiles.get(Integer.parseInt(imageView.getTag().toString()));
         selectedTiles.add(selectedTile);
         ViewGroup.LayoutParams params = imageView.getLayoutParams();
         if (params.width == PLAYER_TILE_SIZE_50) {
@@ -413,17 +414,18 @@ public class GameFragment extends Fragment implements Serializable {
 
             Played message = new Played();
             message.put("bag", GameModel.bag);
-            message.put("player", GameModel.clonePlayer(GameModel.clientPlayer));
+            message.put("player", GameModel.clonePlayer(GameModel.player));
             message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
             message.put("placedCount", GameModel.placedCount);
             message.put("qwirkle", GameModel.qwirkleCount());
             message.put("visitedTiles", vClone);
+            message.put("placed", GameModel.placed);
 
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
-            calculatePoints(requireActivity(), vClone, GameModel.clientPlayer, GameModel.qwirkleCount(), this);
+            calculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
 
             GameModel.turn();
 
@@ -442,6 +444,16 @@ public class GameFragment extends Fragment implements Serializable {
             enableIfTurn(btnPlay, btnDraw, btnUndo);
             //System.out.println("-------------------------- PLAY END -------------------------");
         } else Helper.sound(requireActivity(), R.raw.invalid);
+    }
+
+    private void rsync() {
+        GridLayout glBoard = requireView().findViewById(R.id.board);
+        for (Tile tile: GameModel.placed) {
+            System.out.println(tile);
+            View view = glBoard.getChildAt(tile.index);
+            view.setForeground(getDrawable(tile.toString(), requireActivity()));
+            focusView = view;
+        }
     }
 
     public void gameEnded() {
@@ -477,10 +489,10 @@ public class GameFragment extends Fragment implements Serializable {
 
             Drawn message = new Drawn();
             message.put("bag", GameModel.bag);
-            message.put("player", GameModel.clientPlayer);
+            message.put("player", GameModel.player);
 
             GameModel.turn();
-            GameModel.updatePlayerTiles(GameModel.clientPlayer);
+            GameModel.updatePlayerTiles(GameModel.player);
 
             ServerHandler.send(message);
 
