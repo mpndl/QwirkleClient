@@ -30,7 +30,7 @@
     <string name="illegal_orientation">Amathayela kufanele abekwe endaweni eyodwa (evundlile noma eqondile)</string>
     <string name="illegal_tile_exists">Ithayela alikwazi ukubekwa phezu kwethayela elikhona kakade</string>
     <string name="illegal_loner_tile">Ithayela kufanele libekwe eduze kwamanye amathayela</string>
-    <string name="illegal_null_in_between">Ithayela lisondele eduze ithayela</string>
+    <string name="illegal_null_in_between">Akumele kube nesikhala esingenalutho phakathi kwamathayela</string>
     <string name="illegal_placed_tiles_not_equivalent">Amathayela esibaluli esithile (Umbala/Umumo) kufanele abelane ngesibaluli esifanayo namathayili ancikene</string>
     <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Amathayela kufanele abe nesibaluli esivamile (Umbala/Umumo) onamathayela ancikene</string>
     <string name="illegal_placed_tile_exists_on_adjacent_line">Amathayela omumo nombala awakwazi ukubekwa eduze kwamathayili anomumo nombala ofanayo</string>

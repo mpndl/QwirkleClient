@@ -24,6 +24,7 @@ public class ServerHandler implements Serializable {
 
     public static void start() {
         if (!running()) {
+            System.out.println("========================== ESTABLISHING CONNECTION");
             serverReader = new ServerReader();
             serverReader.start();
         }
@@ -86,8 +87,7 @@ public class ServerHandler implements Serializable {
     }
 
     public static void send(Message message) {
-        if (!running())
-            start();
+        if (!running()) start();
         messages.add(message);
     }
 
