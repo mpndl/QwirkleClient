@@ -268,7 +268,7 @@ public class Helper {
 
     public static void setTurnBackgroundBorder(View view) {
         if (GameModel.isTurn()) {
-            setBackgroundBorder(view, GameModel.player, 8);
+            setBackgroundBorder(view, GameModel.player, 12);
         }else view.setBackground(null);
     }
 

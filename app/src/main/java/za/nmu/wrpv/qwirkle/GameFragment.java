@@ -234,7 +234,7 @@ public class GameFragment extends Fragment implements Serializable {
                     textView.setText(">" + you);
                 else
                     textView.setText(">" + playerName);
-                textView.setTextColor(Color.BLUE);
+                textView.setTextColor(Color.BLACK);
             } else {
                 if (playerName.equals(GameModel.playerName))
                     textView.setText(you);
