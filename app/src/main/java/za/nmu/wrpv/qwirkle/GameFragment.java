@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -59,6 +60,7 @@ public class GameFragment extends Fragment implements Serializable {
     public HorizontalScrollView hsv;
     public ScrollView sv;
     public View focusView = null;
+    private final List<int[]> validPlaces = new ArrayList<>();
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -273,6 +275,15 @@ public class GameFragment extends Fragment implements Serializable {
                 button.setOnLongClickListener(this::onFocus);
                 grid.addView(button, index);
 
+                /*System.out.println("---------------------------------- CASE START ------------------------");
+                System.out.println("x = " + i + ", y = " + j + ", index = " + index);
+                System.out.println("TEST CONVERSION x = index / 50, y = index % 50");
+                System.out.println("x = " + index / 50 + ", y = " + index % 50);
+                System.out.println("========================================");
+                System.out.println("TEST for index = (x * 50) + y");
+                System.out.println("index = " + (i * 50 + j));
+                System.out.println("---------------------------------- CASE END ------------------------");*/
+
                 index++;
             }
         }
@@ -288,6 +299,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     private void onTileClicked(View view) {
+        unShowValid(validPlaces);
         if (selectedTiles.size() > 0 && GameModel.isTurn()) {
             ImageButton button = (ImageButton) view;
             String[] rowColIndex = button.getTag().toString().split("_");
@@ -349,6 +361,7 @@ public class GameFragment extends Fragment implements Serializable {
 
         Tile selectedTile = playerTilesAdapter.get(Integer.parseInt(imageView.getTag().toString()));
         if (multiSelect) {
+            unShowValid(validPlaces);
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
@@ -363,19 +376,39 @@ public class GameFragment extends Fragment implements Serializable {
             imageView.setLayoutParams(params);
         }
         else {
+            validPlaces.clear();
+            validPlaces.addAll(GameModel.validPlaces(selectedTile));
             selectedTiles = new ArrayList<>();
             selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();
             if (params.width == PLAYER_TILE_SIZE_50) {
                 params.width = PLAYER_TILE_SIZE_60;
                 params.height = PLAYER_TILE_SIZE_60;
+                showValid(validPlaces);
             } else {
                 params.width = PLAYER_TILE_SIZE_50;
                 params.height = PLAYER_TILE_SIZE_50;
                 selectedTiles.remove(selectedTile);
+                unShowValid(validPlaces);
             }
             imageView.setLayoutParams(params);
             resetWidthExcept(imageView);
+        }
+    }
+
+    private void showValid(List<int[]> validPlaces) {
+        GridLayout glBoard = requireView().findViewById(R.id.board);
+        for (int[] valid: validPlaces) {
+            View view = glBoard.getChildAt(valid[2]);
+            view.setBackground(Helper.getDrawable("highlighter", requireActivity()));
+        }
+    }
+
+    private void unShowValid(List<int[]> validPlaces) {
+        GridLayout glBoard = requireView().findViewById(R.id.board);
+        for (int[] valid: validPlaces) {
+            View view = glBoard.getChildAt(valid[2]);
+            view.setBackground(Helper.getDrawable("shadow", requireActivity()));
         }
     }
 
@@ -417,7 +450,6 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("player", GameModel.clonePlayer(GameModel.player));
             message.put("places", GameModel.cloneTiles(GameModel.places));
             message.put("board", GameModel.board);
-            message.put("placedCount", GameModel.placedCount);
             message.put("qwirkle", GameModel.qwirkleCount());
             message.put("visitedTiles", vClone);
             message.put("placed", GameModel.placed);

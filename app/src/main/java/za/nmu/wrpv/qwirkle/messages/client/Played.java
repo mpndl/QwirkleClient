@@ -39,7 +39,6 @@ public class Played extends Message implements Serializable {
         List<Tile> visitedTiles = (List<Tile>) data.get("visitedTiles");
         List<Tile> placed = (List<Tile>) data.get("placed");
         int qwirkle = (int) get("qwirkle");
-        int placedCount = (int) data.get("placedCount");
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
             ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
@@ -77,7 +76,6 @@ public class Played extends Message implements Serializable {
 
                 if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
 
-                GameModel.placedCount = placedCount;
                 GameModel.placing = false;
                 context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
                 context.runOnUiThread(fragment::setupBagCount);

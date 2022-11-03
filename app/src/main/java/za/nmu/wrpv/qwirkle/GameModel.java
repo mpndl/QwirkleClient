@@ -22,7 +22,6 @@ public class GameModel implements Serializable {
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
     public static List<Tile> places = new ArrayList<>();
-    public static int placedCount = 0;
     private static int points = 0;
     public static Tile[][] board = new Tile[XLENGTH][YLENGTH];
     private static Tile[][] tempBoard = null;
@@ -136,6 +135,29 @@ public class GameModel implements Serializable {
         }
     }
 
+    public static List<int[]> validPlaces(Tile tile) {
+        List<int[]> validPlaces = new ArrayList<>();
+        tempBoard = board;
+        for (Tile placedTile : placed) {
+            int[] left = new int[]{placedTile.xPos - 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos - 1)};
+            int[] right = new int[]{placedTile.xPos + 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos + 1)};
+            int[] top = new int[]{placedTile.xPos, placedTile.yPos - 1, (placedTile.yPos - 1) * XLENGTH + (placedTile.xPos)};
+            int[] bottom = new int[]{placedTile.xPos, placedTile.yPos + 1, (placedTile.yPos + 1) * XLENGTH + (placedTile.xPos)};
+
+            Legality lLegal = legal(left[0], left[1], tile);
+            Legality rLegal = legal(right[0], right[1], tile);
+            Legality tLegal = legal(top[0], top[1], tile);
+            Legality bLegal = legal(bottom[0], bottom[1], tile);
+
+            if (lLegal.equals(Legality.LEGAL)) validPlaces.add(left);
+            if (rLegal.equals(Legality.LEGAL)) validPlaces.add(right);
+            if (tLegal.equals(Legality.LEGAL)) validPlaces.add(top);
+            if (bLegal.equals(Legality.LEGAL)) validPlaces.add(bottom);
+        }
+        tempBoard = null;
+        return validPlaces;
+    }
+
     public static Player clonePlayer(Player player) {
         Player temp = new Player();
         temp.name = player.name;
@@ -219,7 +241,6 @@ public class GameModel implements Serializable {
     public static void play() {
         if(places.size() > 0) {
             placing = false;
-            placedCount = placedCount + places.size();
             placed.addAll(places);
             assignPoints();
             if (getBagCount() > 0)
@@ -237,7 +258,7 @@ public class GameModel implements Serializable {
         System.out.println("--------------------- down = " + tempBoard[xpos][ypos - 1]);
         System.out.println("====================================================================");*/
 
-        if(places.size() == 0 && placedCount == 0) {
+        if(places.size() == 0 && placed.size() == 0) {
             return Legality.LEGAL;
         }
         else if (tempBoard[xpos][ypos] != null) {
