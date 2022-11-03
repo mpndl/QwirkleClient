@@ -137,8 +137,11 @@ public class GameModel implements Serializable {
 
     public static List<int[]> validPlaces(Tile tile) {
         List<int[]> validPlaces = new ArrayList<>();
-        tempBoard = board;
-        for (Tile placedTile : placed) {
+        List<Tile> placed2 = new ArrayList<>(placed);
+        placed2.addAll(places);
+        Tile[][] temp2Board = copy(tempBoard);
+        if (tempBoard == null) backup();
+        for (Tile placedTile : placed2) {
             int[] left = new int[]{placedTile.xPos - 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos - 1)};
             int[] right = new int[]{placedTile.xPos + 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos + 1)};
             int[] top = new int[]{placedTile.xPos, placedTile.yPos - 1, (placedTile.yPos - 1) * XLENGTH + (placedTile.xPos)};
@@ -154,7 +157,7 @@ public class GameModel implements Serializable {
             if (tLegal.equals(Legality.LEGAL)) validPlaces.add(top);
             if (bLegal.equals(Legality.LEGAL)) validPlaces.add(bottom);
         }
-        tempBoard = null;
+        tempBoard = temp2Board;
         return validPlaces;
     }
 
@@ -227,6 +230,7 @@ public class GameModel implements Serializable {
     }
 
     private static Tile[][] copy(Tile[][] src) {
+        if (src == null) return null;
         Tile[][] temp = new Tile[src.length][src[0].length];
         for(int i=0; i<src.length; i++) {
             System.arraycopy(src[i], 0, temp[i], 0, src[i].length);
