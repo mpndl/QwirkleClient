@@ -38,6 +38,7 @@ public class Played extends Message implements Serializable {
         List<Tile> places = (ArrayList<Tile>)data.get("places");
         List<Tile> visitedTiles = (List<Tile>) data.get("visitedTiles");
         List<Tile> placed = (List<Tile>) data.get("placed");
+        int currentPlayerIndex = (int) get("currentPlayerIndex");
         int qwirkle = (int) get("qwirkle");
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
@@ -72,14 +73,18 @@ public class Played extends Message implements Serializable {
 
                 calculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
 
-                GameModel.turn();
-
-                if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
-
-                GameModel.placing = false;
-                context.runOnUiThread(Objects.requireNonNull(fragment)::setupCurrentPlayer);
-                context.runOnUiThread(fragment::setupBagCount);
+                //GameModel.turn();
+                GameModel.tempBoard = null;
             }
+
+            GameModel.setNewCurrentPlayer(currentPlayerIndex);
+            context.runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
+
+            if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
+
+            GameModel.placing = false;
+            context.runOnUiThread(() -> Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex));
+            context.runOnUiThread(Objects.requireNonNull(fragment)::setupBagCount);
 
             Button btnPlay = context.findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);

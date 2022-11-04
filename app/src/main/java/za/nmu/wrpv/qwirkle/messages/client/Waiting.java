@@ -17,7 +17,6 @@ public class Waiting extends IMessage implements Serializable {
     public void apply() {
         System.out.println("--------------------- WAITING --------------------------------");
         Countdown.interrupt();
-        BeginFragment.startGame = true;
         BeginActivity.runLater(d -> {
             Activity context = (Activity) d.get("context");
             Button button = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);

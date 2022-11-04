@@ -1,10 +1,12 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
 import android.app.Activity;
+import android.widget.Button;
 
 import java.util.Objects;
 
 import za.nmu.wrpv.qwirkle.MainActivity;
+import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.ServerHandler;
 import za.nmu.wrpv.qwirkle.messages.Message;
 

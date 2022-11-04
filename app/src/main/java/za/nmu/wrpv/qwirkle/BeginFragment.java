@@ -23,7 +23,6 @@ import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 import za.nmu.wrpv.qwirkle.messages.server.Join;
 
 public class BeginFragment extends Fragment {
-    public static boolean startGame = true;
     public static BeginFragment newInstance() {
         return new BeginFragment();
     }
@@ -69,26 +68,20 @@ public class BeginFragment extends Fragment {
     }
 
     public void onStartGame(View view) {
-        Button btnStartGame = (Button)view;
-        if (startGame) {
-            EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
+        EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
 
-            requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
-            ServerHandler.serverAddress = etServerAddress.getText().toString();
-            ServerHandler.start();
+        requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
+        ServerHandler.serverAddress = etServerAddress.getText().toString();
+        ServerHandler.start();
 
-            Join message = new Join();
-            message.put("clientID", ServerHandler.clientID);
-            ServerHandler.send(message);
+        SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);
+        int prevClientID = preferences.getInt("prevClientID", -2);
+        int prev2ClientID = preferences.getInt("prev2ClientID", -3);
 
-            startGame = false;
-        }
-        else {
-            ServerHandler.interrupt();
-            Countdown.interrupt();
-            btnStartGame.setText(R.string.btn_start_game);
-            startGame = true;
-        }
+        Join message = new Join();
+        message.put("clientID", Math.max(prevClientID, prev2ClientID));
+        message.put("prevClientID", prevClientID);
+        ServerHandler.send(message);
     }
 
     @Override

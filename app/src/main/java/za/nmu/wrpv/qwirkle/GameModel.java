@@ -24,7 +24,7 @@ public class GameModel implements Serializable {
     public static List<Tile> places = new ArrayList<>();
     private static int points = 0;
     public static Tile[][] board = new Tile[XLENGTH][YLENGTH];
-    private static Tile[][] tempBoard = null;
+    public static Tile[][] tempBoard = null;
     private static List<Tile> ts = new ArrayList<>();
     public static boolean placing = false;
     public static boolean ended = false;
@@ -53,6 +53,11 @@ public class GameModel implements Serializable {
             }
         }
     }
+
+    public static int getPlayerIndex(Player player) {
+        return players.indexOf(player);
+    }
+
 
     public static boolean gameEnded() {
         if (player.name == currentPlayer.name) {
@@ -118,21 +123,10 @@ public class GameModel implements Serializable {
     }
 
     public static void setNewCurrentPlayer(int index) {
-        if (index != -1) currentPlayer = players.get(index);
-        else currentPlayer = players.get(0);
-    }
-
-    public static void turn() {
-        int i = 0;
-        for (; i < players.size(); i++) {
-            if(currentPlayer.name == players.get(i).name) {
-                i++;
-                if(i >= players.size()) i = 0;
-                currentPlayer = players.get(i);
-                tempBoard = null;
-                return;
-            }
-        }
+        try {
+            if (index != -1) currentPlayer = players.get(index);
+            else currentPlayer = players.get(0);
+        }catch (IndexOutOfBoundsException ignored) {}
     }
 
     public static List<int[]> validPlaces(Tile tile) {
@@ -140,7 +134,7 @@ public class GameModel implements Serializable {
         List<Tile> placed2 = new ArrayList<>(placed);
         placed2.addAll(places);
         Tile[][] temp2Board = copy(tempBoard);
-        if (tempBoard == null) backup();
+        if (places.size() == 0) backup();
         for (Tile placedTile : placed2) {
             int[] left = new int[]{placedTile.xPos - 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos - 1)};
             int[] right = new int[]{placedTile.xPos + 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos + 1)};

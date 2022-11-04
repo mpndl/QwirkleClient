@@ -206,7 +206,7 @@ public class GameFragment extends Fragment implements Serializable {
             @Override
             public void onGlobalLayout() {
                 rvPlayerTilesView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                setupCurrentPlayer();
+                setupCurrentPlayer(-1);
                 Helper.sound(requireActivity(), R.raw.begin);
             }
         });
@@ -219,7 +219,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
 
-    public void setupCurrentPlayer() {
+    public void setupCurrentPlayer(int currentPlayerIndex) {
         GridView gvPlayersStatus = requireView().findViewById(R.id.gv_players_status);
 
         for (int i = 0; i < gvPlayersStatus.getChildCount(); i++) {
@@ -231,7 +231,10 @@ public class GameFragment extends Fragment implements Serializable {
             String[] data = imageView.getTag().toString().split(",");
             String playerName = data[1];
             String you = data[0];
-            if (playerName.equals(GameModel.currentPlayer.name.toString())) {
+            Player currentPlayer = null;
+            if (currentPlayerIndex == -1) currentPlayer = GameModel.currentPlayer;
+            else currentPlayer = GameModel.players.get(currentPlayerIndex);
+            if (playerName.equals(currentPlayer.name.toString())) {
                 if (playerName.equals(GameModel.playerName))
                     textView.setText(">" + you);
                 else
@@ -459,12 +462,13 @@ public class GameFragment extends Fragment implements Serializable {
 
             calculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
 
-            GameModel.turn();
+            //GameModel.turn();
+            GameModel.tempBoard = null;
 
-            if (GameModel.gameEnded()) gameEnded();
+            //if (GameModel.gameEnded()) gameEnded();
 
-            setupBagCount();
-            setupCurrentPlayer();
+            //setupBagCount();
+            //setupCurrentPlayer();
             resetMultiSelect();
             easeInTilePlacement(50);
 
@@ -525,14 +529,15 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("bag", GameModel.bag);
             message.put("player", GameModel.player);
 
-            GameModel.turn();
+            //GameModel.turn();
+            GameModel.tempBoard = null;
             GameModel.updatePlayerTiles(GameModel.player);
 
             ServerHandler.send(message);
 
-            setupBagCount();
+            //setupBagCount();
             resetWidthExcept(null);
-            setupCurrentPlayer();
+            //setupCurrentPlayer();
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
 

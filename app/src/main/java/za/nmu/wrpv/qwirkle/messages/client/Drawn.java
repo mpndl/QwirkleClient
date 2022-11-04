@@ -23,22 +23,25 @@ public class Drawn extends Message implements Serializable {
     public void apply() {
         Player player = (Player) data.get("player");
         List<Tile> bag = (List<Tile>) data.get("bag");
+        int currentPlayerIndex = (int) get("currentPlayerIndex");
         GameFragment.runLater(data1 -> {
             Activity context = (Activity) data1.get("context");
             GameFragment fragment = (GameFragment) data1.get("fragment");
             PlayerTilesAdapter adapter = (PlayerTilesAdapter) data1.get("playerTilesAdapter");
 
             Helper.sound(context, R.raw.draw);
-            if ((player != null ? player.name : null) != GameModel.player.name) {
-                GameModel.updatePlayerTiles(player);
-                Objects.requireNonNull(context).runOnUiThread(() -> adapter.notifyDataSetChanged());
+            if (Objects.requireNonNull(player).name != GameModel.player.name) {
+                //GameModel.updatePlayerTiles(player);
+                //Objects.requireNonNull(context).runOnUiThread(() -> Objects.requireNonNull(adapter).notifyDataSetChanged());
                 GameModel.bag = bag;
 
-                GameModel.turn();
+                //GameModel.turn();
                 GameModel.placing = false;
-
-                context.runOnUiThread(() -> fragment.setupCurrentPlayer());
+                GameModel.tempBoard = null;
             }
+
+            GameModel.setNewCurrentPlayer(currentPlayerIndex);
+            Objects.requireNonNull(context).runOnUiThread(() -> Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex));
 
             Button btnPlay = Objects.requireNonNull(context).findViewById(R.id.btn_play);
             Button btnDraw = context.findViewById(R.id.btn_draw);

@@ -57,7 +57,6 @@ public class Begin extends Message {
                 System.out.println("----------------------------------------------------------------------------");
             }
 
-            BeginFragment.startGame = true;
             Countdown.interrupt();
 
             Intent intent = new Intent(context, MainActivity.class);

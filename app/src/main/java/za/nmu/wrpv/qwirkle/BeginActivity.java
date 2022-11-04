@@ -21,6 +21,7 @@ import za.nmu.wrpv.qwirkle.messages.server.Join;
 import za.nmu.wrpv.qwirkle.messages.server.Rejoin;
 
 public class BeginActivity extends AppCompatActivity {
+    public static int track = 0;
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
     @Override

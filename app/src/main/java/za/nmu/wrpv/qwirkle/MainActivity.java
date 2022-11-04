@@ -50,13 +50,16 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 if (extras.containsKey("bundle")) {
                     Bundle bundle = extras.getBundle("bundle");
                     List<Player> players = (List<Player>)  bundle.get("players");
-                    int currentPlayerIndex = (int) bundle.get("currentPlayerIndex");
                     List<Tile> bag = (List<Tile>) bundle.get("bag");
                     Tile[][] board = (Tile[][]) bundle.get("board");
                     List<PlayerMessage> messages = (List<PlayerMessage>) bundle.get("messages");
                     String name = GameModel.playerName;
 
-                    GameModel.currentPlayer = players.get(currentPlayerIndex);
+
+                    if (bundle.containsKey("currentPlayerIndex")) {
+                        int currentPlayerIndex = (int) bundle.get("currentPlayerIndex");
+                        GameModel.currentPlayer = players.get(currentPlayerIndex);
+                    }
                     GameModel.bag = bag;
                     GameModel.players = players;
                     if (messages != null) GameModel.messages.addAll(messages);
