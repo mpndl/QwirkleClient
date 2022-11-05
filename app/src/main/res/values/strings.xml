@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">Qwirkle</string>
+    <string name="btn_play">Play</string>
+    <string name="btn_draw">Draw</string>
+    <string name="score">Score: %s</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="btn_start_game">Join Game</string>
+    <string name="tv_number_of_players">Number of players</string>
+    <string name="et_message">Message</string>
+    <string name="conf_forfeit">Are you sure you want to forfeit this game?</string>
+    <string name="title_forfeit">Forfeit Game</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="congrats">Congratulations %s you won by %s points!</string>
+    <string name="connecting">Establishing connection</string>
+    <string name="connection_error">Please check your connection</string>
+    <string name="waiting">Waiting for players to join</string>
+    <string name="waiting_countdown">Waiting for players to join (%d)</string>
+    <string name="stop">Stop</string>
+    <string name="you">You</string>
+    <string name="server_address">Server Address</string>
+    <string name="player_column_title">Player</string>
+    <string name="score_column_title">Score</string>
+    <string name="notification_title">New Message</string>
+    <string name="notification_description">You have a new message</string>
+    <string name="btn_undo">Undo</string>
+    <string name="lan">LAN</string>
+    <string name="use_lan">Using LAN address: %s</string>
+    <string name="ok">Ok</string>
+    <string name="illegal_orientation">Tiles must be placed in a single orientation (horizontally or vertically)</string>
+    <string name="illegal_tile_exists">A tile can\'t placed on top of an existing tile</string>
+    <string name="illegal_loner_tile">A tile must be placed next to other tiles</string>
+    <string name="illegal_null_in_between">There must not be an empty space in between tiles</string>
+    <string name="illegal_placed_tiles_not_equivalent">Tiles of a particular attribute (Color/Shape) must share the same attribute with adjacent tiles</string>
+    <string name="illegal_placed_tiles_not_equivalent_with_adjacent_tiles">Tiles must have a common attribute (Color/Shape) with adjacent tiles</string>
+    <string name="illegal_placed_tile_exists_on_adjacent_line">Tiles of a shape and color can\'t be placed next to tiles with the same shape and color</string>
+    <string name="imessages">Messages</string>
+    <string name="long_click_to_focus">Long-click anywhere on the board to bring focus back to the tiles</string>
+    <string name="long_click_to_multi_select">Long-click on your tiles to activate multi-select and select any number of tiles to replace with the same number of tiles but with random attributes</string>
+    <string name="special_instructions">Special Instructions:</string>
+    <string name="illegal_placed_tile_forming_identical_attribute_line_to_adjacent_tile_line">Tiles cannot form an identical line of attributes with a line of an adjacent tile</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>
