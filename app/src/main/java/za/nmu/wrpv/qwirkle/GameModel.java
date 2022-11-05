@@ -58,6 +58,9 @@ public class GameModel implements Serializable {
         return players.indexOf(player);
     }
 
+    public static Player getPlayer(String name) {
+        return (Player) players.stream().filter(player -> player.name.toString().equals(name)).toArray()[0];
+    }
 
     public static boolean gameEnded() {
         if (player.name == currentPlayer.name) {
@@ -74,7 +77,8 @@ public class GameModel implements Serializable {
     }
 
     public static boolean isTurn() {
-        return player.name == currentPlayer.name;
+        if (players.size() > 1) return player.name == currentPlayer.name;
+        return false;
     }
 
     public static void undo(List<Tile> playerTiles) {
@@ -166,7 +170,7 @@ public class GameModel implements Serializable {
         temp.name = player.name;
         temp.color = player.color;
         temp.points = player.points;
-        temp.tiles = player.tiles;
+        temp.tiles = cloneTiles(player.tiles);
         return temp;
     }
 

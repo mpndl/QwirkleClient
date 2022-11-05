@@ -44,36 +44,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         });
         thread.start();
 
-        if(intent != null) {
-            Bundle extras = intent.getExtras();
-            if (extras != null) {
-                if (extras.containsKey("bundle")) {
-                    Bundle bundle = extras.getBundle("bundle");
-                    List<Player> players = (List<Player>)  bundle.get("players");
-                    List<Tile> bag = (List<Tile>) bundle.get("bag");
-                    Tile[][] board = (Tile[][]) bundle.get("board");
-                    List<PlayerMessage> messages = (List<PlayerMessage>) bundle.get("messages");
-                    String name = GameModel.playerName;
-
-
-                    if (bundle.containsKey("currentPlayerIndex")) {
-                        int currentPlayerIndex = (int) bundle.get("currentPlayerIndex");
-                        GameModel.currentPlayer = players.get(currentPlayerIndex);
-                    }
-                    GameModel.bag = bag;
-                    GameModel.players = players;
-                    if (messages != null) GameModel.messages.addAll(messages);
-                    GameModel.player = getPlayer(name, players);
-                    GameModel.board = board;
-
-                    setupViewPager();
-                }
-            }
-        }
-    }
-
-    private static Player getPlayer(String name, List<Player> players) {
-        return (Player) players.stream().filter(player -> player.name.toString().equals(name)).toArray()[0];
+        setupViewPager();
     }
 
     @Override

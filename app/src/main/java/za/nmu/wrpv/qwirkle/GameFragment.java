@@ -282,15 +282,6 @@ public class GameFragment extends Fragment implements Serializable {
                 button.setOnLongClickListener(this::onFocus);
                 grid.addView(button, index);
 
-                /*System.out.println("---------------------------------- CASE START ------------------------");
-                System.out.println("x = " + i + ", y = " + j + ", index = " + index);
-                System.out.println("TEST CONVERSION x = index / 50, y = index % 50");
-                System.out.println("x = " + index / 50 + ", y = " + index % 50);
-                System.out.println("========================================");
-                System.out.println("TEST for index = (x * 50) + y");
-                System.out.println("index = " + (i * 50 + j));
-                System.out.println("---------------------------------- CASE END ------------------------");*/
-
                 index++;
             }
         }
@@ -461,30 +452,19 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("visitedTiles", vClone);
             message.put("placed", GameModel.placed);
 
-            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
-            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
-
             animateCalculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
 
-            //GameModel.turn();
             GameModel.tempBoard = null;
-
-            //if (GameModel.gameEnded()) gameEnded();
-
-            //setupBagCount();
-            //setupCurrentPlayer();
             resetMultiSelect();
             easeInTilePlacement(50);
 
             GameModel.places = new ArrayList<>();
             ServerHandler.send(message);
-            //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
 
             Button btnPlay = requireView().findViewById(R.id.btn_play);
             Button btnDraw = requireView().findViewById(R.id.btn_draw);
             Button btnUndo = requireView().findViewById(R.id.btn_undo);
             enableIfTurn(btnPlay, btnDraw, btnUndo);
-            //System.out.println("-------------------------- PLAY END -------------------------");
         } else Helper.sound(requireActivity(), R.raw.invalid);
     }
 
@@ -534,15 +514,12 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("bag", GameModel.bag);
             message.put("player", GameModel.player);
 
-            //GameModel.turn();
             GameModel.tempBoard = null;
             GameModel.updatePlayerTiles(GameModel.player);
 
             ServerHandler.send(message);
 
-            //setupBagCount();
             resetWidthExcept(null);
-            //setupCurrentPlayer();
             resetMultiSelect();
             undoPlacedTiles(GameModel.places);
 

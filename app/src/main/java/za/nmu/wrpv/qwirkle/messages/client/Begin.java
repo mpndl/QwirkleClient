@@ -59,24 +59,19 @@ public class Begin extends Message {
 
             Countdown.interrupt();
 
+            GameModel.currentPlayer = Objects.requireNonNull(players).get(currentPlayerIndex);
+
+            GameModel.bag = bag;
+            GameModel.players = players;
+            GameModel.messages.addAll(Objects.requireNonNull(messages));
+            GameModel.board = board;
+
+            if (data.containsKey("name")) GameModel.playerName = (String) data.get("name");
+            if (data.containsKey("player")) GameModel.player = GameModel.getPlayer(Objects.requireNonNull((Player) data.get("player")).name.toString());
+            else GameModel.player = GameModel.getPlayer(GameModel.playerName);
+            GameModel.placed.addAll((List<Tile>) Objects.requireNonNull(data.get("placed")));
+
             Intent intent = new Intent(context, MainActivity.class);
-
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("currentPlayerIndex", currentPlayerIndex);
-            bundle.putSerializable("bag", (Serializable) bag);
-            bundle.putSerializable("players", (Serializable) players);
-            bundle.putSerializable("board", board);
-            bundle.putSerializable("messages", (Serializable) messages);
-
-            if (data.containsKey("player")) {
-                Player player = (Player) data.get("player");
-
-                bundle.putSerializable("player", player);
-                GameModel.playerName = (String) data.get("name");
-                GameModel.placed.addAll((List<Tile>) Objects.requireNonNull(data.get("placed")));
-            }
-
-            intent.putExtra("bundle", bundle);
             Objects.requireNonNull(context).startActivity(intent);
         });
     }
