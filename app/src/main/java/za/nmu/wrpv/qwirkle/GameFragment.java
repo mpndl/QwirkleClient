@@ -5,10 +5,9 @@ import static za.nmu.wrpv.qwirkle.Helper.BOARD_TILE_SIZE;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_OPACITY;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
-import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
+import static za.nmu.wrpv.qwirkle.Helper.animateCalculatePoints;
 import static za.nmu.wrpv.qwirkle.Helper.displayMessage;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
-import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
@@ -43,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -233,7 +231,13 @@ public class GameFragment extends Fragment implements Serializable {
             String you = data[0];
             Player currentPlayer = null;
             if (currentPlayerIndex == -1) currentPlayer = GameModel.currentPlayer;
-            else currentPlayer = GameModel.players.get(currentPlayerIndex);
+            else {
+                try {
+                    currentPlayer = GameModel.players.get(currentPlayerIndex);
+                }catch (IndexOutOfBoundsException e) {
+                    currentPlayer = GameModel.currentPlayer;
+                }
+            }
             if (playerName.equals(currentPlayer.name.toString())) {
                 if (playerName.equals(GameModel.playerName))
                     textView.setText(">" + you);
@@ -460,7 +464,7 @@ public class GameFragment extends Fragment implements Serializable {
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.clientPlayer.points);
             //System.out.println(GameModel.clientPlayer.name + " POINTS = " + GameModel.currentPlayer.points);
 
-            calculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
+            animateCalculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
 
             //GameModel.turn();
             GameModel.tempBoard = null;
@@ -487,7 +491,6 @@ public class GameFragment extends Fragment implements Serializable {
     private void rsync() {
         GridLayout glBoard = requireView().findViewById(R.id.board);
         for (Tile tile: GameModel.placed) {
-            System.out.println(tile);
             View view = glBoard.getChildAt(tile.index);
             view.setForeground(getDrawable(tile.toString(), requireActivity()));
             focusView = view;
@@ -495,8 +498,10 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void gameEnded() {
+        System.out.println("------------- SENDING END MESSAGE -----------");
         GameEnded message = new GameEnded();
         ServerHandler.send(message);
+        System.out.println("------------- SENT END MESSAGE -----------");
 
         Button btnPlay = requireView().findViewById(R.id.btn_play);
         Button btnDraw = requireView().findViewById(R.id.btn_draw);

@@ -133,6 +133,7 @@ public class GameModel implements Serializable {
         List<int[]> validPlaces = new ArrayList<>();
         List<Tile> placed2 = new ArrayList<>(placed);
         placed2.addAll(places);
+
         Tile[][] temp2Board = copy(tempBoard);
         if (places.size() == 0) backup();
         for (Tile placedTile : placed2) {
@@ -140,6 +141,11 @@ public class GameModel implements Serializable {
             int[] right = new int[]{placedTile.xPos + 1, placedTile.yPos, (placedTile.yPos) * XLENGTH + (placedTile.xPos + 1)};
             int[] top = new int[]{placedTile.xPos, placedTile.yPos - 1, (placedTile.yPos - 1) * XLENGTH + (placedTile.xPos)};
             int[] bottom = new int[]{placedTile.xPos, placedTile.yPos + 1, (placedTile.yPos + 1) * XLENGTH + (placedTile.xPos)};
+
+            /*System.out.println("left = " + left[0] + ", " + left[1]);
+            System.out.println("right = " + right[0] + ", " + right[1]);
+            System.out.println("top = " + top[0] + ", " + top[1]);
+            System.out.println("bottom = " + bottom[0] + ", " + bottom[1]);*/
 
             Legality lLegal = legal(left[0], left[1], tile);
             Legality rLegal = legal(right[0], right[1], tile);
@@ -239,7 +245,7 @@ public class GameModel implements Serializable {
     public static void play() {
         if(places.size() > 0) {
             placing = false;
-            placed.addAll(places);
+            placed.addAll(cloneTiles(places));
             assignPoints();
             if (getBagCount() > 0)
                 draw(true, places);
@@ -664,18 +670,18 @@ public class GameModel implements Serializable {
     }
 
     public static int qwirkleCount() {
-        System.out.println("IS QWIRKLE COMPUTATION TILES = " + visitedTiles.size());
+        //System.out.println("IS QWIRKLE COMPUTATION TILES = " + visitedTiles.size());
         Map<String, Integer> xy = new HashMap<>();
         for (Tile tile: visitedTiles) {
-            System.out.println("----------------------------------- START " + tile.index);
-            System.out.println("For xpos = " + tile.xPos + " AND ypos = " + tile.yPos);
+           // System.out.println("----------------------------------- START " + tile.index);
+           // System.out.println("For xpos = " + tile.xPos + " AND ypos = " + tile.yPos);
 
             Object x = xy.putIfAbsent(tile.xPos + "x", 0);
             Object y = xy.putIfAbsent(tile.yPos + "y", 0);
 
-            System.out.println("x = " + x);
+            /*System.out.println("x = " + x);
             System.out.println("y = " + y);
-            System.out.println("------------------------------------- END " + tile.index);
+            System.out.println("------------------------------------- END " + tile.index);*/
         }
 
         for (Tile tile: visitedTiles) {
@@ -686,7 +692,7 @@ public class GameModel implements Serializable {
         Collection<Integer> values = xy.values();
         int qCount = 0;
         for (int v: values) {
-            System.out.println("IS QWIRKLE -> v = " + v);
+            //System.out.println("IS QWIRKLE -> v = " + v);
             if (v == 6) {
                 qCount++;
             }

@@ -25,6 +25,7 @@ public class GameEnded extends Message implements Serializable {
 
     @Override
     public void apply() {
+        System.out.println("------------------------------- GAME HAS ENDED ----------------------------");
         Game game = new Game();
         game.player = GameModel.player;
         game.date = new Date();

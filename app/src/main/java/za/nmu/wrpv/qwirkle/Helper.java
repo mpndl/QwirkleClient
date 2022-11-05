@@ -128,7 +128,7 @@ public class Helper {
         }
     }
 
-    public static void calculatePoints(Activity context, List<Tile> visitedTiles, Player player, int qwirkleCount, GameFragment fragment) {
+    public static void animateCalculatePoints(Activity context, List<Tile> visitedTiles, Player player, int qwirkleCount, GameFragment fragment) {
         System.out.println("------------------------- CALCULATING POINTS -> size = " + visitedTiles.size());
         System.out.println(player.name + " -> points = " + player.points);
         GridLayout glBoard = context.findViewById(R.id.board);
@@ -175,8 +175,7 @@ public class Helper {
                     Helper.vibrate(500, context);
                 }
 
-                if (GameModel.gameEnded())
-                    context.runOnUiThread(() -> fragment.gameEnded());
+                if (GameModel.gameEnded()) context.runOnUiThread(fragment::gameEnded);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

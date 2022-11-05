@@ -1,6 +1,6 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
-import static za.nmu.wrpv.qwirkle.Helper.calculatePoints;
+import static za.nmu.wrpv.qwirkle.Helper.animateCalculatePoints;
 import static za.nmu.wrpv.qwirkle.Helper.focusOnView;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 
@@ -71,16 +71,14 @@ public class Played extends Message implements Serializable {
                 context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
                 context.runOnUiThread(() -> Helper.AnimateTilePlacement.easeInTilePlacement(50));
 
-                calculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
+                animateCalculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
 
                 //GameModel.turn();
-                GameModel.tempBoard = null;
             }
+            GameModel.tempBoard = null;
 
             GameModel.setNewCurrentPlayer(currentPlayerIndex);
             context.runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
-
-            if (GameModel.gameEnded()) Objects.requireNonNull(fragment).gameEnded();
 
             GameModel.placing = false;
             context.runOnUiThread(() -> Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex));
