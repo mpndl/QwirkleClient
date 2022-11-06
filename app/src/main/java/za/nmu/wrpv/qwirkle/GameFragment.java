@@ -290,7 +290,7 @@ public class GameFragment extends Fragment implements Serializable {
         if (runnable != null) runnable.run();
     }
 
-    private boolean onFocus(View view) {
+    public boolean onFocus(View view) {
         if (focusView != null) {
             Helper.focusOnView(requireActivity(), sv, hsv, focusView);
             return true;

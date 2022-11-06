@@ -39,12 +39,11 @@ public class Joined extends Message implements Serializable {
             context.runOnUiThread(() -> {
                 Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex);
                 Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
+                Sync message = new Sync();
+                message.put("currentPlayerIndex", GameModel.getPlayerIndex(GameModel.currentPlayer));
+                ServerHandler.send(message);
             });
         });
-
-        Sync message = new Sync();
-        message.put("currentPlayerIndex", GameModel.getPlayerIndex(GameModel.currentPlayer));
-        ServerHandler.send(message);
 
         System.out.println("---------------------------- JOINED END ------------------------");
     }

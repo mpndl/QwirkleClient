@@ -24,28 +24,30 @@ public class Sync extends Message implements Serializable {
         System.out.println("--------------------------- SYNCING ---------------");
         if (data.containsKey("currentPlayerIndex")) {
             int currentPlayerIndex = (int) get("currentPlayerIndex");
-            System.out.println("----------------- CURRENT PLAYER INDEX = " + currentPlayerIndex);
-            if (GameModel.players == null) GameModel.players = (List<Player>) get("players");
+            List<Player> players = (List<Player>) get("players");
+            System.out.println("----------------- CURRENT PLAYER INDEX = " + currentPlayerIndex + ", player count = " + players.size());
+
+            GameModel.players = players;
+            System.out.println("----------------- PLAYER COUNT AFTER SYNC = " + GameModel.players.size());
             GameModel.currentPlayer = GameModel.players.get(currentPlayerIndex);
+
             GameFragment.runLater(d -> {
                 Activity context = (Activity) d.get("context");
                 ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
                 GameFragment fragment = (GameFragment) d.get("fragment");
 
+                Objects.requireNonNull(adapter).players = GameModel.players;
+                Objects.requireNonNull(context).runOnUiThread(adapter::notifyDataSetChanged);
+
                 Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
-                Button btnPlay = context.findViewById(R.id.btn_play);
-                Button btnDraw = context.findViewById(R.id.btn_draw);
-                Button btnUndo = context.findViewById(R.id.btn_undo);
+                Button btnPlay = Objects.requireNonNull(fragment).requireView().findViewById(R.id.btn_play);
+                Button btnDraw = fragment.requireView().findViewById(R.id.btn_draw);
+                Button btnUndo = fragment.requireView().findViewById(R.id.btn_undo);
                 context.runOnUiThread(() -> {
                     Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex);
-                    try {
-                        Helper.enableIfTurn(Objects.requireNonNull(btnPlay), Objects.requireNonNull(btnDraw), Objects.requireNonNull(btnUndo));
-                    }catch (NullPointerException ignored) {}
+                    Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
                 });
             });
-            Sync message = new Sync();
-            message.put("currentPlayerIndex", GameModel.getPlayerIndex(GameModel.currentPlayer));
-            ServerHandler.send(message);
         }
     }
 }

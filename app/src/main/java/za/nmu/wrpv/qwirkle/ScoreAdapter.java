@@ -51,12 +51,12 @@ public class ScoreAdapter extends ArrayAdapter<Player> implements Serializable {
         Player player = getItem(position);
 
 
-        System.out.println("SCORE ADAPTER CHECK START pos = " + position + ", player.name = " + GameModel.player.name + ",  playerName = " + GameModel.playerName);
+        /*System.out.println("SCORE ADAPTER CHECK START pos = " + position + ", player.name = " + GameModel.player.name + ",  playerName = " + GameModel.playerName);
         System.out.println(player.name + " -> " + GameModel.player.name);
         System.out.println(player.color + " -> " + GameModel.player.color);
         System.out.println(player.points + " -> " + GameModel.player.points);
         System.out.println(player.tiles + " -> " + GameModel.player.tiles);
-        System.out.println("-------------------- SCORE ADAPTER CHECK END -------------------- pos = " + position);
+        System.out.println("-------------------- SCORE ADAPTER CHECK END -------------------- pos = " + position);*/
 
 
         TextView tvScore = listItemView.findViewById(R.id.tv_player_score);

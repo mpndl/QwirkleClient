@@ -73,10 +73,6 @@ public class Begin extends Message {
 
             Intent intent = new Intent(context, MainActivity.class);
             Objects.requireNonNull(context).startActivity(intent);
-
-            Sync message = new Sync();
-            message.put("currentPlayerIndex", GameModel.getPlayerIndex(GameModel.currentPlayer));
-            ServerHandler.send(message);
         });
     }
 }

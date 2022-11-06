@@ -3,7 +3,10 @@ package za.nmu.wrpv.qwirkle;
 import static android.content.Context.VIBRATOR_SERVICE;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
@@ -128,6 +131,15 @@ public class Helper {
         }
     }
 
+    public static void restart(Activity context) {
+        Intent mStartActivity = new Intent(context, BeginActivity.class);
+        int mPendingIntentId = 123456;
+        PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+        System.exit(0);
+    }
+
     public static void animateCalculatePoints(Activity context, List<Tile> visitedTiles, Player player, int qwirkleCount, GameFragment fragment) {
         System.out.println("------------------------- CALCULATING POINTS -> size = " + visitedTiles.size());
         System.out.println(player.name + " -> points = " + player.points);
@@ -143,7 +155,6 @@ public class Helper {
 
                 List<View> views = new ArrayList<>();
                 for (Tile tile : visitedTiles) {
-                    System.out.println(tile.index);
                     View view = glBoard.getChildAt(tile.index);
                     fragment.focusView = view;
                     views.add(view);
