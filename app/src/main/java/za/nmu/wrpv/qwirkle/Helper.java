@@ -29,6 +29,10 @@ import androidx.gridlayout.widget.GridLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,13 +69,15 @@ public class Helper {
                         //System.out.println("VIEW COUNT = " + views.size());
                         for (View view : placementViews) {
                             //  System.out.println("------------------------ VIEW EASE --------------------------");
-                            do {
-                                view.getForeground().setAlpha(opacity[0]);
-                                Thread.sleep(milliseconds);
-                                //  System.out.println("EASING IN OPACITY = " + opacity[0]);
-                                opacity[0] += 15;
-                            } while (opacity[0] < 255);
-                            opacity[0] = PLAYER_TILE_OPACITY;
+                            if (view != null) {
+                                do {
+                                    view.getForeground().setAlpha(opacity[0]);
+                                    Thread.sleep(milliseconds);
+                                    //  System.out.println("EASING IN OPACITY = " + opacity[0]);
+                                    opacity[0] += 15;
+                                } while (opacity[0] < 255);
+                                opacity[0] = PLAYER_TILE_OPACITY;
+                            }
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -103,9 +109,11 @@ public class Helper {
     }
 
     public static void enableIfTurn(Button... buttons) {
-        for (Button button: buttons) {
-            button.setEnabled(GameModel.isTurn());
-        }
+        try {
+            for (Button button : buttons) {
+                button.setEnabled(GameModel.isTurn());
+            }
+        }catch (NullPointerException ignored) {}
     }
 
     public static void setTurnBackgroundColor(View view, Player player) {
@@ -161,8 +169,10 @@ public class Helper {
                     int finalPoints = points;
                     context.runOnUiThread(() -> tvPoints.setText(finalPoints + ""));
                     context.runOnUiThread(() -> {
-                                focusOnView(context, sv, hsv, view);
-                                view.getForeground().setAlpha(PLAYER_TILE_OPACITY);
+                        try {
+                            focusOnView(context, sv, hsv, view);
+                            view.getForeground().setAlpha(PLAYER_TILE_OPACITY);
+                        }catch (NullPointerException ignored){}
                             });
 
                     points++;
@@ -187,7 +197,7 @@ public class Helper {
                 }
 
                 if (GameModel.gameEnded()) context.runOnUiThread(fragment::gameEnded);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | NullPointerException e) {
                 e.printStackTrace();
             }
             finally {
@@ -290,6 +300,7 @@ public class Helper {
     }
 
     public static void focusOnView(Activity context, final ScrollView scroll, final HorizontalScrollView hScroll, final View view) {
+        if (view == null) return;
         DisplayMetrics displayMetrics = new DisplayMetrics();
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int height = displayMetrics.heightPixels;
@@ -307,5 +318,18 @@ public class Helper {
 
         int scrollTo = ((View)view.getParent()).getLeft() + view.getLeft() - (width/2);
         scroll.scrollTo(scrollTo,0);
+    }
+
+    public synchronized static boolean isOnline() {
+        try {
+            int timeoutMs = 1500;
+            Socket sock = new Socket();
+            SocketAddress sockaddr = new InetSocketAddress("8.8.8.8", 53);
+
+            sock.connect(sockaddr, timeoutMs);
+            sock.close();
+
+            return true;
+        } catch (IOException e) { return false; }
     }
 }

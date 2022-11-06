@@ -77,10 +77,12 @@ public class BeginFragment extends Fragment {
         SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);
         int prevClientID = preferences.getInt("prevClientID", -2);
         int prev2ClientID = preferences.getInt("prev2ClientID", -3);
+        int gameID = preferences.getInt("gameID", -1);
 
         Join message = new Join();
         message.put("clientID", Math.max(prevClientID, prev2ClientID));
         message.put("prevClientID", prevClientID);
+        message.put("gameID", gameID);
         ServerHandler.send(message);
     }
 

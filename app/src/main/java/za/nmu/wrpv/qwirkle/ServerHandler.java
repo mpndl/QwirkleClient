@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Activity;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -77,7 +79,10 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
-            } catch (IOException | ClassNotFoundException e) {
+            }catch (ClassCastException e) {
+                BeginActivity.runLater(d -> Helper.restart((Activity) d.get("context")));
+            }
+            catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             } finally {
                 serverReader = null;

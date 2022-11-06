@@ -29,7 +29,7 @@ public class GameModel implements Serializable {
     public static boolean placing = false;
     public static boolean ended = false;
     public static List<Tile> visitedTiles = new ArrayList<>();
-    public static final List<Tile> placed = new ArrayList<>();
+    public static List<Tile> placed = new ArrayList<>();
     public static List<Tile> placedCopy = new ArrayList<>();
 
     public static void updatePlayerTiles(Player player) {

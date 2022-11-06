@@ -63,12 +63,14 @@ public class Begin extends Message {
 
             GameModel.bag = bag;
             GameModel.players = players;
+            GameModel.messages.clear();
             GameModel.messages.addAll(Objects.requireNonNull(messages));
             GameModel.board = board;
 
             if (data.containsKey("name")) GameModel.playerName = (String) data.get("name");
             if (data.containsKey("player")) GameModel.player = GameModel.getPlayer(Objects.requireNonNull((Player) data.get("player")).name.toString());
             else GameModel.player = GameModel.getPlayer(GameModel.playerName);
+            GameModel.placed.clear();
             GameModel.placed.addAll((List<Tile>) Objects.requireNonNull(data.get("placed")));
 
             Intent intent = new Intent(context, MainActivity.class);

@@ -1,10 +1,12 @@
 package za.nmu.wrpv.qwirkle;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,12 +19,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 public class MainActivity extends AppCompatActivity implements Serializable {
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
+    private Thread internetTestThread;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +50,24 @@ public class MainActivity extends AppCompatActivity implements Serializable {
         });
         thread.start();
 
+        internetTestThread = new Thread(() -> {
+            try {
+                do {
+                    Thread.sleep(1000);
+                    if (!Helper.isOnline()) {
+                        BeginActivity.runLater(d -> {
+                            Activity context = (Activity) d.get("context");
+                            Objects.requireNonNull(context).runOnUiThread(() -> Toast.makeText(context, R.string.connection_error, Toast.LENGTH_LONG).show());
+                        });
+                        new Stop().apply();
+                    }
+                } while (true);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        //internetTestThread.start();
+
         setupViewPager();
     }
 
@@ -51,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements Serializable {
     protected void onPause() {
         super.onPause();
         if(thread.isAlive()) thread.interrupt();
+        if (internetTestThread.isAlive()) thread.interrupt();
     }
 
     @Override
