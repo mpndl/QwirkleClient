@@ -30,6 +30,7 @@ public class GameModel implements Serializable {
     public static boolean ended = false;
     public static List<Tile> visitedTiles = new ArrayList<>();
     public static final List<Tile> placed = new ArrayList<>();
+    public static List<Tile> placedCopy = new ArrayList<>();
 
     public static void updatePlayerTiles(Player player) {
         for (Player p: players) {
@@ -174,12 +175,13 @@ public class GameModel implements Serializable {
         return temp;
     }
 
-    public static void addPlayerSorted(Player player) {
+    public static int addPlayerSorted(Player player) {
         int index = Collections.binarySearch(players, player, Comparator.comparing(p -> p.name.toString()));
         if (index < 0) {
             index = -index -1;
             players.add(index, player);
         }
+        return index;
     }
 
     public static List<Player> clonePlayers(List<Player> players) {
@@ -249,10 +251,10 @@ public class GameModel implements Serializable {
     public static void play() {
         if(places.size() > 0) {
             placing = false;
+            placedCopy = cloneTiles(placed);
             placed.addAll(cloneTiles(places));
             assignPoints();
-            if (getBagCount() > 0)
-                draw(true, places);
+            if (getBagCount() > 0) draw(true, places);
         }
     }
 

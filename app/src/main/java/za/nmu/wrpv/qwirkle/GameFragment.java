@@ -173,7 +173,7 @@ public class GameFragment extends Fragment implements Serializable {
         GridLayout glBoard = requireView().findViewById(R.id.board);
         glBoard.setColumnCount(GameModel.XLENGTH);
         glBoard.setRowCount(GameModel.YLENGTH);
-        populate(glBoard);
+        populate(glBoard, null);
     }
 
     private void setupPlayersStatus() {
@@ -265,7 +265,7 @@ public class GameFragment extends Fragment implements Serializable {
         tvTileCount.setText(GameModel.getBagCount() + "");
     }
 
-    private void populate(GridLayout grid) {
+    public void populate(GridLayout grid, Runnable runnable) {
         grid.removeAllViews();
 
         int index = 0;
@@ -286,6 +286,8 @@ public class GameFragment extends Fragment implements Serializable {
             }
         }
         rsync();
+
+        if (runnable != null) runnable.run();
     }
 
     private boolean onFocus(View view) {
@@ -451,6 +453,7 @@ public class GameFragment extends Fragment implements Serializable {
             message.put("qwirkle", GameModel.qwirkleCount());
             message.put("visitedTiles", vClone);
             message.put("placed", GameModel.placed);
+            message.put("placedCopy", GameModel.placedCopy);
 
             animateCalculatePoints(requireActivity(), vClone, GameModel.player, GameModel.qwirkleCount(), this);
 

@@ -14,6 +14,8 @@ import androidx.gridlayout.widget.GridLayout;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +40,7 @@ public class Played extends Message implements Serializable {
         List<Tile> places = (ArrayList<Tile>)data.get("places");
         List<Tile> visitedTiles = (List<Tile>) data.get("visitedTiles");
         List<Tile> placed = (List<Tile>) data.get("placed");
+        List<Tile> placedCopy = (List<Tile>) data.get("placedCopy");
         int currentPlayerIndex = (int) get("currentPlayerIndex");
         int qwirkle = (int) get("qwirkle");
         GameFragment.runLater(d -> {
@@ -58,20 +61,29 @@ public class Played extends Message implements Serializable {
                 GameModel.placed.addAll(Objects.requireNonNull(placed));
 
                 GridLayout glBoard = context.findViewById(R.id.board);
-                View v = null;
-                for (int i = 0; i < Objects.requireNonNull(places).size(); i++) {
-                    Tile tile = places.get(i);
-                    View view = glBoard.getChildAt(tile.index);
-                    context.runOnUiThread(() -> view.setForeground(getDrawable(tile.toString(), context)));
-                    context.runOnUiThread(() -> view.getForeground().setAlpha(128));
-                    context.runOnUiThread(() -> Helper.AnimateTilePlacement.add(view));
-                    v = view;
-                }
-                View finalV = v;
-                context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
-                context.runOnUiThread(() -> Helper.AnimateTilePlacement.easeInTilePlacement(50));
 
-                animateCalculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
+                context.runOnUiThread(() -> Objects.requireNonNull(fragment).populate(glBoard,  () -> {
+                    for (int i = 0; i < Objects.requireNonNull(placedCopy).size(); i++) {
+                        Tile tile = placedCopy.get(i);
+                        View view = glBoard.getChildAt(tile.index);
+                        context.runOnUiThread(() -> view.setForeground(getDrawable(tile.toString(), context)));
+                    }
+
+                    View v = null;
+                    for (int i = 0; i < Objects.requireNonNull(places).size(); i++) {
+                        Tile tile = places.get(i);
+                        View view = glBoard.getChildAt(tile.index);
+                        context.runOnUiThread(() -> view.setForeground(getDrawable(tile.toString(), context)));
+                        context.runOnUiThread(() -> view.getForeground().setAlpha(128));
+                        context.runOnUiThread(() -> Helper.AnimateTilePlacement.add(view));
+                        v = view;
+                    }
+                    View finalV = v;
+                    context.runOnUiThread(() -> focusOnView(context, sv,hsv, finalV));
+                    context.runOnUiThread(() -> Helper.AnimateTilePlacement.easeInTilePlacement(50));
+
+                    animateCalculatePoints(context, Objects.requireNonNull(visitedTiles), player, qwirkle, fragment);
+                }));
 
                 //GameModel.turn();
             }

@@ -40,6 +40,7 @@ public class BeginActivity extends AppCompatActivity {
 
         ServerHandler.start();
         if (clientID != -1 && gameID != -1) {
+            System.out.println("---------------------------------- SENDING REJOIN REQUEST current = " + ServerHandler.clientID);
             Rejoin message = new Rejoin();
             message.put("clientID", clientID);
             message.put("gameID", gameID);
