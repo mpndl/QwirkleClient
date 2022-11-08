@@ -78,7 +78,7 @@ public class BeginFragment extends Fragment {
         thread.start();
 
         SharedPreferences preferences = requireActivity().getPreferences(MODE_PRIVATE);
-        String serverAddress = preferences.getString("server_address", "");
+        String serverAddress = preferences.getString("server_address", null);
 
         EditText etPlayerCount = requireView().findViewById(R.id.et_server_address);
         etPlayerCount.setHint("X.X.X.X");
@@ -102,6 +102,17 @@ public class BeginFragment extends Fragment {
             }
         });
 
+        SwitchMaterial sLan = requireView().findViewById(R.id.s_lan);
+        sLan.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                etPlayerCount.setText(R.string.lan);
+                ServerHandler.serverAddress = null;
+            }else {
+                etPlayerCount.setText(serverAddress);
+                ServerHandler.serverAddress = serverAddress;
+            }
+        });
+
         Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
         btnStartGame.setOnClickListener(this::onStartGame);
 
@@ -114,12 +125,18 @@ public class BeginFragment extends Fragment {
     }
 
     public void onStartGame(View view) {
+        Button btnStartGame = (Button)view;
+
         EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
 
         if (!ServerHandler.running()) {
-            requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
-            ServerHandler.serverAddress = etServerAddress.getText().toString();
+            SwitchMaterial sLan = requireView().findViewById(R.id.s_lan);
+            if (!sLan.isChecked()) {
+                requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
+                ServerHandler.serverAddress = etServerAddress.getText().toString();
+            }
             ServerHandler.start();
+            btnStartGame.setText(R.string.connecting);
         }
 
         SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);

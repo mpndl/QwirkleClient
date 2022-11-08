@@ -7,8 +7,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -70,7 +72,9 @@ public class ServerHandler implements Serializable {
         for (String ip: serverAddresses) {
             System.out.println("ATTEMPTING IP = " + ip);
             try {
-                return new Socket(ip, 5051);
+                Socket connection = new Socket();
+                connection.connect(new InetSocketAddress(ip, 5051), 5000);
+                return connection;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -81,11 +85,13 @@ public class ServerHandler implements Serializable {
     private static class ServerReader extends Thread implements Serializable{
         @Override
         public void run() {
-            boolean conn = false;
             try {
                 Socket connection;
                 if (serverAddress == null) connection = getConnection();
-                else connection = new Socket(serverAddress, 5051);
+                else {
+                    connection = new Socket();
+                    connection.connect(new InetSocketAddress(serverAddress, 5051), 5000);
+                }
 
                 ois = new ObjectInputStream(connection.getInputStream());
                 ous = new ObjectOutputStream(connection.getOutputStream());
@@ -100,8 +106,10 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
-            }catch (ConnectException e) {
-                conn = true;
+            }catch (ConnectException | SocketTimeoutException e) {
+                Stop message = new Stop();
+                message.put("connectionError", true);
+                message.apply();
             }
             catch (ClassCastException e) {
                 BeginActivity.runLater(d -> Helper.restart((Activity) d.get("context")));
@@ -111,7 +119,7 @@ public class ServerHandler implements Serializable {
             } finally {
                 System.out.println("----------------------------- SERVER READER STOPPED");
                 serverReader = null;
-                if (!conn) new Stop().apply();
+                new Stop().apply();
             }
         }
     }
