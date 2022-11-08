@@ -52,7 +52,9 @@ public class MessagesFragment extends Fragment implements Serializable {
 
             thread = new Thread(() -> {
                 do {
-                    if (getActivity() == null || !isAdded() || getView() == null) continue;
+                    if (getActivity() == null || !isAdded() || getView() == null || !isVisible()) {
+                        continue;
+                    }
 
                     Map<String, Object> data = new HashMap<>();
                     data.put("adapter", adapter);
@@ -60,6 +62,10 @@ public class MessagesFragment extends Fragment implements Serializable {
                     Run run = null;
                     try {
                         run = runs.take();
+                        if (getActivity() == null || !isAdded() || getView() == null || !isVisible()) {
+                            runs.add(run);
+                            continue;
+                        }
                         run.run(data);
                     } catch (NullPointerException e) {
                         if (run != null) {

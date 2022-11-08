@@ -1,6 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
+import static android.content.Context.WIFI_SERVICE;
 
 import static za.nmu.wrpv.qwirkle.ServerHandler.connectErrCount;
 import static za.nmu.wrpv.qwirkle.ServerHandler.connectTimeout;
@@ -16,9 +17,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.text.format.Formatter;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
@@ -33,11 +37,16 @@ import androidx.gridlayout.widget.GridLayout;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -314,6 +323,57 @@ public class Helper {
         if (GameModel.isTurn()) {
             setBackgroundBorder(view, GameModel.player, 12);
         }else view.setBackground(null);
+    }
+
+    private static String getMobileIPAddress() {
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return "";
+    }
+
+    private static String getWifiIPAddress(Context context) {
+        WifiManager wifiMgr = (WifiManager) context.getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+        int ip = wifiInfo.getIpAddress();
+        return Formatter.formatIpAddress(ip);
+    }
+
+    public static List<String> getIpAddresses() {
+        List<String> ipAddresses = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
+                    .getNetworkInterfaces();
+            while (enumNetworkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface
+                        .getInetAddresses();
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress.nextElement();
+
+                    if (inetAddress.isSiteLocalAddress()) {
+                        ipAddresses.add(inetAddress.getHostAddress());
+                    }
+
+                }
+
+            }
+
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return ipAddresses;
     }
 
     public static void setBackgroundBorder(View view, Player player, int width) {

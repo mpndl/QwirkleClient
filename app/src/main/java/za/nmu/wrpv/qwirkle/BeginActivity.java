@@ -29,22 +29,24 @@ public class BeginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        System.out.println("------------------------- RETRIEVING PREVIOUS GAME INFORMATION");
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         int clientID = preferences.getInt("clientID", -1);
         int gameID = preferences.getInt("gameID", -1);
         System.out.println("clientID = "+ clientID + ", gameID = " + gameID);
-        System.out.println("----------------------------------------------------------------------------");
 
-        ServerHandler.serverAddress = getPreferences(MODE_PRIVATE).getString("server_address", null);
-
+        String ip = getPreferences(MODE_PRIVATE).getString("server_address", null);
+        List<String> ipAddresses = Helper.getIpAddresses();
+        if (ip != null) ipAddresses.add(ip);
+        ServerHandler.serverAddresses = ipAddresses;
         ServerHandler.start();
-        if (clientID != -1 && gameID != -1) {
-            System.out.println("---------------------------------- SENDING REJOIN REQUEST current = " + ServerHandler.clientID);
-            Rejoin message = new Rejoin();
-            message.put("clientID", clientID);
-            message.put("gameID", gameID);
-            ServerHandler.send(message);
+
+        if (ServerHandler.running()) {
+            if (clientID != -1 && gameID != -1) {
+                Rejoin message = new Rejoin();
+                message.put("clientID", clientID);
+                message.put("gameID", gameID);
+                ServerHandler.send(message);
+            }
         }
 
         thread = new Thread(() -> {

@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -19,6 +21,7 @@ import za.nmu.wrpv.qwirkle.messages.client.Stop;
 public class ServerHandler implements Serializable {
     private static final BlockingQueue<Message> messages = new LinkedBlockingQueue<>();
     public static String serverAddress;
+    public static List<String> serverAddresses;
     public static int clientID = -1;
 
     public static ObjectOutputStream ous;
@@ -63,12 +66,27 @@ public class ServerHandler implements Serializable {
         serverReader = null;
     }
 
+    private static Socket getConnection() throws ConnectException {
+        for (String ip: serverAddresses) {
+            System.out.println("ATTEMPTING IP = " + ip);
+            try {
+                return new Socket(ip, 5051);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        throw new ConnectException("COULD NOT CONNECT USING THE IP ADDRESSES");
+    }
+
     private static class ServerReader extends Thread implements Serializable{
         @Override
         public void run() {
             boolean conn = false;
             try {
-                Socket connection = new Socket(serverAddress, 5051);
+                Socket connection;
+                if (serverAddress == null) connection = getConnection();
+                else connection = new Socket(serverAddress, 5051);
+
                 ois = new ObjectInputStream(connection.getInputStream());
                 ous = new ObjectOutputStream(connection.getOutputStream());
                 ous.flush();

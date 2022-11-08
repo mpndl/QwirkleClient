@@ -15,7 +15,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +49,9 @@ public class BeginFragment extends Fragment {
 
         thread = new Thread(() -> {
             do {
-                if (getActivity() == null || !isAdded() || getView() == null) continue;
+                if (getActivity() == null || !isAdded() || getView() == null || !isVisible()) {
+                    continue;
+                }
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("context", requireContext());
@@ -111,9 +116,11 @@ public class BeginFragment extends Fragment {
     public void onStartGame(View view) {
         EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
 
-        requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
-        ServerHandler.serverAddress = etServerAddress.getText().toString();
-        ServerHandler.start();
+        if (!ServerHandler.running()) {
+            requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
+            ServerHandler.serverAddress = etServerAddress.getText().toString();
+            ServerHandler.start();
+        }
 
         SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);
         int curClientID = preferences.getInt("curClientID", -2);

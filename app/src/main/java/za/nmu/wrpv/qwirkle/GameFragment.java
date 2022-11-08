@@ -122,7 +122,9 @@ public class GameFragment extends Fragment implements Serializable {
 
         thread = new Thread(() -> {
             do {
-                if (getActivity() == null || !isAdded() || getView() == null) continue;
+                if (getActivity() == null || !isAdded() || getView() == null || !isVisible()) {
+                    continue;
+                }
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
@@ -132,7 +134,7 @@ public class GameFragment extends Fragment implements Serializable {
                 Run run = null;
                 try {
                     run = runs.take();
-                    if (getActivity() == null || !isAdded() || getView() == null) {
+                    if (getActivity() == null || !isAdded() || getView() == null || !isVisible()) {
                         runs.add(run);
                         continue;
                     }
