@@ -113,6 +113,8 @@ public class GameFragment extends Fragment implements Serializable {
 
         thread = new Thread(() -> {
             do {
+                if (getActivity() == null || !isAdded() || getView() != null) continue;
+
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
                 data.put("playerTilesAdapter", playerTilesAdapter);
@@ -347,6 +349,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void iaOnclickListener(View view) {
+        unShowValid(validPlaces);
         Helper.sound(requireActivity(), R.raw.click);
         ImageView imageView = view.findViewById(R.id.iv_tile);
         updateTags();
@@ -361,7 +364,6 @@ public class GameFragment extends Fragment implements Serializable {
 
         Tile selectedTile = playerTilesAdapter.get(Integer.parseInt(imageView.getTag().toString()));
         if (multiSelect) {
-            unShowValid(validPlaces);
             if (!selectedTiles.contains(selectedTile))
                 selectedTiles.add(selectedTile);
             ViewGroup.LayoutParams params = imageView.getLayoutParams();

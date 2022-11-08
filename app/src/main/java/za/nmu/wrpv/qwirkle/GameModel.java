@@ -175,13 +175,12 @@ public class GameModel implements Serializable {
         return temp;
     }
 
-    public static int addPlayerSorted(Player player) {
+    public static void addPlayerSorted(Player player) {
         int index = Collections.binarySearch(players, player, Comparator.comparing(p -> p.name.toString()));
         if (index < 0) {
             index = -index -1;
             players.add(index, player);
         }
-        return index;
     }
 
     public static List<Player> clonePlayers(List<Player> players) {

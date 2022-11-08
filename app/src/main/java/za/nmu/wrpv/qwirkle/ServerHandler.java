@@ -55,10 +55,8 @@ public class ServerHandler implements Serializable {
     }
 
     public static void interrupt() {
-        if (running()) {
-            serverReader.interrupt();
-            serverReader = null;
-        }
+        if (running()) serverReader.interrupt();
+        serverReader = null;
     }
 
     private static class ServerReader extends Thread implements Serializable{
