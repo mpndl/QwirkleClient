@@ -6,14 +6,19 @@ import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_OPACITY;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_50;
 import static za.nmu.wrpv.qwirkle.Helper.PLAYER_TILE_SIZE_60;
 import static za.nmu.wrpv.qwirkle.Helper.animateCalculatePoints;
+import static za.nmu.wrpv.qwirkle.Helper.connectError;
 import static za.nmu.wrpv.qwirkle.Helper.displayMessage;
 import static za.nmu.wrpv.qwirkle.Helper.enableIfTurn;
 import static za.nmu.wrpv.qwirkle.Helper.getDrawable;
 import static za.nmu.wrpv.qwirkle.Helper.setBackgroundColor;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundBorder;
 import static za.nmu.wrpv.qwirkle.Helper.setTurnBackgroundColor;
+import static za.nmu.wrpv.qwirkle.Helper.turnErrCheck;
 import static za.nmu.wrpv.qwirkle.Helper.vibrate;
+import static za.nmu.wrpv.qwirkle.ServerHandler.connectErrCount;
+import static za.nmu.wrpv.qwirkle.ServerHandler.connectTimeout;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -27,6 +32,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,9 +51,11 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import za.nmu.wrpv.qwirkle.messages.client.ConnectionError;
 import za.nmu.wrpv.qwirkle.messages.client.Drawn;
 import za.nmu.wrpv.qwirkle.messages.client.GameEnded;
 import za.nmu.wrpv.qwirkle.messages.client.Played;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 public class GameFragment extends Fragment implements Serializable {
     private PlayerTilesAdapter playerTilesAdapter;
@@ -59,6 +67,7 @@ public class GameFragment extends Fragment implements Serializable {
     public ScrollView sv;
     public View focusView = null;
     private final List<int[]> validPlaces = new ArrayList<>();
+
 
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
@@ -113,7 +122,7 @@ public class GameFragment extends Fragment implements Serializable {
 
         thread = new Thread(() -> {
             do {
-                if (getActivity() == null || !isAdded() || getView() != null) continue;
+                if (getActivity() == null || !isAdded() || getView() == null) continue;
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("adapter", scoreAdapter);
@@ -123,6 +132,10 @@ public class GameFragment extends Fragment implements Serializable {
                 Run run = null;
                 try {
                     run = runs.take();
+                    if (getActivity() == null || !isAdded() || getView() == null) {
+                        runs.add(run);
+                        continue;
+                    }
                     run.run(data);
                 } catch (NullPointerException e) {
                     if (run != null) {
@@ -145,12 +158,6 @@ public class GameFragment extends Fragment implements Serializable {
 
     public static void runLater(Run run) {
         runs.add(run);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (thread.isAlive()) thread.interrupt();
     }
 
     private void center() {
@@ -349,6 +356,7 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void iaOnclickListener(View view) {
+        turnErrCheck(requireActivity());
         unShowValid(validPlaces);
         Helper.sound(requireActivity(), R.raw.click);
         ImageView imageView = view.findViewById(R.id.iv_tile);
@@ -415,6 +423,8 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public boolean iaLongClickListener(View view) {
+        turnErrCheck(requireActivity());
+
         Helper.sound(requireActivity(), R.raw.double_click);
         multiSelect = !multiSelect;
         vibrate(50, requireActivity());
@@ -438,6 +448,11 @@ public class GameFragment extends Fragment implements Serializable {
     }
 
     public void setOnPlay(View view) {
+        if (GameModel.prevCurrentPlayer != null) {
+            if (GameModel.prevCurrentPlayer.name == GameModel.currentPlayer.name) {
+                connectError();
+            }
+        }
         if (GameModel.places.size() > 0) {
             //System.out.println("-------------------------- PLAY START -------------------------");
             GameModel.recover();
@@ -446,6 +461,8 @@ public class GameFragment extends Fragment implements Serializable {
             scoreAdapter.notifyDataSetChanged();
 
             List<Tile> vClone = GameModel.cloneTiles(GameModel.visitedTiles);
+
+            GameModel.prevCurrentPlayer = GameModel.player;
 
             Played message = new Played();
             message.put("bag", GameModel.bag);

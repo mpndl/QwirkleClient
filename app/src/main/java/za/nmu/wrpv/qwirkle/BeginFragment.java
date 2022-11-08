@@ -17,7 +17,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 import za.nmu.wrpv.qwirkle.messages.server.Join;
@@ -26,6 +30,8 @@ public class BeginFragment extends Fragment {
     public static BeginFragment newInstance() {
         return new BeginFragment();
     }
+    private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
+    private Thread thread;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -37,6 +43,28 @@ public class BeginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        thread = new Thread(() -> {
+            do {
+                if (getActivity() == null || !isAdded() || getView() == null) continue;
+
+                Map<String, Object> data = new HashMap<>();
+                data.put("context", requireContext());
+                data.put("fragment", this);
+                Run run = null;
+                try {
+                    run = runs.take();
+                    run.run(data);
+                } catch (NullPointerException e) {
+                    if (run != null) {
+                        runs.add(run);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while (true);
+        });
+        thread.start();
 
         SharedPreferences preferences = requireActivity().getPreferences(MODE_PRIVATE);
         String serverAddress = preferences.getString("server_address", "");
@@ -65,6 +93,13 @@ public class BeginFragment extends Fragment {
 
         Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
         btnStartGame.setOnClickListener(this::onStartGame);
+
+        if (!ServerHandler.running()) btnStartGame.setText(R.string.connect);
+        else btnStartGame.setText(R.string.btn_start_game);
+    }
+
+    public static void runLater(Run run) {
+        runs.add(run);
     }
 
     public void onStartGame(View view) {
@@ -75,12 +110,12 @@ public class BeginFragment extends Fragment {
         ServerHandler.start();
 
         SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);
-        int prevClientID = preferences.getInt("prevClientID", -2);
-        int prev2ClientID = preferences.getInt("prev2ClientID", -3);
+        int curClientID = preferences.getInt("curClientID", -2);
+        int prevClientID = preferences.getInt("prevClientID", -3);
         int gameID = preferences.getInt("gameID", -1);
 
         Join message = new Join();
-        message.put("clientID", Math.max(prevClientID, prev2ClientID));
+        message.put("clientID", curClientID);
         message.put("prevClientID", prevClientID);
         message.put("gameID", gameID);
         ServerHandler.send(message);

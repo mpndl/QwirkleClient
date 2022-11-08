@@ -15,6 +15,7 @@ public class GameModel implements Serializable {
     public static int gameID = -1;
     public static List<PlayerMessage> messages = new ArrayList<>();
     public static Player currentPlayer;
+    public static Player prevCurrentPlayer;
     public static Player player;
     public static String playerName = "";
     public static List<Tile> bag = new ArrayList<>();

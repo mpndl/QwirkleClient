@@ -2,9 +2,11 @@ package za.nmu.wrpv.qwirkle.messages.client;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,6 +18,7 @@ import za.nmu.wrpv.qwirkle.MainActivity;
 import za.nmu.wrpv.qwirkle.BeginFragment;
 import za.nmu.wrpv.qwirkle.Player;
 import za.nmu.wrpv.qwirkle.PlayerMessage;
+import za.nmu.wrpv.qwirkle.R;
 import za.nmu.wrpv.qwirkle.ServerHandler;
 import za.nmu.wrpv.qwirkle.Tile;
 import za.nmu.wrpv.qwirkle.messages.Message;
@@ -25,6 +28,7 @@ public class Begin extends Message {
 
     @Override
     public void apply() {
+        System.out.println("------------------- BEGIN START");
         int currentPlayerIndex = (int) data.get("currentPlayerIndex");
         List<Tile> bag = (List<Tile>) data.get("bag");
         List<Player> players = (List<Player>)  data.get("players");
@@ -32,6 +36,7 @@ public class Begin extends Message {
         Tile[][] board = (Tile[][]) data.get("board");
 
         BeginActivity.runLater(d -> {
+            System.out.println("------------------- BEGIN RUN LATER START");
             BeginActivity context = (BeginActivity) d.get("context");
 
             SharedPreferences preferences = Objects.requireNonNull(context).getPreferences(MODE_PRIVATE);
@@ -57,6 +62,7 @@ public class Begin extends Message {
                 System.out.println("----------------------------------------------------------------------------");
             }
 
+            System.out.println("INTERRUPTING COUNTDOWN");
             Countdown.interrupt();
 
             GameModel.currentPlayer = Objects.requireNonNull(players).get(currentPlayerIndex);
@@ -68,13 +74,17 @@ public class Begin extends Message {
             GameModel.board = board;
 
             if (data.containsKey("name")) GameModel.playerName = (String) data.get("name");
-            if (data.containsKey("player")) GameModel.player = GameModel.getPlayer(Objects.requireNonNull((Player) data.get("player")).name.toString());
+            if (data.containsKey("player")) {
+                GameModel.player = GameModel.getPlayer(Objects.requireNonNull((Player) data.get("player")).name.toString());
+            }
             else GameModel.player = GameModel.getPlayer(GameModel.playerName);
             GameModel.placed.clear();
             GameModel.placed.addAll((List<Tile>) Objects.requireNonNull(data.get("placed")));
 
             Intent intent = new Intent(context, MainActivity.class);
             Objects.requireNonNull(context).startActivity(intent);
+            System.out.println("------------------- BEGIN RUN LATER END");
         });
+        System.out.println("------------------- BEGIN END");
     }
 }

@@ -22,6 +22,8 @@ public class Drawn extends Message implements Serializable {
     @Override
     public void apply() {
         Player player = (Player) data.get("player");
+        System.out.println(">>> DRAWN -> " + Objects.requireNonNull(player).name);
+
         List<Tile> bag = (List<Tile>) data.get("bag");
         int currentPlayerIndex = (int) get("currentPlayerIndex");
         GameFragment.runLater(data1 -> {

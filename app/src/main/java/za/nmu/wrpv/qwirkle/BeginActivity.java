@@ -3,6 +3,7 @@ package za.nmu.wrpv.qwirkle;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +22,6 @@ import za.nmu.wrpv.qwirkle.messages.server.Join;
 import za.nmu.wrpv.qwirkle.messages.server.Rejoin;
 
 public class BeginActivity extends AppCompatActivity {
-    public static int track = 0;
     private static final BlockingDeque<Run> runs = new LinkedBlockingDeque<>();
     private Thread thread;
     @Override
@@ -82,12 +82,6 @@ public class BeginActivity extends AppCompatActivity {
                 if (bundle.containsKey("history")) viewPager2.setCurrentItem(1);
             }
         }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (thread.isAlive()) thread.interrupt();
     }
 
     public static void runLater(Run run) {

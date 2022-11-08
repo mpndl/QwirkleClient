@@ -52,6 +52,8 @@ public class MessagesFragment extends Fragment implements Serializable {
 
             thread = new Thread(() -> {
                 do {
+                    if (getActivity() == null || !isAdded() || getView() == null) continue;
+
                     Map<String, Object> data = new HashMap<>();
                     data.put("adapter", adapter);
                     data.put("context", getActivity());
@@ -72,12 +74,6 @@ public class MessagesFragment extends Fragment implements Serializable {
             setupRecycleView();
             setupListeners();
             setupScrollToBottom();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (thread.isAlive()) thread.interrupt();
     }
 
     private void setupListeners() {

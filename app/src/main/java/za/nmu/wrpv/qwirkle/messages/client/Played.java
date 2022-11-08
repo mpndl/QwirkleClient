@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import za.nmu.wrpv.qwirkle.Game;
 import za.nmu.wrpv.qwirkle.GameFragment;
 import za.nmu.wrpv.qwirkle.GameModel;
 import za.nmu.wrpv.qwirkle.Helper;
@@ -43,6 +44,7 @@ public class Played extends Message implements Serializable {
         List<Tile> placedCopy = (List<Tile>) data.get("placedCopy");
         int currentPlayerIndex = (int) get("currentPlayerIndex");
         int qwirkle = (int) get("qwirkle");
+        System.out.println(">>> PLAYED -> " + Objects.requireNonNull(player).name + " with " + places + ", total points " + player.points);
         GameFragment.runLater(d -> {
             Activity context = (Activity) d.get("context");
             ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
@@ -53,6 +55,7 @@ public class Played extends Message implements Serializable {
 
             Helper.sound(context, R.raw.play);
             if (Objects.requireNonNull(player).name != GameModel.player.name) {
+                GameModel.prevCurrentPlayer = GameModel.getPlayer(player.name.toString());
                 GameModel.updatePlayerTiles(player);
                 GameModel.updatePlayerScore(player);
                 context.runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
@@ -60,7 +63,7 @@ public class Played extends Message implements Serializable {
                 GameModel.bag = bag;
                 GameModel.placed.addAll(Objects.requireNonNull(placed));
 
-                GridLayout glBoard = context.findViewById(R.id.board);
+                GridLayout glBoard = Objects.requireNonNull(context.findViewById(R.id.board));
 
                 context.runOnUiThread(() -> Objects.requireNonNull(fragment).populate(glBoard,  () -> {
                     for (int i = 0; i < Objects.requireNonNull(placedCopy).size(); i++) {

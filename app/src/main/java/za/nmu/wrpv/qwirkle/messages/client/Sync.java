@@ -36,17 +36,21 @@ public class Sync extends Message implements Serializable {
                 ScoreAdapter adapter = (ScoreAdapter) d.get("adapter");
                 GameFragment fragment = (GameFragment) d.get("fragment");
 
-                Objects.requireNonNull(adapter).players = GameModel.players;
-                Objects.requireNonNull(context).runOnUiThread(adapter::notifyDataSetChanged);
+                try {
+                    Objects.requireNonNull(adapter).players = GameModel.players;
+                    Objects.requireNonNull(context).runOnUiThread(adapter::notifyDataSetChanged);
 
-                Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
-                Button btnPlay = Objects.requireNonNull(fragment).requireView().findViewById(R.id.btn_play);
-                Button btnDraw = fragment.requireView().findViewById(R.id.btn_draw);
-                Button btnUndo = fragment.requireView().findViewById(R.id.btn_undo);
-                context.runOnUiThread(() -> {
-                    Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex);
-                    Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
-                });
+                    Objects.requireNonNull(context).runOnUiThread(Objects.requireNonNull(adapter)::notifyDataSetChanged);
+                    Button btnPlay = Objects.requireNonNull(fragment).requireView().findViewById(R.id.btn_play);
+                    Button btnDraw = fragment.requireView().findViewById(R.id.btn_draw);
+                    Button btnUndo = fragment.requireView().findViewById(R.id.btn_undo);
+                    context.runOnUiThread(() -> {
+                        Objects.requireNonNull(fragment).setupCurrentPlayer(currentPlayerIndex);
+                        Helper.enableIfTurn(btnPlay, btnDraw, btnUndo);
+                    });
+                }catch (IllegalStateException e) {
+                    new Stop().apply();
+                }
             });
         }
     }

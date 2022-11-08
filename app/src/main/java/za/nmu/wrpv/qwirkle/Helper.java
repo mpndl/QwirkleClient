@@ -2,6 +2,9 @@ package za.nmu.wrpv.qwirkle;
 
 import static android.content.Context.VIBRATOR_SERVICE;
 
+import static za.nmu.wrpv.qwirkle.ServerHandler.connectErrCount;
+import static za.nmu.wrpv.qwirkle.ServerHandler.connectTimeout;
+
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -38,13 +41,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import za.nmu.wrpv.qwirkle.messages.client.ConnectionError;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
+
 public class Helper {
     public static int BOARD_TILE_SIZE;
     public static int PLAYER_TILE_SIZE_50;
     public static int PLAYER_TILE_SIZE_60;
     public static int PLAYER_TILE_OPACITY = 128;
     public static int screenWidth;
-    public  static int screenHeight;
+    public static int screenHeight;
+
+    public static void connectError() {
+        if (connectErrCount < connectTimeout) {
+            new Stop().apply();
+            connectErrCount++;
+        } else {
+            ConnectionError message = new ConnectionError();
+            message.put("connectErrCount", connectErrCount);
+            message.put("gameID", GameModel.gameID);
+            ServerHandler.send(message);
+            new Stop().apply();
+        }
+    }
+
+    public static void turnErrCheck(Activity context) {
+        Button btnPlay = context.findViewById(R.id.btn_play);
+        if ((!GameModel.isTurn() && btnPlay.isEnabled()) || (GameModel.isTurn() && !btnPlay.isEnabled())) Helper.connectError();
+    }
 
     public static void initializeTileSizes(Activity context) {
         Display display = context.getWindowManager().getDefaultDisplay();

@@ -72,13 +72,6 @@ public class MainActivity extends AppCompatActivity implements Serializable {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        if(thread.isAlive()) thread.interrupt();
-        if (internetTestThread.isAlive()) thread.interrupt();
-    }
-
-    @Override
     public void onBackPressed() {
         String titleForfeit = getResources().getString(R.string.title_forfeit);
         String confForfeit = getResources().getString(R.string.conf_forfeit);

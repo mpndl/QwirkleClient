@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -23,6 +24,9 @@ public class ServerHandler implements Serializable {
     public static ObjectInputStream ois;
     private static ServerReader serverReader;
     private static ServerWriter serverWriter;
+
+    public static int connectErrCount = 0;
+    public static final int connectTimeout = 6;
 
     public static void start() {
         if (!running()) {
@@ -47,8 +51,7 @@ public class ServerHandler implements Serializable {
                 }while (true);
             }catch (InterruptedException | IOException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 serverWriter = null;
             }
         }
@@ -83,6 +86,7 @@ public class ServerHandler implements Serializable {
             catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             } finally {
+                System.out.println("----------------------------- SERVER READER STOPPED");
                 serverReader = null;
                 new Stop().apply();
             }
