@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
@@ -65,6 +66,7 @@ public class ServerHandler implements Serializable {
     private static class ServerReader extends Thread implements Serializable{
         @Override
         public void run() {
+            boolean conn = false;
             try {
                 Socket connection = new Socket(serverAddress, 5051);
                 ois = new ObjectInputStream(connection.getInputStream());
@@ -80,7 +82,10 @@ public class ServerHandler implements Serializable {
                     msg.apply();
                 }while (true);
 
-            }catch (ClassCastException e) {
+            }catch (ConnectException e) {
+                conn = true;
+            }
+            catch (ClassCastException e) {
                 BeginActivity.runLater(d -> Helper.restart((Activity) d.get("context")));
             }
             catch (IOException | ClassNotFoundException e) {
@@ -88,7 +93,7 @@ public class ServerHandler implements Serializable {
             } finally {
                 System.out.println("----------------------------- SERVER READER STOPPED");
                 serverReader = null;
-                new Stop().apply();
+                if (!conn) new Stop().apply();
             }
         }
     }

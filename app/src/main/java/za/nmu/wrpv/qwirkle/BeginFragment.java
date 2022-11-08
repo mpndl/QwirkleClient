@@ -54,6 +54,12 @@ public class BeginFragment extends Fragment {
                 Run run = null;
                 try {
                     run = runs.take();
+
+                    if (getActivity() == null || !isAdded() || getView() == null) {
+                        runs.add(run);
+                        continue;
+                    }
+
                     run.run(data);
                 } catch (NullPointerException e) {
                     if (run != null) {
