@@ -345,7 +345,7 @@ public class GameFragment extends Fragment implements Serializable {
 
     private void legalityMessage(View view ,GameModel.Legality legality) {
         displayMessage(view, requireContext().getResources().getIdentifier("illegal_" + legality.toString().toLowerCase(Locale.ROOT),
-                "string", requireContext().getPackageName()));
+                "string", requireContext().getPackageName()), R.color.green);
     }
 
     private void updateTags() {

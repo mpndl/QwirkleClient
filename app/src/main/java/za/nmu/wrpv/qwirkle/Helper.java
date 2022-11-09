@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import za.nmu.wrpv.qwirkle.messages.client.ConnectionError;
@@ -239,9 +240,9 @@ public class Helper {
         }).start();
     }
 
-    public static void displayMessage(View view, int strID) {
+    public static void displayMessage(View view, int strID, int color) {
         Snackbar snackbar = Snackbar.make(view, view.getResources().getString(strID), Snackbar.LENGTH_INDEFINITE);
-        snackbar.setTextColor(view.getContext().getColor(R.color.green));
+        snackbar.setTextColor(view.getContext().getColor(color));
         snackbar.setAction(view.getResources().getString(R.string.ok), view1 -> {
             snackbar.dismiss();
         });
@@ -340,14 +341,14 @@ public class Helper {
         return "";
     }
 
-    private static String getWifiIPAddress(Context context) {
+    public static String getWifiIPAddress(Context context) {
         WifiManager wifiMgr = (WifiManager) context.getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
         return Formatter.formatIpAddress(ip);
     }
 
-    public static List<String> getIpAddresses() {
+    private static List<String> getIpAddresses() {
         List<String> ipAddresses = new ArrayList<>();
         try {
             Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
@@ -359,11 +360,12 @@ public class Helper {
                         .getInetAddresses();
                 while (enumInetAddress.hasMoreElements()) {
                     InetAddress inetAddress = enumInetAddress.nextElement();
-
                     if (inetAddress.isSiteLocalAddress()) {
-                        ipAddresses.add(inetAddress.getHostAddress());
+                        //ipAddresses.add(inetAddress.getHostAddress());
+                        String ip = inetAddress.getHostAddress();
+                        String[] i = Objects.requireNonNull(ip).split("\\.");
+                        if (i.length > 2) ipAddresses.add(ip);
                     }
-
                 }
 
             }
@@ -374,6 +376,41 @@ public class Helper {
         }
 
         return ipAddresses;
+    }
+
+    public static List<String> getIPRange(Context context) {
+        List<String> range = new ArrayList<>();
+        String wifi = getWifiIPAddress(context);
+        String ip = "";
+        if (!wifi.equals("0.0.0.0")) ip = wifi;
+        else {
+            List<String> ips = getIpAddresses();
+            ip = ips.get(0);
+        }
+        for (int i = 0; i <= 255; i++) {
+            String temp = ip.substring(0, ip.length() - 1);
+            range.add(temp + i);
+        }
+        return range;
+    }
+
+    public static List<String> getIPRange2(Context context) {
+        List<String> range = new ArrayList<>();
+        String wifi = getWifiIPAddress(context);
+        String ip = "";
+        if (!wifi.equals("0.0.0.0")) {
+            range.add(wifi);
+            return range;
+        }
+        else {
+            List<String> ips = getIpAddresses();
+            ip = ips.get(0);
+        }
+        for (int i = 0; i <= 255; i++) {
+            String temp = ip.substring(0, ip.length() - 1);
+            range.add(temp + i);
+        }
+        return range;
     }
 
     public static void setBackgroundBorder(View view, Player player, int width) {

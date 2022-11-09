@@ -13,7 +13,7 @@
     <string name="no">Cha</string>
     <string name="congrats">Siyakuhalalisela %s uwine ngamaphuzu angu-%s!</string>
     <string name="connecting">Isungula uxhumano</string>
-    <string name="connection_error">Sicela uhlole ukuxhumana kwakho</string>
+    <string name="connection_error">Ayikwazanga ukuxhuma kuseva</string>
     <string name="waiting">Ilinde abadlali ukuthi bajoyine</string>
     <string name="waiting_countdown">Ilinde abadlali ukuthi bajoyine (%d)</string>
     <string name="stop">Yeka</string>
@@ -40,4 +40,6 @@
     <string name="special_instructions">Iziyalezo Ezikhethekile</string>
     <string name="illegal_placed_tile_forming_identical_attribute_line_to_adjacent_tile_line">Amathayela awakwazi ukwakha umugqa ofanayo wezici onomugqa wethayela elincikene</string>
     <string name="connect">Xhuma</string>
+    <string name="connected">Ixhumeke kuseva</string>
+    <string name="enable">Shintsha</string>
 </resources>

@@ -3,7 +3,6 @@ package za.nmu.wrpv.qwirkle;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import za.nmu.wrpv.qwirkle.messages.server.Join;
 import za.nmu.wrpv.qwirkle.messages.server.Rejoin;
 
 public class BeginActivity extends AppCompatActivity {
@@ -35,9 +33,10 @@ public class BeginActivity extends AppCompatActivity {
         System.out.println("clientID = "+ clientID + ", gameID = " + gameID);
 
         String ip = getPreferences(MODE_PRIVATE).getString("server_address", null);
-        List<String> ipAddresses = Helper.getIpAddresses();
-        if (ip != null) ipAddresses.add(ip);
-        ServerHandler.serverAddresses = ipAddresses;
+        // Try first
+        if (ip != null) ServerHandler.serverAddresses.add(0, ip);
+
+        ServerHandler.serverAddresses = Helper.getIPRange2(getApplicationContext());
         ServerHandler.start();
 
         if (ServerHandler.running()) {

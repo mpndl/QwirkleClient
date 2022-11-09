@@ -19,33 +19,20 @@ public class Stop extends Message {
 
     @Override
     public void apply() {
-        if (!data.containsKey("connectionError")) {
-            System.out.println("---------------------------------------------------------- GAME ENDED");
-            Countdown.interrupt();
-            GameFragment.runLater(data1 -> {
-                Activity context = (Activity) data1.get("context");
-                Objects.requireNonNull(context).finish();
-            });
+        System.out.println("---------------------------------------------------------- GAME ENDED");
+        Countdown.interrupt();
+        GameFragment.runLater(data1 -> {
+            Activity context = (Activity) data1.get("context");
+            Objects.requireNonNull(context).finish();
+        });
 
-            BeginFragment.runLater(d -> {
-                Activity context = (Activity) d.get("context");
-                Button btnStartGame = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
-                context.runOnUiThread(() -> {
-                    if (!ServerHandler.running()) btnStartGame.setText(R.string.connect);
-                    else btnStartGame.setText(R.string.btn_start_game);
-                });
+        BeginFragment.runLater(d -> {
+            Activity context = (Activity) d.get("context");
+            Button btnStartGame = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
+            context.runOnUiThread(() -> {
+                if (!ServerHandler.running()) btnStartGame.setText(R.string.connect);
+                else btnStartGame.setText(R.string.btn_start_game);
             });
-        }else {
-            BeginFragment.runLater( d-> {
-                Activity context = (Activity) d.get("context");
-                Button btnStartGame = Objects.requireNonNull(context).findViewById(R.id.btn_start_game);
-                System.out.println("CONNECTION ERROR");
-                Objects.requireNonNull(context).runOnUiThread(() -> {
-                    Toast.makeText(context, R.string.connection_error, Toast.LENGTH_SHORT).show();
-                    if (!ServerHandler.running()) btnStartGame.setText(R.string.connect);
-                    else btnStartGame.setText(R.string.btn_start_game);
-                });
-            });
-        }
+        });
     }
 }

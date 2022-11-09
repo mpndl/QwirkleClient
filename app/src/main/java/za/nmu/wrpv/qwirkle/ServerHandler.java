@@ -19,6 +19,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Forfeit;
 import za.nmu.wrpv.qwirkle.messages.client.Stop;
+import za.nmu.wrpv.qwirkle.messages.server.Connected;
+import za.nmu.wrpv.qwirkle.messages.server.Connecting;
+import za.nmu.wrpv.qwirkle.messages.server.NConnected;
 
 public class ServerHandler implements Serializable {
     private static final BlockingQueue<Message> messages = new LinkedBlockingQueue<>();
@@ -40,6 +43,12 @@ public class ServerHandler implements Serializable {
             serverReader = new ServerReader();
             serverReader.start();
         }
+    }
+
+    public static void restart() {
+        System.out.println("========================== RE-ESTABLISHING CONNECTION");
+        stop();
+        start();
     }
 
     public static boolean running() {
@@ -66,14 +75,19 @@ public class ServerHandler implements Serializable {
     public static void interrupt() {
         if (running()) serverReader.interrupt();
         serverReader = null;
+        serverWriter = null;
     }
 
     private static Socket getConnection() throws ConnectException {
+        Connecting message = new Connecting();
+        message.apply();
+        //System.out.println("LOOP SIZE = " + serverAddresses.size());
         for (String ip: serverAddresses) {
-            System.out.println("ATTEMPTING IP = " + ip);
+          //  System.out.println("ATTEMPTING IP = " + ip);
             try {
                 Socket connection = new Socket();
-                connection.connect(new InetSocketAddress(ip, 5051), 5000);
+                connection.connect(new InetSocketAddress(ip, 5051), 50);
+                serverAddress = ip;
                 return connection;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -89,6 +103,8 @@ public class ServerHandler implements Serializable {
                 Socket connection;
                 if (serverAddress == null) connection = getConnection();
                 else {
+                    Connecting message = new Connecting();
+                    message.apply();
                     connection = new Socket();
                     connection.connect(new InetSocketAddress(serverAddress, 5051), 5000);
                 }
@@ -100,6 +116,8 @@ public class ServerHandler implements Serializable {
                 serverWriter = new ServerWriter();
                 serverWriter.start();
 
+                Connected message = new Connected();
+                message.apply();
                 Message msg;
                 do {
                     msg = (Message) ois.readObject();
@@ -107,8 +125,7 @@ public class ServerHandler implements Serializable {
                 }while (true);
 
             }catch (ConnectException | SocketTimeoutException e) {
-                Stop message = new Stop();
-                message.put("connectionError", true);
+                NConnected message = new NConnected();
                 message.apply();
             }
             catch (ClassCastException e) {

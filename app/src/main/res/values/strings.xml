@@ -13,7 +13,7 @@
     <string name="no">No</string>
     <string name="congrats">Congratulations %s you won by %s points!</string>
     <string name="connecting">Establishing connection</string>
-    <string name="connection_error">Please check your connection</string>
+    <string name="connection_error">Could not connect to server</string>
     <string name="waiting">Waiting for players to join</string>
     <string name="waiting_countdown">Waiting for players to join (%d)</string>
     <string name="stop">Stop</string>
@@ -40,5 +40,7 @@
     <string name="special_instructions">Special Instructions:</string>
     <string name="illegal_placed_tile_forming_identical_attribute_line_to_adjacent_tile_line">Tiles cannot form an identical line of attributes with a line of an adjacent tile</string>
     <string name="connect">Connect</string>
+    <string name="connected">Connected to server</string>
+    <string name="enable">Change</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

@@ -102,15 +102,10 @@ public class BeginFragment extends Fragment {
             }
         });
 
+        etPlayerCount.setEnabled(false);
         SwitchMaterial sLan = requireView().findViewById(R.id.s_lan);
         sLan.setOnCheckedChangeListener((compoundButton, b) -> {
-            if (b) {
-                etPlayerCount.setText(R.string.lan);
-                ServerHandler.serverAddress = null;
-            }else {
-                etPlayerCount.setText(serverAddress);
-                ServerHandler.serverAddress = serverAddress;
-            }
+            etPlayerCount.setEnabled(b);
         });
 
         Button btnStartGame = requireView().findViewById(R.id.btn_start_game);
@@ -129,14 +124,11 @@ public class BeginFragment extends Fragment {
 
         EditText etServerAddress = requireView().findViewById(R.id.et_server_address);
 
-        if (!ServerHandler.running()) {
-            SwitchMaterial sLan = requireView().findViewById(R.id.s_lan);
-            if (!sLan.isChecked()) {
-                requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
-                ServerHandler.serverAddress = etServerAddress.getText().toString();
-            }
-            ServerHandler.start();
-            btnStartGame.setText(R.string.connecting);
+        SwitchMaterial sLan = requireView().findViewById(R.id.s_lan);
+        if (sLan.isChecked() && !ServerHandler.serverAddress.equals(etServerAddress.getText().toString())) {
+            requireActivity().getPreferences(MODE_PRIVATE).edit().putString("server_address", etServerAddress.getText().toString()).apply();
+            ServerHandler.serverAddress = etServerAddress.getText().toString();
+            ServerHandler.restart();
         }
 
         SharedPreferences preferences  = requireActivity().getPreferences(MODE_PRIVATE);
