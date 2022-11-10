@@ -382,33 +382,26 @@ public class Helper {
         List<String> range = new ArrayList<>();
         String wifi = getWifiIPAddress(context);
         String ip = "";
-        if (!wifi.equals("0.0.0.0")) ip = wifi;
-        else {
-            List<String> ips = getIpAddresses();
-            ip = ips.get(0);
-        }
-        for (int i = 0; i <= 255; i++) {
-            String temp = ip.substring(0, ip.length() - 1);
-            range.add(temp + i);
-        }
-        return range;
-    }
-
-    public static List<String> getIPRange2(Context context) {
-        List<String> range = new ArrayList<>();
-        String wifi = getWifiIPAddress(context);
-        String ip = "";
         if (!wifi.equals("0.0.0.0")) {
-            range.add(wifi);
-            return range;
+            String[] split = wifi.split("\\.");
+            StringBuilder newIP = new StringBuilder();
+            for(int j = 0; j < split.length - 1; j++) {
+                newIP.append(split[j]).append(".");
+            }
+            ip = newIP.toString();
         }
         else {
             List<String> ips = getIpAddresses();
-            ip = ips.get(0);
+            String i = ips.get(0);
+            String[] split = i.split("\\.");
+            StringBuilder newIP = new StringBuilder();
+            for(int j = 0; j < split.length - 1; j++) {
+                newIP.append(split[j]).append(".");
+            }
+            ip = newIP.toString();
         }
         for (int i = 0; i <= 255; i++) {
-            String temp = ip.substring(0, ip.length() - 1);
-            range.add(temp + i);
+            range.add(ip + i);
         }
         return range;
     }

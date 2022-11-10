@@ -36,7 +36,7 @@ public class BeginActivity extends AppCompatActivity {
         // Try first
         if (ip != null) ServerHandler.serverAddresses.add(0, ip);
 
-        ServerHandler.serverAddresses = Helper.getIPRange2(getApplicationContext());
+        ServerHandler.serverAddresses = Helper.getIPRange(getApplicationContext());
         ServerHandler.start();
 
         if (ServerHandler.running()) {

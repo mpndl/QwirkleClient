@@ -33,7 +33,6 @@ public class NConnected extends Message implements Serializable {
                 etPlayerCount.setText(null);
                 SwitchMaterial sLan = context.findViewById(R.id.s_lan);
                 sLan.setEnabled(true);
-                btnStartGame.setText(R.string.btn_start_game);
                 btnStartGame.setEnabled(true);
             });
         });
