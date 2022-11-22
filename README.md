@@ -1,2 +1,4 @@
 # Qwirkle
-(https://www.youtube.com/watch?v=Hc79sDi3f0U "Now in Android: 55")
+
+## A Video demonstrating game play and functionality
+(https://github.com/mpndl/Qwirkle/blob/master/presentation/qwirkle.mp4)
