@@ -1,5 +1,5 @@
 # Qwirkle
-A networked multiplayer (i.e., each player uses own mobile device) game adaptation of the equivalent tile-based game. The apk file is in [app-debug.apk](/app/build.outputs/apk/debug).
+A networked multiplayer (i.e., each player uses own mobile device) game adaptation of the equivalent tile-based game. The apk file is in [app-debug.apk](/app/build/outputs/apk/debug).
 
 ## QwirkleServer
 The server is in [QwirkleServer](https://github.com/mpndl/QwirkleServer).
